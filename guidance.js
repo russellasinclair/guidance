@@ -120,13 +120,13 @@ var Guidance = Guidance || (function () {
         let sections = new Map();
         var cleanupText = gmnotes;
 
-        sections.set('header', cleanupText.substr(0, cleanupText.indexOf("DEFENSE")));
+        sections.set('header', cleanupText.substring(0, cleanupText.indexOf("DEFENSE")));
         cleanupText = cleanupText.substr(cleanupText.indexOf("DEFENSE"));
 
-        sections.set('defense', cleanupText.substr(0, cleanupText.indexOf("OFFENSE")));
+        sections.set('defense', cleanupText.substring(0, cleanupText.indexOf("OFFENSE")));
         cleanupText = cleanupText.substr(cleanupText.indexOf("OFFENSE"));
 
-        sections.set('offense', cleanupText.substr(0, cleanupText.indexOf("STATISTICS")));
+        sections.set('offense', cleanupText.substring(0, cleanupText.indexOf("STATISTICS")));
         cleanupText = cleanupText.substr(cleanupText.indexOf("STATISTICS"));
 
         sections.set('statistics', cleanupText);
@@ -170,10 +170,27 @@ var Guidance = Guidance || (function () {
         setAttribute(char, "Will-npc", getValue("Will", gmnotes));
         setAttribute(char, "HP-npc", getValue("HP", gmnotes));
         setAttribute(char, "npc-resistances", getValue("Resistances", gmnotes, ";"));
+        setAttribute(char, "npc-DR", getValue("DR", gmnotes, ";"));
+
+        var defensiveAbilities = "";
+        if(gmnotes.includes("vs.")) {
+            var extraSaveStart = gmnotes.indexOf("Will") + 3;
+            defensiveAbilities = gmnotes.substr(extraSaveStart);
+            extraSaveStart = defensiveAbilities.indexOf(";");
+            defensiveAbilities = defensiveAbilities.substr(extraSaveStart+1);
+            if(defensiveAbilities.includes("Defensive")) {
+                defensiveAbilities = defensiveAbilities.substring(0, defensiveAbilities.indexOf("Defensive"));
+            }
+        }
+        if(gmnotes.includes("Defensive")) {
+            var start = gmnotes.indexOf("Defensive Abilities") + "Defensive Abilities".length;
+            defensiveAbilities = gmnotes.substr(start) + " " + defensiveAbilities;
+        }
+        setAttribute(char, "npc-defensive-abilities", defensiveAbilities);
     };
 
     var populateOffense = function (gmnotes, char) {
-        setAttribute(char, "npc-special-attacks", getValue("Offensive Abilities", gmnotes, "Statistics"));
+        setAttribute(char, "npc-special-attacks", getValue("Offensive Abilities", gmnotes, "STATISTICS"));
 
         if(gmnotes.includes("Speed")) {
             var speed = getStringValue("Speed", gmnotes, "ft.,").trim();
@@ -283,33 +300,33 @@ var Guidance = Guidance || (function () {
             }
 
             setAttribute(char, "npc-size", dropdown);
-            i = 3;
-
-            subtype = "";
-            while (subsections[i].trim() != "Init") {
-                subtype = subtype + subsections[i] + " ";
-                i++;
-            }
-
-            setAttribute(char, "npc-subtype", section.substr(subtypeStart, section.indexOf("Init")));
+            setAttribute(char, "npc-subtype", section.substring(subtypeStart, section.indexOf("Init")));
         } catch (err) {
             log("Problems with alignment, size,subtype");
         }
     };
 
     var doWeapons = function (gmnotes, ident) {
-        gmnotes = gmnotes.replace(/Attacks/i, "").replace(/ or /g, ";").replace(/Ranged/g, ";").replace(/Melee/g, ";"
+        var delimiter = "~~~";
+        gmnotes = gmnotes.replace(/Attacks/i, ""
+        ).replace(/ or /g, delimiter
+        ).replace(/Ranged/g, delimiter
+        ).replace(/Melee/g, delimiter
         ).replace(/OFFENSE/, "");
 
         if (gmnotes.indexOf("Space") > 0) {
-            gmnotes = gmnotes.substr(0, gmnotes.indexOf("Space"))
+            gmnotes = gmnotes.substring(0, gmnotes.indexOf("Space"))
         }
 
         if (gmnotes.indexOf("Spell") > 0) {
-            gmnotes = gmnotes.substr(0, gmnotes.indexOf("Spell"))
+            gmnotes = gmnotes.substring(0, gmnotes.indexOf("Spell"))
         }
 
-        var attacks = gmnotes.split(";")
+        if (gmnotes.indexOf("Offensive Abilities") > 0) {
+            gmnotes = gmnotes.substring(0, gmnotes.indexOf("Offensive Abilities"))
+        }
+
+        var attacks = gmnotes.split(delimiter)
         for (attack of attacks) {
             attack = attack.trim();
             if (attack.length > 1) {
@@ -373,7 +390,7 @@ var Guidance = Guidance || (function () {
         try {
             if (!foundAttribute) {
                 if (typeof operator !== 'undefined' && !isNaN(newValue)) {
-                    log(newValue + " is a number.");
+                  //  log(newValue + " is a number.");
                     newValue = mod_newValue[operator](newValue);
                 }
 
@@ -426,7 +443,9 @@ var Guidance = Guidance || (function () {
         }
         bucket = bucket.trim();
         var end = bucket.toLowerCase().indexOf(delimiter.toLowerCase());
-        bucket = bucket.substr(0, end);
+        if(end > 1) {
+            bucket = bucket.substring(0, end);
+        }
         return bucket
 
     };
