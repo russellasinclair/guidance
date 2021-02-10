@@ -5,13 +5,14 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 */
 var Guidance = Guidance || (function () {
 
+    var  version = "Guidance is online. Version 0.8";
     var debug = true;
     on("ready", function () {
         metatron("Greetings, I am Guidance. I am here to assist you working with your Starfinders to make " +
             "your time in the Pact Worlds more enjoyable. To learn how to use my services, simply type " +
             "<b>sf_help</b> into the chat");
-        metatron("I'm currently at version 0.8")
-        log("Ready!")
+        metatron(version);
+        log(version);
     });
 
     on("chat:message", function (msg) {
@@ -135,6 +136,7 @@ var Guidance = Guidance || (function () {
 
     // Populate data
     var doSpells = function (gmnotes, ident) {
+        metatron("I'm not yet able to parse Spells and Spell-Like Abilities")
     };
 
     var cleanText = function (text) {
