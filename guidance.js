@@ -5,13 +5,13 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 */
 var Guidance = Guidance || (function () {
 
-    var updateAll = true;
+    var debug = true;
     on("ready", function () {
-        metatron("Greetings, I am Guidance. " +
-            "I am here to assist you working with your Starfinders to make " +
-            "your time in the Pact Worlds more enjoyable. To learn how to use " +
-            "my services, simply type <b>sf_help</b> into the chat!");
+        metatron("Greetings, I am Guidance. I am here to assist you working with your Starfinders to make " +
+            "your time in the Pact Worlds more enjoyable. To learn how to use my services, simply type " +
+            "<b>sf_help</b> into the chat");
         metatron("I'm currently at version 0.8")
+        log("Ready!")
     });
 
     on("chat:message", function (msg) {
@@ -20,17 +20,15 @@ var Guidance = Guidance || (function () {
         }
 
         if (String(msg.content).startsWith("!sf_help")) {
-            metatron("I have several commands I support:\n" +
-                "<b><i>sf_populate</i></b> will allow you to take a Starfinder statblock " +
-                "that is in the GM notes section of a selected character and I " +
-                "will attempt to use it to fill out the NPC section of the " +
-                "Starfinder (Simple) character sheet\n\n");
-            metatron("Currently, I support statblocks from the " +
-                "Roll20 compendium and Archives of Nethys.");
-            metatron("<b><i>sf_clean CONFIRM</i></b> will allow me to take a " +
-                "selected character sheet and completely <b>AND PERMANENTLY</b> remove " +
-                "all data from it. I recommend against using this unless you are" +
-                "about to reimport a character.");
+            metatron("I have several commands I support: \n " +
+                "<b><i>sf_populate</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
+                "of a selected character and I will attempt to use it to fill out the NPC section of the Starfinder " +
+                "(Simple) character sheet\n\n");
+            metatron("Currently, I support statblocks from the Roll20 compendium and Archives of Nethys. " +
+                "<i>I don't do well with Society PDFs</i>. If you want to attempt using one, double check my work");
+            metatron("<b><i>sf_clean CONFIRM</i></b> will allow me to take a selected character sheet and completely " +
+                "<b>AND PERMANENTLY</b> remove all data from it. <i>I recommend against using this unless you are about " +
+                "to reimport a character</i>.");
             return;
         }
 
@@ -49,11 +47,8 @@ var Guidance = Guidance || (function () {
         if (String(msg.content).startsWith("!sf_debug")) {
             log("start");
             char.get("gmnotes", function (gmnotes) {
-                cleanNotes = cleanText(gmnotes);
-                var section = getSubSections(cleanNotes);
-                for (const [key, value] of section.entries()) {
-                    log(key, value);
-                }
+                metatron( getStringValue("Speed", gmnotes, ".,"));
+                speed-base-npc
             });
             log("Done");
         }
@@ -116,53 +111,57 @@ var Guidance = Guidance || (function () {
                 token.set("bar3_max", ac.get("current"));
                 token.set("showname", true);
                 setAttribute(char.get("_id"), "tab", 4);
-                metatron("char.get("
-                name
-                ") + "
-                NPC
-                character
-                sheet
-                processed
-                ");
+                metatron(char.get("name") + "NPC character sheet processed");
             });
         }
     });
 
     var getSubSections = function (gmnotes) {
         let sections = new Map();
-        sections.set('header', gmnotes.substr(0, gmnotes.indexOf("DEFENSE")));
-        sections.set('defense', gmnotes.substr(gmnotes.indexOf("DEFENSE"), gmnotes.indexOf("OFFENSE")));
-        if (gmnotes.indexOf("TACTICS") > 0) {
-            sections.set('offense', gmnotes.substr(gmnotes.indexOf("OFFENSE"), gmnotes.indexOf("TACTICS")));
-            sections.set('tactics', gmnotes.substr(gmnotes.indexOf("TACTICS"), gmnotes.indexOf("STATISTICS")));
-        } else {
-            sections.set('offense', gmnotes.substr(gmnotes.indexOf("OFFENSE"), gmnotes.indexOf("STATISTICS")));
-        }
-        sections.set('statistics', gmnotes.substr(gmnotes.indexOf("STATISTICS")));
+        var cleanupText = gmnotes;
+
+        sections.set('header', cleanupText.substr(0, cleanupText.indexOf("DEFENSE")));
+        cleanupText = cleanupText.substr(cleanupText.indexOf("DEFENSE"));
+
+        sections.set('defense', cleanupText.substr(0, cleanupText.indexOf("OFFENSE")));
+        cleanupText = cleanupText.substr(cleanupText.indexOf("OFFENSE"));
+
+        sections.set('offense', cleanupText.substr(0, cleanupText.indexOf("STATISTICS")));
+        cleanupText = cleanupText.substr(cleanupText.indexOf("STATISTICS"));
+
+        sections.set('statistics', cleanupText);
         return sections;
-    }
+    };
 
     // Populate data
     var doSpells = function (gmnotes, ident) {
     };
+
     var cleanText = function (text) {
         return text.replace(/(<([^>]+)>)/gi, " "
         ).replace(/&nbsp;/gi, " "
         ).replace(/\s+/g, ' '
-        ).replace(/Offense/i, "OFFENSE"
-        ).replace(/Defense/i, "DEFENSE"
-        ).replace(/Statistics/i, "STATISTICS"
-        ).replace(/Ecology/i, "ECOLOGY"
-        ).replace(/Special Abilities/i, "SPECIAL ABILITIES"
-        ).replace(/Tactics/i, "TACTICS");
-    }
+        ).replace(/Offense/i, " OFFENSE "
+        ).replace(/Defense/i, " DEFENSE "
+        ).replace(/Statistics/i, " STATISTICS "
+        ).replace(/Ecology/i, "ECOLOGY "
+        ).replace(/Special Abilities/i, " SPECIAL ABILITIES "
+        ).replace(/Tactics/i, " TACTICS "
+        ).replace(/ Str /i, " Str "
+        ).replace(/ Dex /i, " Dex "
+        ).replace(/ Con /i, " Con "
+        ).replace(/ Int /i, " Int "
+        ).replace(/ Wis /i, " Wis "
+        ).replace(/ Cha /i, " Cha "
+        );
+    };
 
     var populateHeader = function (gmnotes, char) {
         setAttribute(char, "npc-cr", getValue("CR", gmnotes));
-        setAttribute(char, "npc-XP", getValue("XP", gmnotes));
+        setAttribute(char, "npc-XP", getValue("XP", gmnotes).replace(/\s/, ""));
         setAttribute(char, "npc-senses", getValue("Senses", gmnotes, ";"));
-        setAttribute(char, "npc-init-misc", getSkillValue("Init", "Dex", gmnotes));
-    }
+    };
+
     var populateDefense = function (gmnotes, char) {
         setAttribute(char, "EAC-npc", getValue("EAC", gmnotes));
         setAttribute(char, "KAC-npc", getValue("KAC", gmnotes));
@@ -171,12 +170,26 @@ var Guidance = Guidance || (function () {
         setAttribute(char, "Will-npc", getValue("Will", gmnotes));
         setAttribute(char, "HP-npc", getValue("HP", gmnotes));
         setAttribute(char, "npc-resistances", getValue("Resistances", gmnotes, ";"));
-    }
+    };
+
     var populateOffense = function (gmnotes, char) {
         setAttribute(char, "npc-special-attacks", getValue("Offensive Abilities", gmnotes, "Statistics"));
+
+        if(gmnotes.includes("Speed")) {
+            var speed = getStringValue("Speed", gmnotes, "ft.,").trim();
+            setAttribute(char, "speed-base-npc", speed);
+            gmnotes = gmnotes.substr(gmnotes.indexOf("ft.") + 3);
+        }
+        if(gmnotes.toLowerCase().includes("fly")) {
+            //var speed = getStringValue("Fly", gmnotes, "ft.").trim();
+            //setAttribute(char, "speed-fly-npc", speed);
+            metatron("Warning NPC can fly, and I've not put that in right. Look at the first Weapon for details")
+        }
+
         doWeapons(gmnotes, char);
         doSpells(gmnotes, char);
-    }
+    };
+
     var populateStatics = function (gmnotes, char) {
         setAttribute(char, "STR-bonus", getValue("Str", gmnotes));
         setAttribute(char, "DEX-bonus", getValue("Dex", gmnotes));
@@ -187,7 +200,7 @@ var Guidance = Guidance || (function () {
         setAttribute(char, "languages-npc", getValue("Languages", gmnotes, "Other"));
         setAttribute(char, "npc-gear", getValue("Gear", gmnotes, "Ecology"));
         setAttribute(char, "SQ", getValue("Other Abilities", gmnotes, "Gear"));
-    }
+    };
 
     var populateSkills = function (gmnotes, char) {
         setAttribute(char, "Acrobatics-npc-misc", getSkillValue("Acrobatics", "Dex", gmnotes));
@@ -208,65 +221,77 @@ var Guidance = Guidance || (function () {
         setAttribute(char, "Sleight-of-Hand-npc-misc", getSkillValue("Sleight-of-Hand", "Dex", gmnotes));
         setAttribute(char, "Stealth-npc-misc", getSkillValue("Stealth", "Dex", gmnotes));
         setAttribute(char, "Survival-npc-misc", getSkillValue("Survival", "Wis", gmnotes));
-    }
+    };
 
     // Everything Else that needs more detail
     var populateNPC = function (gmnotes, char) {
         setAttribute(char, "Perception-npc-misc", getSkillValue("Perception", "Wis", gmnotes));
+        setAttribute(char, "npc-init-misc", getSkillValue("Init", "Dex", gmnotes));
 
         try {
             var section = getStringValue("XP", gmnotes, "DEFENSE").trim();
             var subsections = section.split(' ');
 
-            if (subsections[1].length > 1) {
-                setAttribute(char, "npc-alignment", subsections[1]);
+            if (section.includes("LG")) {
+                setAttribute(char, "npc-alignment", "LG");
+            } else if (section.includes("NG")) {
+                setAttribute(char, "npc-alignment", "NG");
+            }else if (section.includes("CG")) {
+                setAttribute(char, "npc-alignment", "CG");
+            }else if (section.includes("LN")) {
+                setAttribute(char, "npc-alignment", "LN");
+            }else if (section.includes("CN")) {
+                setAttribute(char, "npc-alignment", "CN");
+            }else if (section.includes("LE")) {
+                setAttribute(char, "npc-alignment", "LE");
+            }else if (section.includes("NE")) {
+                setAttribute(char, "npc-alignment", "NE");
+            }else if (section.includes("CE")) {
+                setAttribute(char, "npc-alignment", "CE");
+            } else {
+                setAttribute(char, "npc-alignment", "N");
             }
 
-            var size = subsections[2].trim();
-            var dropdown = 0;
-            log("Size = " + size);
-
-            switch (size) {
-                case "Colossal" :
-                    dropdown = -8;
-                    break;
-                case "Gargantuan" :
-                    dropdown = -4;
-                    break;
-                case "Huge" :
-                    dropdown = -2;
-                    break;
-                case "Large" :
-                    dropdown = -1;
-                    break;
-                case "Medium" :
-                    dropdown = 0;
-                    break;
-                case "Small" :
-                    dropdown = 1;
-                    break;
-                case "Tiny" :
-                    dropdown = 2;
-                    break;
-                case "Diminutive" :
-                    dropdown = 4;
-                    break;
-                case "Fine" :
-                    dropdown = 8;
-                    break;
-                default :
-                    dropdown = 0;
+            var subtypeStart = 0;
+            if(section.includes("Colossal")) {
+                dropdown = -8;
+                subtypeStart = section.indexOf("Colossal") + "Colossal".length;
+            } else if (section.includes("Gargantuan")) {
+                dropdown = -4;
+                subtypeStart = section.indexOf("Gargantuan") + "Gargantuan".length;
+            } else if (section.includes("Huge")) {
+                dropdown = -2;
+                subtypeStart = section.indexOf("Huge") + "Huge".length;
+            } else if (section.includes("Large")) {
+                dropdown = -1;
+                subtypeStart = section.indexOf("Large") + "Large".length;
+            } else if (section.includes("Medium")) {
+                dropdown = 0;
+                subtypeStart = section.indexOf("Medium") + "Medium".length;
+            } else if (section.includes("Small")) {
+                dropdown = 1;
+                subtypeStart = section.indexOf("Small") + "Small".length;
+            } else if (section.includes("Tiny")) {
+                dropdown = 2;
+                subtypeStart = section.indexOf("Tiny") + "Tiny".length;
+            } else if (section.includes("Diminutive")) {
+                dropdown = 4;
+                subtypeStart = section.indexOf("Diminutive") + "Diminutive".length;
+            } else if (section.includes("Fine")) {
+                dropdown = 8;
+                subtypeStart = section.indexOf("Fine") + "Fine".length;
             }
 
             setAttribute(char, "npc-size", dropdown);
             i = 3;
+
             subtype = "";
             while (subsections[i].trim() != "Init") {
                 subtype = subtype + subsections[i] + " ";
                 i++;
             }
 
-            setAttribute(char, "npc-subtype", subtype);
+            setAttribute(char, "npc-subtype", section.substr(subtypeStart, section.indexOf("Init")));
         } catch (err) {
             log("Problems with alignment, size,subtype");
         }
@@ -280,8 +305,8 @@ var Guidance = Guidance || (function () {
             gmnotes = gmnotes.substr(0, gmnotes.indexOf("Space"))
         }
 
-        if (gmnotes.indexOf("Spells") > 0) {
-            gmnotes = gmnotes.substr(0, gmnotes.indexOf("Spells"))
+        if (gmnotes.indexOf("Spell") > 0) {
+            gmnotes = gmnotes.substr(0, gmnotes.indexOf("Spell"))
         }
 
         var attacks = gmnotes.split(";")
@@ -352,7 +377,7 @@ var Guidance = Guidance || (function () {
                     newValue = mod_newValue[operator](newValue);
                 }
 
-                log("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterID + " with a value of " + newValue + ".");
+             //   log("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterID + " with a value of " + newValue + ".");
                 createObj("attribute", {
                     name: attributeName,
                     current: newValue,
@@ -363,7 +388,7 @@ var Guidance = Guidance || (function () {
                 if (typeof operator !== 'undefined' && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
                     newValue = parseFloat(foundAttribute.get("current")) + parseFloat(mod_newValue[operator](newValue));
                 }
-                log("DefaultAttributes: Setting " + attributeName + " on character ID " + characterID + " to a value of " + newValue + ".");
+               // log("DefaultAttributes: Setting " + attributeName + " on character ID " + characterID + " to a value of " + newValue + ".");
                 foundAttribute.set("current", newValue);
                 foundAttribute.set("max", newValue);
                 updateAll = false;
@@ -376,6 +401,7 @@ var Guidance = Guidance || (function () {
     // Parsing routines
     var getSkillValue = function (skillName, attribute, haystack) {
         if (Number(getValue(skillName, haystack).trim()) > 2) {
+            log(skillName + " : " + getValue(skillName, haystack) + " - " + attribute + " : " + getValue(attribute, haystack));
             return Number(getValue(skillName, haystack).trim()) - Number(getValue(attribute, haystack).trim())
         }
         return 0;
@@ -383,7 +409,7 @@ var Guidance = Guidance || (function () {
 
     var getValue = function (needle, haystack, delimiter) {
         bucket = getStringValue(needle, haystack, delimiter);
-        return bucket.replace(";", "").replace("+", "").trim();
+        return bucket.replace(";", "").replace("+", "").replace(",", " ").trim();
     };
 
     var getStringValue = function (needle, haystack, delimiter) {
