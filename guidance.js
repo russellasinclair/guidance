@@ -4,7 +4,7 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 !sf_populate - will parse a stat-block in the GM Notes of a character, and populate the NPC tab of the character sheet with the values
 */
 var Guidance = Guidance || (function () {
-    var version = "-=> Guidance is online. v0.8 <=-";
+    var version = "-=> Guidance is online. v0.9.5 <=-";
     var debugMode = true;
     on("ready", function () {
         speakAsGuidanceToGM("Greetings, I am Guidance. I am here to assist you working with your Starfinders to make " +
@@ -41,16 +41,8 @@ var Guidance = Guidance || (function () {
                 return;
             }
 
-            var characterId;
-            var characterSheet;
-
-            try {
-                characterId = tokenLinkedToNpcCharacterSheet.get("represents");
-                characterSheet = findObjs({_id: characterId, _type: "character"})[0];
-            } catch (e) {
-                speakAsGuidanceToGM("Selected Token has not been linked to a character sheet");
-                return;
-            }
+            var characterId = tokenLinkedToNpcCharacterSheet.get("represents");
+            var characterSheet = findObjs({_id: characterId, _type: "character"})[0];
 
             // Code for Testing and Debugging
             if (String(chatMessage.content).startsWith("!sf_debug") && debugMode == true) {
@@ -144,10 +136,13 @@ var Guidance = Guidance || (function () {
         sections.set('defense', parsedText.substring(0, parsedText.indexOf("OFFENSE")));
         parsedText = parsedText.substring(parsedText.indexOf("OFFENSE"));
 
-        sections.set('offense', parsedText.substring(0, parsedText.indexOf("STATISTICS")));
+        if (textToParse.includes("TACTICS")) {
+            speakAsGuidanceToGM("Tactics section found. Tactics Processing not yet implemented");
+            sections.set('offense', parsedText.substring(0, parsedText.indexOf("TACTICS")));
+        } else {
+            sections.set('offense', parsedText.substring(0, parsedText.indexOf("STATISTICS")));
+        }
         parsedText = parsedText.substring(parsedText.indexOf("STATISTICS"));
-
-
         if (textToParse.includes("SPECIAL ABILITIES")) {
             sections.set('statistics', parsedText.substring(0, parsedText.indexOf("SPECIAL ABILITIES")));
             parsedText = parsedText.substring(parsedText.indexOf("SPECIAL ABILITIES"));
@@ -160,33 +155,64 @@ var Guidance = Guidance || (function () {
     };
 
     // Populate data
-    var doSpells = function (characterId, textToParse) {
+    var doMagic = function (characterId, textToParse) {
+        textToParse = textToParse.substring(textToParse.indexOf("Spell"));
+        textToParse = textToParse.replace(/\s+/, ' ');
+        setAttribute(characterId, "spellclass-1-level", getValue("CL", textToParse, ";").replace(/\D/g, ''));
 
-        /*
-            {"name":"spellclass-0-level-0-spells-per-day","current":"0","max":"","_id":"-MSQLevfVkpkUIV3jQc4","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_lvl-0-spells_-MSQLfpe27uVyyBwNnwQ_name","current":"name","max":"","_id":"-MSQLgZ9p_0EAqLQ2vGs","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_lvl-0-spells_-MSQLfpe27uVyyBwNnwQ_school","current":"school","max":"","_id":"-MSQLgx8bKKficHqcnrQ","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_lvl-0-spells_-MSQLfpe27uVyyBwNnwQ_cast-time","current":"time","max":"","_id":"-MSQLhVtHt66attFm-ZC","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_lvl-0-spells_-MSQLfpe27uVyyBwNnwQ_range","current":"range","max":"","_id":"-MSQLiExnSE1y8CcXmgp","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_lvl-0-spells_-MSQLfpe27uVyyBwNnwQ_save","current":"save","max":"","_id":"-MSQLiy6Mq5OxKCfTsNy","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_lvl-0-spells_-MSQLfpe27uVyyBwNnwQ_description","current":"descriptioon","max":"","_id":"-MSQLjhL0-BLB_WS9IIr","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_lvl-0-spells_-MSQLfpe27uVyyBwNnwQ_macro-text-show","current":"1","max":"","_id":"-MSQLjvAii7lArFZTg9W","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
+        var attackBonus = textToParse.replace(/\(.*\;/, "");
+        attackBonus = attackBonus.replace("Spells Known", "");
+        attackBonus = attackBonus.substring(0, attackBonus.indexOf(")"))
+        textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
 
-            {"name":"repeating_npc-spell-like-abilities_-MTBzZdAnqmpvdtzBKN-_npc-abil-usage","current":"poop","max":"","_id":"-MTBzauNp8uusSPu9-q7","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_npc-spell-like-abilities_-MTBzZdAnqmpvdtzBKN-_npc-abil-name","current":"name","max":"","_id":"-MTBzbFi7uqlABcOZXNk","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_npc-spell-like-abilities_-MTBzZdAnqmpvdtzBKN-_npc-abil-duration","current":"dura","max":"","_id":"-MTBzbb_7LMvlUzn4gKX","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_npc-spell-like-abilities_-MTBzZdAnqmpvdtzBKN-_npc-abil-range","current":"rng","max":"","_id":"-MTBzbvKQOQL2d8SEpQv","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_npc-spell-like-abilities_-MTBzZdAnqmpvdtzBKN-_npc-abil-save","current":"DC","max":"","_id":"-MTBzcny33uzuRNIqI4P","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-            {"name":"repeating_npc-spell-like-abilities_-MTBzZdAnqmpvdtzBKN-_npc-abil-sr","current":"Yes","max":"","_id":"-MTBzd8WHQMRBwU9lDMe","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-        */
-        speakAsGuidanceToGM("I'm not yet able to parse Spells and Spell-Like Abilities");
+        if (textToParse.includes("6th")) {
+            var level = textToParse.substring(textToParse.indexOf("6th"), textToParse.indexOf("5th")).trim();
+            addSpell(characterId, level, attackBonus);
+        }
+        if (textToParse.includes("5th")) {
+            var level = textToParse.substring(textToParse.indexOf("5th"), textToParse.indexOf("4th")).trim();
+            addSpell(characterId, level, attackBonus);
+        }
+        if (textToParse.includes("4th")) {
+            var level = textToParse.substring(textToParse.indexOf("4th"), textToParse.indexOf("3rd")).trim();
+            addSpell(characterId, level, attackBonus);
+        }
+        if (textToParse.includes("3rd")) {
+            var level = textToParse.substring(textToParse.indexOf("3rd"), textToParse.indexOf("2nd")).trim();
+            addSpell(characterId, level, attackBonus);
+        }
+        if (textToParse.includes("2nd")) {
+            var level = textToParse.substring(textToParse.indexOf("2nd"), textToParse.indexOf("1st")).trim();
+            addSpell(characterId, level, attackBonus);
+        }
+        if (textToParse.includes("1st")) {
+            var level = textToParse.substring(textToParse.indexOf("1st"), textToParse.indexOf("0 (at will)")).trim();
+            addSpell(characterId, level, attackBonus);
+        }
+        var level = textToParse.substring(textToParse.indexOf("0 (at")).trim();
+        addSpell(characterId, level, attackBonus);
     };
 
-    var addSpell = function (characterId, textToParse) {
-
+    var addSpell = function (characterId, textToParse, additional) {
+        textToParse = textToParse.replace(/—/g, "");
+        var uuid = generateRowID();
+        var value = textToParse.substring(0, textToParse.indexOf("(")).replace(/\D/g, '').trim();
+        setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-level", value);
+        value = textToParse.substring(textToParse.indexOf("("), textToParse.indexOf(")") + 1).trim();
+        setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-usage", value);
+        value = "(" + additional.trim() + ") " + textToParse.substring(textToParse.indexOf(")") + 1).trim();
+        setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-list", value);
     };
 
     var addSpellLikeAbility = function (characterId, textToParse) {
+        /*
+        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-usage","current":"usage","max":"","_id":"-MTDw-LEL7p9L5TSSsoO","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
+        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-name","current":"name","max":"","_id":"-MTDw-fbkdbM00Kgrvc0","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
+        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-duration","current":"duration","max":"","_id":"-MTDw00a-HOrx2nuQ_cD","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
+        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-range","current":"range","max":"","_id":"-MTDw0MqVXsyN2vaGIgH","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
+        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-save","current":"DC","max":"","_id":"-MTDw0e6Wv4al7RuLMeI","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
+        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-sr","current":"Yes","max":"","_id":"-MTDw1CWk9Gn71y6tjGX","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
+*/
 
     };
 
@@ -283,7 +309,7 @@ var Guidance = Guidance || (function () {
         }
 
         doWeapons(characterId, textToParse);
-        doSpells(characterId, textToParse);
+        doMagic(characterId, textToParse);
     };
 
     var getMovement = function (textToFind, textToParse) {
