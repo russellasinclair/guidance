@@ -1,5 +1,6 @@
 # Guidance
 API for Roll20 and Starfinder
+Currently in Beta for 1.0. - Grab it and try it!
 
 This is a tool to support the usage of the Starfinder (Simple) character sheets in Roll20. 
 Currently, Guidance doesn't handle the official Roll20 character sheets at this time.
