@@ -4,7 +4,7 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 !sf_populate - will parse a stat-block in the GM Notes of a character, and populate the NPC tab of the character sheet with the values
 */
 var Guidance = Guidance || (function () {
-    var version = "-=> Guidance is online. v0.9.5 <=-";
+    var version = "-=> Guidance is online. v0.9.9 <=-";
     var debugMode = true;
     on("ready", function () {
         speakAsGuidanceToGM("Greetings, I am Guidance. I am here to assist you working with your Starfinders to make " +
@@ -158,39 +158,66 @@ var Guidance = Guidance || (function () {
     var doMagic = function (characterId, textToParse) {
         textToParse = textToParse.substring(textToParse.indexOf("Spell"));
         textToParse = textToParse.replace(/\s+/, ' ');
-        setAttribute(characterId, "spellclass-1-level", getValue("CL", textToParse, ";").replace(/\D/g, ''));
+        var attackBonus = "";
+        if (textToParse.includes("Spells Known")) {
+            setAttribute(characterId, "spellclass-1-level", getValue("CL", textToParse, ";").replace(/\D/g, ''));
 
-        var attackBonus = textToParse.replace(/\(.*\;/, "");
-        attackBonus = attackBonus.replace("Spells Known", "");
-        attackBonus = attackBonus.substring(0, attackBonus.indexOf(")"))
-        textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
+            attackBonus = textToParse.replace(/\(.*\;/, "");
+            attackBonus = attackBonus.replace("Spells Known", "");
+            attackBonus = attackBonus.substring(0, attackBonus.indexOf(")"))
+            textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
 
-        if (textToParse.includes("6th")) {
-            var level = textToParse.substring(textToParse.indexOf("6th"), textToParse.indexOf("5th")).trim();
+            if (textToParse.includes("6th")) {
+                var level = textToParse.substring(textToParse.indexOf("6th"), textToParse.indexOf("5th")).trim();
+                addSpell(characterId, level, attackBonus);
+            }
+            if (textToParse.includes("5th")) {
+                var level = textToParse.substring(textToParse.indexOf("5th"), textToParse.indexOf("4th")).trim();
+                addSpell(characterId, level, attackBonus);
+            }
+            if (textToParse.includes("4th")) {
+                var level = textToParse.substring(textToParse.indexOf("4th"), textToParse.indexOf("3rd")).trim();
+                addSpell(characterId, level, attackBonus);
+            }
+            if (textToParse.includes("3rd")) {
+                var level = textToParse.substring(textToParse.indexOf("3rd"), textToParse.indexOf("2nd")).trim();
+                addSpell(characterId, level, attackBonus);
+            }
+            if (textToParse.includes("2nd")) {
+                var level = textToParse.substring(textToParse.indexOf("2nd"), textToParse.indexOf("1st")).trim();
+                addSpell(characterId, level, attackBonus);
+            }
+            if (textToParse.includes("1st")) {
+                var level = textToParse.substring(textToParse.indexOf("1st"), textToParse.indexOf("0 (at will)")).trim();
+                addSpell(characterId, level, attackBonus);
+            }
+            var level = textToParse.substring(textToParse.indexOf("0 (at")).trim();
+            if (textToParse.includes("Spell-Like Abilities")) {
+                level = level.substring(0, level.indexOf("Spell-Like Abilities"))
+            }
             addSpell(characterId, level, attackBonus);
         }
-        if (textToParse.includes("5th")) {
-            var level = textToParse.substring(textToParse.indexOf("5th"), textToParse.indexOf("4th")).trim();
-            addSpell(characterId, level, attackBonus);
+
+        if (textToParse.includes("Spell-Like Abilities")) {
+            textToParse = textToParse.substring(textToParse.indexOf("Spell-Like Abilities")).trim();
+            setAttribute(characterId, "spellclass-0-level", getValue("CL", textToParse, ";").replace(/\D/g, ''));
+            textToParse = textToParse.replace(/Spell-Like Abilities/, "").trim();
+
+            attackBonus = textToParse.replace(/\(.*\;/, "");
+            attackBonus = attackBonus.substring(0, attackBonus.indexOf(")") + 1);
+
+            var lines = textToParse.match(/\d\/\w+|At will|Constant/);
+            for (var i = 0; i < lines.length; i++) {
+                var start = lines[i];
+                var ability = "";
+                if (lines[i + 1] == null) {
+                    ability = textToParse.substring(textToParse.indexOf(lines[i]));
+                } else {
+                    ability = textToParse.substring(textToParse.indexOf(lines[i]), textToParse.indexOf(lines[i + 1]));
+                }
+                addSpellLikeAbility(characterId, ability);
+            }
         }
-        if (textToParse.includes("4th")) {
-            var level = textToParse.substring(textToParse.indexOf("4th"), textToParse.indexOf("3rd")).trim();
-            addSpell(characterId, level, attackBonus);
-        }
-        if (textToParse.includes("3rd")) {
-            var level = textToParse.substring(textToParse.indexOf("3rd"), textToParse.indexOf("2nd")).trim();
-            addSpell(characterId, level, attackBonus);
-        }
-        if (textToParse.includes("2nd")) {
-            var level = textToParse.substring(textToParse.indexOf("2nd"), textToParse.indexOf("1st")).trim();
-            addSpell(characterId, level, attackBonus);
-        }
-        if (textToParse.includes("1st")) {
-            var level = textToParse.substring(textToParse.indexOf("1st"), textToParse.indexOf("0 (at will)")).trim();
-            addSpell(characterId, level, attackBonus);
-        }
-        var level = textToParse.substring(textToParse.indexOf("0 (at")).trim();
-        addSpell(characterId, level, attackBonus);
     };
 
     var addSpell = function (characterId, textToParse, additional) {
@@ -205,15 +232,9 @@ var Guidance = Guidance || (function () {
     };
 
     var addSpellLikeAbility = function (characterId, textToParse) {
-        /*
-        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-usage","current":"usage","max":"","_id":"-MTDw-LEL7p9L5TSSsoO","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-name","current":"name","max":"","_id":"-MTDw-fbkdbM00Kgrvc0","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-duration","current":"duration","max":"","_id":"-MTDw00a-HOrx2nuQ_cD","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-range","current":"range","max":"","_id":"-MTDw0MqVXsyN2vaGIgH","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-save","current":"DC","max":"","_id":"-MTDw0e6Wv4al7RuLMeI","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-        {"name":"repeating_npc-spell-like-abilities_-MTDvzkdk5Qw2J5ARnqZ_npc-abil-sr","current":"Yes","max":"","_id":"-MTDw1CWk9Gn71y6tjGX","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
-*/
-
+        var uuid = generateRowID();
+        setAttribute(characterId, "repeating_npc-spell-like-abilities_"+uuid+"_npc-abil-usage", textToParse.substring(0, textToParse.indexOf("—")).trim());
+        setAttribute(characterId, "repeating_npc-spell-like-abilities_"+uuid+"_npc-abil-name", textToParse.substring(textToParse.indexOf("—")+2).trim());
     };
 
     var cleanText = function (textToClean) {
@@ -333,29 +354,31 @@ var Guidance = Guidance || (function () {
 
     var populateSpecialAbilities = function (characterId, textToParse) {
         log("Parsing Special Abilities");
-        textToParse = textToParse.replace("SPECIAL ABILITIES", "").trim();
-        if (textToParse != null) {
-            if (textToParse.includes("(")) {
-                do {
+        if (textToParse != null && textToParse != undefined) {
+            if (textToParse.includes("SPECIAL ABILITIES")) {
+                textToParse = textToParse.replace("SPECIAL ABILITIES", "").trim();
+                if (textToParse.includes("(")) {
+                    do {
+                        var uuid = generateRowID();
+                        var abilityName = textToParse.substring(0, textToParse.indexOf(")") + 1);
+                        setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", abilityName);
+                        textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
+                        var nextAbility = textToParse.match(/(\..*?\()/);
+                        if (nextAbility == null) {
+                            setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse);
+                            speakAsGuidanceToGM("Warning: There may be errors with Special Abilities due to extraneous parenthesis. You may wish to double check");
+                            return;
+                        }
+                        var endPoint = textToParse.indexOf(nextAbility[0]) + 1;
+                        setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.substring(0, endPoint));
+                        textToParse = textToParse.substring(endPoint);
+                    } while (textToParse.includes("("));
+                } else {
                     var uuid = generateRowID();
-                    var abilityName = textToParse.substring(0, textToParse.indexOf(")") + 1);
-                    setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", abilityName);
-                    textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
-                    var nextAbility = textToParse.match(/(\..*?\()/);
-                    if (nextAbility == null) {
-                        setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse);
-                        speakAsGuidanceToGM("Warning: There may be errors with Special Abilities due to extraneous parenthesis. You may wish to double check");
-                        return;
-                    }
-                    var endPoint = textToParse.indexOf(nextAbility[0]) + 1;
-                    setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.substring(0, endPoint));
-                    textToParse = textToParse.substring(endPoint);
-                } while (textToParse.includes("("));
-            } else {
-                var uuid = generateRowID();
-                setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", "Special Abilities");
-                textToParse = textToParse.replace(/\./g, ".\n");
-                setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse);
+                    setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", "Special Abilities");
+                    textToParse = textToParse.replace(/\./, ".\n");
+                    setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse);
+                }
             }
         }
     };
