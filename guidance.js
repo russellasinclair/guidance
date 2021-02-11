@@ -19,90 +19,110 @@ var Guidance = Guidance || (function () {
             return;
         }
 
-        if (String(chatMessage.content).startsWith("!sf_help")) {
-            speakAsGuidanceToGM("I have several commands I support:\n\n");
-            speakAsGuidanceToGM("<b><i>sf_populate</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
-                "of a selected character and I will attempt to use it to fill out the NPC section of the Starfinder " +
-                "(Simple) character sheet\n\n");
-            speakAsGuidanceToGM("Currently, I support statblocks from the Roll20 compendium and Archives of Nethys. " +
-                "<i>I don't do well with Society PDFs</i>. If you want to attempt using one, double check my work");
-            speakAsGuidanceToGM("<b><i>sf_clean CONFIRM</i></b> will allow me to take a selected character sheet and completely " +
-                "<b>AND PERMANENTLY</b> remove all data from it. <i>I recommend against using this unless you are about " +
-                "to reimport a character</i>.");
-            return;
-        }
-
-        var tokenLinkedToNpcCharacterSheet;
         try {
-            tokenLinkedToNpcCharacterSheet = findObjs(chatMessage.selected[0])[0];
-        } catch (err) {
-            speakAsGuidanceToGM("Linked Token has not been selected");
-            return;
-        }
-
-        var characterId = tokenLinkedToNpcCharacterSheet.get("represents");
-        var characterSheet = findObjs({_id: characterId, _type: "character"})[0];
-
-        // Code for Testing and Debugging
-        if (String(chatMessage.content).startsWith("!sf_debug") && debugMode == true) {
-            log("start");
-            foundAttributes = findObjs({
-                _characterid: characterId,
-                _type: "attribute",
-            });
-            for (const attribute of foundAttributes) {
-                log(attribute);
+            if (String(chatMessage.content).startsWith("!sf_help")) {
+                speakAsGuidanceToGM("I have several commands I support:\n\n");
+                speakAsGuidanceToGM("<b><i>sf_populate</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
+                    "of a selected character and I will attempt to use it to fill out the NPC section of the Starfinder " +
+                    "(Simple) character sheet\n\n");
+                speakAsGuidanceToGM("Currently, I support statblocks from the Roll20 compendium and Archives of Nethys. " +
+                    "<i>I don't do well with Society PDFs</i>. If you want to attempt using one, double check my work");
+                speakAsGuidanceToGM("<b><i>sf_clean CONFIRM</i></b> will allow me to take a selected character sheet and completely " +
+                    "<b>AND PERMANENTLY</b> remove all data from it. <i>I recommend against using this unless you are about " +
+                    "to reimport a character</i>.");
+                return;
             }
-            log("Done");
-        }
 
-        // Wipe out all Character Data
-        if (String(chatMessage.content).startsWith("!sf_clean CONFIRM")) {
-            for (prop of findObjs({_characterid: characterId, _type: "attribute"})) {
-                log("Removing " + prop.get("name"));
-                prop.remove();
+            var tokenLinkedToNpcCharacterSheet;
+            try {
+                tokenLinkedToNpcCharacterSheet = findObjs(chatMessage.selected[0])[0];
+            } catch (e) {
+                speakAsGuidanceToGM("Linked Token has not been selected");
+                return;
             }
-            for (var i = 1; i < 4; i++) {
-                tokenLinkedToNpcCharacterSheet.set("bar" + i + "_value", "");
-                tokenLinkedToNpcCharacterSheet.set("bar" + i + "_max", "");
+
+            var characterId;
+            var characterSheet;
+
+            try {
+                characterId = tokenLinkedToNpcCharacterSheet.get("represents");
+                characterSheet = findObjs({_id: characterId, _type: "character"})[0];
+            } catch (e) {
+                speakAsGuidanceToGM("Selected Token has not been linked to a character sheet");
+                return;
             }
-            tokenLinkedToNpcCharacterSheet.set("gmnotes", "");
-            speakAsGuidanceToGM("Removed all properties for " + characterSheet.get("name"));
-        }
 
-        // Populate the Character Sheet
-        if (String(chatMessage.content).startsWith("!sf_populate")) {
-            characterSheet.get("gmnotes", function (gmNotes) {
-                cleanNotes = cleanText(gmNotes);
-                var section = parseBlockIntoSubSectionMap(cleanNotes);
+            // Code for Testing and Debugging
+            if (String(chatMessage.content).startsWith("!sf_debug") && debugMode == true) {
+                log("start");
+                foundAttributes = findObjs({
+                    _characterid: characterId,
+                    _type: "attribute",
+                });
+                for (const attribute of foundAttributes) {
+                    log(attribute);
+                }
+                log("Done");
+            }
 
-                // For Debugging purposes and general information
-                tokenLinkedToNpcCharacterSheet.set("gmnotes", cleanNotes);
+            // Wipe out all Character Data
+            if (String(chatMessage.content).startsWith("!sf_clean CONFIRM")) {
+                for (prop of findObjs({_characterid: characterId, _type: "attribute"})) {
+                    log("Removing " + prop.get("name"));
+                    prop.remove();
+                }
+                for (var i = 1; i < 4; i++) {
+                    tokenLinkedToNpcCharacterSheet.set("bar" + i + "_value", "");
+                    tokenLinkedToNpcCharacterSheet.set("bar" + i + "_max", "");
+                }
+                tokenLinkedToNpcCharacterSheet.set("gmnotes", "");
+                try {
+                    speakAsGuidanceToGM("Removed all properties for " + characterSheet.get("name"));
+                } catch (e) {
+                    speakAsGuidanceToGM("Removed all properties for NPC (possibly not linked correctly");
+                }
+            }
 
-                // Setup Character Sheet
-                setAttribute(characterId, "npc-race", characterSheet.get("name"));
-                setAttribute(characterId, "tab", 4);
-                populateHeader(characterId, section.get('header'));
-                populateDefense(characterId, section.get('defense'));
-                populateOffense(characterId, section.get('offense'));
-                populateStatics(characterId, section.get('statistics'));
-                populateSkills(characterId, section.get('statistics'));
-                populateNPC(characterId, cleanNotes);
+            // Populate the Character Sheet
+            if (String(chatMessage.content).startsWith("!sf_populate")) {
+                characterSheet.get("gmnotes", function (gmNotes) {
+                    cleanNotes = cleanText(gmNotes);
+                    var section = parseBlockIntoSubSectionMap(cleanNotes);
 
-                // Set up Token
-                var hitPoints = getAttribute(characterId, "HP-npc");
-                tokenLinkedToNpcCharacterSheet.set("bar1_link", hitPoints.id);
-                var ac = getAttribute(characterId, "EAC-npc");
-                tokenLinkedToNpcCharacterSheet.set("bar2_value", "EAC " + ac.get("current"));
-                tokenLinkedToNpcCharacterSheet.set("bar2_max", ac.get("current"));
-                ac = getAttribute(characterId, "KAC-npc");
-                tokenLinkedToNpcCharacterSheet.set("bar3_value", "KAC " + armorClass.get("current"));
-                tokenLinkedToNpcCharacterSheet.set("bar3_max", armorClass.get("current"));
-                tokenLinkedToNpcCharacterSheet.set("showname", true);
+                    // For Debugging purposes and general information
+                    tokenLinkedToNpcCharacterSheet.set("gmnotes", cleanNotes);
 
-                // Done
-                speakAsGuidanceToGM(characterSheet.get("name") + "NPC character sheet processed");
-            });
+                    // Setup Character Sheet
+                    setAttribute(characterId, "npc-race", characterSheet.get("name"));
+                    setAttribute(characterId, "tab", 4);
+                    setAttribute(characterId, "npc-tactics-show", 0);
+                    populateHeader(characterId, section.get('header'));
+                    populateDefense(characterId, section.get('defense'));
+                    populateOffense(characterId, section.get('offense'));
+                    populateStatics(characterId, section.get('statistics'));
+                    populateSkills(characterId, section.get('statistics'));
+                    populateNPC(characterId, cleanNotes);
+                    populateSpecialAbilities(characterId, section.get('special'));
+
+                    // Set up Token
+                    var hitPoints = getAttribute(characterId, "HP-npc");
+                    tokenLinkedToNpcCharacterSheet.set("bar1_link", hitPoints.id);
+                    var armorClass = getAttribute(characterId, "EAC-npc");
+                    tokenLinkedToNpcCharacterSheet.set("bar2_value", "EAC " + armorClass.get("current"));
+                    tokenLinkedToNpcCharacterSheet.set("bar2_max", armorClass.get("current"));
+                    armorClass = getAttribute(characterId, "KAC-npc");
+                    tokenLinkedToNpcCharacterSheet.set("bar3_value", "KAC " + armorClass.get("current"));
+                    tokenLinkedToNpcCharacterSheet.set("bar3_max", armorClass.get("current"));
+                    tokenLinkedToNpcCharacterSheet.set("showname", true);
+
+                    // Done
+                    speakAsGuidanceToGM(characterSheet.get("name") + " NPC character sheet processed");
+                });
+            }
+
+        } catch (ex) {
+            speakAsGuidanceToGM("Hmm... I'm afraid I can't do that.");
+            log(ex);
         }
     });
 
@@ -119,20 +139,29 @@ var Guidance = Guidance || (function () {
         var parsedText = textToParse;
 
         sections.set('header', parsedText.substring(0, parsedText.indexOf("DEFENSE")));
-        parsedText = parsedText.substr(parsedText.indexOf("DEFENSE"));
+        parsedText = parsedText.substring(parsedText.indexOf("DEFENSE"));
 
         sections.set('defense', parsedText.substring(0, parsedText.indexOf("OFFENSE")));
-        parsedText = parsedText.substr(parsedText.indexOf("OFFENSE"));
+        parsedText = parsedText.substring(parsedText.indexOf("OFFENSE"));
 
         sections.set('offense', parsedText.substring(0, parsedText.indexOf("STATISTICS")));
-        parsedText = parsedText.substr(parsedText.indexOf("STATISTICS"));
+        parsedText = parsedText.substring(parsedText.indexOf("STATISTICS"));
 
-        sections.set('statistics', parsedText);
+
+        if (textToParse.includes("SPECIAL ABILITIES")) {
+            sections.set('statistics', parsedText.substring(0, parsedText.indexOf("SPECIAL ABILITIES")));
+            parsedText = parsedText.substring(parsedText.indexOf("SPECIAL ABILITIES"));
+            sections.set('special', parsedText);
+        } else {
+            sections.set('statistics', parsedText);
+        }
+
         return sections;
     };
 
     // Populate data
     var doSpells = function (characterId, textToParse) {
+
         /*
             {"name":"spellclass-0-level-0-spells-per-day","current":"0","max":"","_id":"-MSQLevfVkpkUIV3jQc4","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
             {"name":"repeating_lvl-0-spells_-MSQLfpe27uVyyBwNnwQ_name","current":"name","max":"","_id":"-MSQLgZ9p_0EAqLQ2vGs","_type":"attribute","_characterid":"-MSL5VzUk4EQpKd96CXr"}
@@ -154,9 +183,11 @@ var Guidance = Guidance || (function () {
     };
 
     var addSpell = function (characterId, textToParse) {
+
     };
 
     var addSpellLikeAbility = function (characterId, textToParse) {
+
     };
 
     var cleanText = function (textToClean) {
@@ -191,8 +222,16 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "Ref-npc", getValue("Ref", textToParse));
         setAttribute(characterId, "Will-npc", getValue("Will", textToParse));
         setAttribute(characterId, "HP-npc", getValue("HP", textToParse));
+        setAttribute(characterId, "RP-npc", getValue("RP", textToParse));
+        setAttribute(characterId, "npc-SR", getValue("SR", textToParse));
         setAttribute(characterId, "npc-resistances", getValue("Resistances", textToParse, ";"));
         setAttribute(characterId, "npc-DR", getValue("DR", textToParse, ";"));
+
+        if (textToParse.includes("SR")) {
+            setAttribute(characterId, "npc-immunities", getValue("Immunities", textToParse, "SR"));
+        } else {
+            setAttribute(characterId, "npc-immunities", getValue("Immunities", textToParse, "OFFENSE"));
+        }
 
         var defensiveAbilities = "";
         if (textToParse.includes("vs.")) {
@@ -206,7 +245,10 @@ var Guidance = Guidance || (function () {
         }
         if (textToParse.includes("Defensive")) {
             var start = textToParse.indexOf("Defensive Abilities") + "Defensive Abilities".length;
-            defensiveAbilities = textToParse.substr(start) + " " + defensiveAbilities;
+            if (textToParse.includes("Immunities")) {
+                textToParse = textToParse.substring(0, textToParse.indexOf("Immunities"));
+            }
+            defensiveAbilities = textToParse.substring(start) + " " + defensiveAbilities;
         }
         setAttribute(characterId, "npc-defensive-abilities", defensiveAbilities);
     };
@@ -214,21 +256,42 @@ var Guidance = Guidance || (function () {
     var populateOffense = function (characterId, textToParse) {
         setAttribute(characterId, "npc-special-attacks", getValue("Offensive Abilities", textToParse, "STATISTICS"));
 
-        if (textToParse.includes("Speed")) {
-            var speed = getStringValue("Speed", textToParse, "ft.,").trim();
-            setAttribute(characterId, "speed-base-npc", speed);
-            textToParse = textToParse.substr(textToParse.indexOf("ft.") + 3);
-        }
+        setAttribute(characterId, "speed-base-npc", getMovement("Speed", textToParse));
+        setAttribute(characterId, "speed-fly-npc", getMovement("fly", textToParse));
+        setAttribute(characterId, "speed-burrow-npc", getMovement("burrow", textToParse));
+        setAttribute(characterId, "speed-climb-npc", getMovement("climb", textToParse));
+        setAttribute(characterId, "speed-swim-npc", getMovement("swim", textToParse));
+        setAttribute(characterId, "space", getMovement("Space", textToParse));
+        setAttribute(characterId, "reach", getMovement("Reach", textToParse));
+
         if (textToParse.toLowerCase().includes("fly")) {
-            //var speed = getStringValue("Fly", gmnotes, "ft.").trim();
-            //setAttribute(char, "speed-fly-npc", speed);
-            // todo
-            speakAsGuidanceToGM("Warning NPC can fly, and I've not put that in right. Look at the first Weapon for details");
+            if (textToParse.includes("(Ex")) {
+                setAttribute(characterId, "speed-fly-source-npc", 1);
+            } else if (textToParse.includes("(Su")) {
+                setAttribute(characterId, "speed-fly-source-npc", 2);
+            } else {
+                setAttribute(characterId, "speed-fly-source-npc", 3);
+            }
+
+            if (textToParse.includes("lumsy)")) {
+                setAttribute(characterId, "speed-fly-maneuverability-npc", -8);
+            } else if (textToParse.includes("erfect)")) {
+                setAttribute(characterId, "speed-fly-maneuverability-npc", 8);
+            } else {
+                setAttribute(characterId, "speed-fly-maneuverability-npc", 0);
+            }
         }
 
         doWeapons(characterId, textToParse);
         doSpells(characterId, textToParse);
     };
+
+    var getMovement = function (textToFind, textToParse) {
+        if (textToParse.includes(textToFind)) {
+            return getStringValue(textToFind, textToParse, "ft.").trim();
+        }
+        return "";
+    }
 
     var populateStatics = function (characterId, textToParse) {
         setAttribute(characterId, "STR-bonus", getValue("Str", textToParse));
@@ -240,6 +303,35 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Other"));
         setAttribute(characterId, "npc-gear", getValue("Gear", textToParse, "Ecology"));
         setAttribute(characterId, "SQ", getValue("Other Abilities", textToParse, "Gear"));
+    };
+
+    var populateSpecialAbilities = function (characterId, textToParse) {
+        log("Parsing Special Abilities");
+        textToParse = textToParse.replace("SPECIAL ABILITIES", "").trim();
+        if (textToParse != null) {
+            if (textToParse.includes("(")) {
+                do {
+                    var uuid = generateRowID();
+                    var abilityName = textToParse.substring(0, textToParse.indexOf(")") + 1);
+                    setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", abilityName);
+                    textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
+                    var nextAbility = textToParse.match(/(\..*?\()/);
+                    if (nextAbility == null) {
+                        setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse);
+                        speakAsGuidanceToGM("Warning: There may be errors with Special Abilities due to extraneous parenthesis. You may wish to double check");
+                        return;
+                    }
+                    var endPoint = textToParse.indexOf(nextAbility[0]) + 1;
+                    setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.substring(0, endPoint));
+                    textToParse = textToParse.substring(endPoint);
+                } while (textToParse.includes("("));
+            } else {
+                var uuid = generateRowID();
+                setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", "Special Abilities");
+                textToParse = textToParse.replace(/\./g, ".\n");
+                setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse);
+            }
+        }
     };
 
     var populateSkills = function (characterId, textToParse) {
@@ -317,6 +409,9 @@ var Guidance = Guidance || (function () {
             } else if (section.includes("Fine")) {
                 dropdown = 8;
                 subtypeStart = section.indexOf("Fine") + "Fine".length;
+            } else if (section.includes("Colossal")) {
+                dropdown = -8;
+                subtypeStart = section.indexOf("Colossal") + "Colossal".length;
             }
 
             setAttribute(characterId, "npc-size", dropdown);
@@ -340,6 +435,18 @@ var Guidance = Guidance || (function () {
 
         if (textToParse.indexOf("Spell") > 0) {
             textToParse = textToParse.substring(0, textToParse.indexOf("Spell"));
+        }
+
+        if (textToParse.includes("Speed")) {
+            textToParse = textToParse.substring(textToParse.indexOf("ft"));
+        }
+
+        if (textToParse.includes("fly")) {
+            textToParse = textToParse.substring(textToParse.indexOf("fly"));
+            textToParse = textToParse.substring(textToParse.indexOf("ft.") + 3).trim();
+            if (textToParse.startsWith("(")) {
+                textToParse = textToParse.substring(textToParse.indexOf(")") + 1).trim();
+            }
         }
 
         if (textToParse.indexOf("Offensive Abilities") > 0) {
@@ -406,11 +513,11 @@ var Guidance = Guidance || (function () {
         try {
             if (!foundAttribute) {
                 if (typeof operator !== 'undefined' && !isNaN(newValue)) {
-                    //  log(newValue + " is a number.");
+                    log(newValue + " is a number.");
                     newValue = mod_newValue[operator](newValue);
                 }
 
-                //   log("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
+                log("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
                 createObj("attribute", {
                     name: attributeName,
                     current: newValue,
@@ -421,7 +528,7 @@ var Guidance = Guidance || (function () {
                 if (typeof operator !== 'undefined' && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
                     newValue = parseFloat(foundAttribute.get("current")) + parseFloat(mod_newValue[operator](newValue));
                 }
-                // log("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
+                log("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
                 foundAttribute.set("current", newValue);
                 foundAttribute.set("max", newValue);
                 updateAll = false;
