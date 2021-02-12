@@ -45,7 +45,7 @@ var Guidance = Guidance || (function () {
             var characterSheet = findObjs({_id: characterId, _type: "character"})[0];
 
             // Code for Testing and Debugging
-            if (String(chatMessage.content).startsWith("!sf_debug") && debugMode == true) {
+            if (String(chatMessage.content).startsWith("!sf_debug") && debugMode) {
                 log("start");
                 foundAttributes = findObjs({
                     _characterid: characterId,
@@ -60,7 +60,7 @@ var Guidance = Guidance || (function () {
             // Wipe out all Character Data
             if (String(chatMessage.content).startsWith("!sf_clean CONFIRM")) {
                 for (prop of findObjs({_characterid: characterId, _type: "attribute"})) {
-                    log("Removing " + prop.get("name"));
+                    debugLog("Removing " + prop.get("name"));
                     prop.remove();
                 }
                 for (var i = 1; i < 4; i++) {
@@ -115,7 +115,7 @@ var Guidance = Guidance || (function () {
 
         } catch (ex) {
             speakAsGuidanceToGM("Hmm... I'm afraid I can't do that.");
-            log(ex);
+            debugLog(ex);
         }
     });
 
@@ -375,7 +375,7 @@ var Guidance = Guidance || (function () {
     };
 
     var populateSpecialAbilities = function (characterId, textToParse) {
-        log("Parsing Special Abilities");
+        debugLog("Parsing Special Abilities");
         if (textToParse != null && textToParse != undefined) {
             if (textToParse.includes("SPECIAL ABILITIES")) {
                 textToParse = textToParse.replace("SPECIAL ABILITIES", "").trim();
@@ -489,7 +489,7 @@ var Guidance = Guidance || (function () {
             setAttribute(characterId, "npc-size", dropdown);
             setAttribute(characterId, "npc-subtype", section.substring(subtypeStart, section.indexOf("Init")));
         } catch (err) {
-            log("Problems with alignment, size,subtype");
+            debugLog("Problems with alignment, size,subtype");
         }
     };
 
@@ -542,7 +542,7 @@ var Guidance = Guidance || (function () {
     };
 
     var armNPC = function (characterId, attackToParse) {
-        log("Parsing " + attackToParse);
+        debugLog("Parsing " + attackToParse);
         var uuid = generateRowID();
 
         var details = attackToParse.split(' ');
@@ -585,11 +585,11 @@ var Guidance = Guidance || (function () {
         try {
             if (!foundAttribute) {
                 if (typeof operator !== 'undefined' && !isNaN(newValue)) {
-                    log(newValue + " is a number.");
+                    debugLog(newValue + " is a number.");
                     newValue = mod_newValue[operator](newValue);
                 }
 
-                log("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
+                debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
                 createObj("attribute", {
                     name: attributeName,
                     current: newValue,
@@ -600,20 +600,20 @@ var Guidance = Guidance || (function () {
                 if (typeof operator !== 'undefined' && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
                     newValue = parseFloat(foundAttribute.get("current")) + parseFloat(mod_newValue[operator](newValue));
                 }
-                log("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
+                debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
                 foundAttribute.set("current", newValue);
                 foundAttribute.set("max", newValue);
                 updateAll = false;
             }
         } catch (err) {
-            log("Error parsing " + attributeName)
+            debugLog("Error parsing " + attributeName)
         }
     };
 
     // Parsing routines
     var getSkillValue = function (skillName, attribute, textToParse) {
         if (Number(getValue(skillName, textToParse).trim()) > 2) {
-            log(skillName + " : " + getValue(skillName, textToParse) + " - " + attribute + " : " + getValue(attribute, textToParse));
+            debugLog(skillName + " : " + getValue(skillName, textToParse) + " - " + attribute + " : " + getValue(attribute, textToParse));
             return Number(getValue(skillName, textToParse).trim()) - Number(getValue(attribute, textToParse).trim());
         }
         return 0;
@@ -682,5 +682,11 @@ var Guidance = Guidance || (function () {
     var speakAsGuidanceToGM = function (text) {
         sendChat("Guidance", "/w gm " + text);
     };
+
+    var debugLog = function(text) {
+        if(debugMode) {
+            log(text);
+        }
+    }
 }
 ());
