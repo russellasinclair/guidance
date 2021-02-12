@@ -240,6 +240,8 @@ var Guidance = Guidance || (function () {
     var cleanText = function (textToClean) {
         return textToClean.replace(/(<([^>]+)>)/gi, " "
         ).replace(/&nbsp;/gi, " "
+        ).replace(/&amp;/gi, "&"
+        ).replace(/&amp/gi, "&"
         ).replace(/\s+/g, ' '
         ).replace(/Offense/i, " OFFENSE "
         ).replace(/Defense/i, " DEFENSE "
@@ -265,9 +267,9 @@ var Guidance = Guidance || (function () {
     var populateDefense = function (characterId, textToParse) {
         setAttribute(characterId, "EAC-npc", getValue("EAC", textToParse));
         setAttribute(characterId, "KAC-npc", getValue("KAC", textToParse));
-        setAttribute(characterId, "Fort-npc", getValue("Fort", textToParse));
-        setAttribute(characterId, "Ref-npc", getValue("Ref", textToParse));
-        setAttribute(characterId, "Will-npc", getValue("Will", textToParse));
+        setAttribute(characterId, "Fort-npc", getValue("Fort", textToParse).replace("+", ""));
+        setAttribute(characterId, "Ref-npc", getValue("Ref", textToParse).replace("+", ""));
+        setAttribute(characterId, "Will-npc", getValue("Will", textToParse).replace("+", ""));
         setAttribute(characterId, "HP-npc", getValue("HP", textToParse));
         setAttribute(characterId, "RP-npc", getValue("RP", textToParse));
         setAttribute(characterId, "npc-SR", getValue("SR", textToParse));
@@ -301,7 +303,11 @@ var Guidance = Guidance || (function () {
     };
 
     var populateOffense = function (characterId, textToParse) {
-        setAttribute(characterId, "npc-special-attacks", getValue("Offensive Abilities", textToParse, "STATISTICS"));
+        var specialAbilities = getValue("Offensive Abilities", textToParse, "STATISTICS");
+        if(specialAbilities.includes("Spell")) {
+            specialAbilities = specialAbilities.substring(0, specialAbilities.indexOf("Spell"))
+        }
+        setAttribute(characterId, "npc-special-attacks", specialAbilities);
 
         setAttribute(characterId, "speed-base-npc", getMovement("Speed", textToParse));
         setAttribute(characterId, "speed-fly-npc", getMovement("fly", textToParse));
@@ -341,15 +347,19 @@ var Guidance = Guidance || (function () {
     }
 
     var populateStatics = function (characterId, textToParse) {
-        setAttribute(characterId, "STR-bonus", getValue("Str", textToParse));
-        setAttribute(characterId, "DEX-bonus", getValue("Dex", textToParse));
-        setAttribute(characterId, "CON-bonus", getValue("Con", textToParse));
-        setAttribute(characterId, "INT-bonus", getValue("Int", textToParse));
-        setAttribute(characterId, "WIS-bonus", getValue("Wis", textToParse));
-        setAttribute(characterId, "CHA-bonus", getValue("Cha", textToParse));
+        setAttribute(characterId, "STR-bonus", getValue("Str", textToParse).replace("+", ""));
+        setAttribute(characterId, "DEX-bonus", getValue("Dex", textToParse).replace("+", ""));
+        setAttribute(characterId, "CON-bonus", getValue("Con", textToParse).replace("+", ""));
+        setAttribute(characterId, "INT-bonus", getValue("Int", textToParse).replace("+", ""));
+        setAttribute(characterId, "WIS-bonus", getValue("Wis", textToParse).replace("+", ""));
+        setAttribute(characterId, "CHA-bonus", getValue("Cha", textToParse).replace("+", ""));
         setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Other"));
         setAttribute(characterId, "npc-gear", getValue("Gear", textToParse, "Ecology"));
-        setAttribute(characterId, "SQ", getValue("Other Abilities", textToParse, "Gear"));
+        var sq = getValue("Other Abilities", textToParse, "Gear");
+        if (sq.includes("ECOLOGY")) {
+            sq = sq.substring(0, sq.indexOf("ECOLOGY"))
+        }
+        setAttribute(characterId, "SQ", sq);
     };
 
     var populateSpecialAbilities = function (characterId, textToParse) {
@@ -361,23 +371,22 @@ var Guidance = Guidance || (function () {
                     do {
                         var uuid = generateRowID();
                         var abilityName = textToParse.substring(0, textToParse.indexOf(")") + 1);
-                        setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", abilityName);
+                        setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", abilityName.trim());
                         textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
-                        var nextAbility = textToParse.match(/(\..*?\()/);
+                        var nextAbility = textToParse.match(/\.([^\.]*?)\(..\)/);
                         if (nextAbility == null) {
-                            setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse);
-                            speakAsGuidanceToGM("Warning: There may be errors with Special Abilities due to extraneous parenthesis. You may wish to double check");
+                            setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.trim());
                             return;
                         }
                         var endPoint = textToParse.indexOf(nextAbility[0]) + 1;
-                        setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.substring(0, endPoint));
+                        setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.substring(0, endPoint).trim());
                         textToParse = textToParse.substring(endPoint);
                     } while (textToParse.includes("("));
                 } else {
                     var uuid = generateRowID();
                     setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", "Special Abilities");
                     textToParse = textToParse.replace(/\./, ".\n");
-                    setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse);
+                    setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.trim());
                 }
             }
         }
@@ -506,7 +515,7 @@ var Guidance = Guidance || (function () {
         for (attack of attacks) {
             attack = attack.trim();
             if (attack.length > 1) {
-                if (!(attack.startsWith("Space") || attack.startsWith("Reach"))) {
+                if (!(attack.startsWith("Space") || attack.startsWith("Reach") || attack.includes("ft"))) {
                     try {
                         armNPC(characterId, attack);
                     } catch (err) {
@@ -598,7 +607,7 @@ var Guidance = Guidance || (function () {
 
     var getValue = function (textToFind, textToParse, delimiter) {
         bucket = getStringValue(textToFind, textToParse, delimiter);
-        return bucket.replace(";", "").replace("+", "").replace(",", " ").trim();
+        return bucket.replace(";", "").replace(",", " ").trim(); // replace("+", "")
     };
 
     var getStringValue = function (textToFind, textToParse, delimiter) {
