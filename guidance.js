@@ -474,6 +474,7 @@ var Guidance = Guidance || (function () {
             }
 
             var subtypeStart = 0;
+            var dropdown = 0;
             if (section.toLowerCase().includes("medium")) {
                 dropdown = 0;
                 subtypeStart = section.indexOf("Medium") + "Medium".length;
