@@ -6,7 +6,7 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 var Guidance = Guidance || (function () {
     "use strict";
     var version = "-=> Guidance is online. v0.9.9 <=-";
-    var debugMode = false;
+    var debugMode = true;
     on("ready", function () {
         speakAsGuidanceToGM("Greetings, I am Guidance. I am here to assist you working with your Starfinders to make " +
             "your time in the Pact Worlds more enjoyable. To learn how to use my services, simply type " +
@@ -116,7 +116,7 @@ var Guidance = Guidance || (function () {
 
         } catch (ex) {
             speakAsGuidanceToGM("Hmm... I'm afraid I can't do that.");
-            debugLog(ex);
+            log(ex);
         }
     });
 
@@ -271,13 +271,16 @@ var Guidance = Guidance || (function () {
     };
 
     var populateDefense = function (characterId, textToParse) {
-        setAttribute(characterId, "EAC-npc", getValue("EAC", textToParse));
+        setAttribute(characterId, "EAC-npc", getValue("EAC ", textToParse));
         setAttribute(characterId, "KAC-npc", getValue("KAC", textToParse));
         setAttribute(characterId, "Fort-npc", getValue("Fort", textToParse).replace("+", ""));
         setAttribute(characterId, "Ref-npc", getValue("Ref", textToParse).replace("+", ""));
         setAttribute(characterId, "Will-npc", getValue("Will", textToParse).replace("+", ""));
         setAttribute(characterId, "HP-npc", getValue("HP", textToParse));
-        setAttribute(characterId, "RP-npc", getValue("RP", textToParse));
+        var rp = getValue("RP", textToParse);
+        if(!(rp == null)) {
+            setAttribute(characterId, "RP-npc", rp);
+        }
         setAttribute(characterId, "npc-SR", getValue("SR", textToParse));
         if (textToParse.includes("Weaknesses")) {
             setAttribute(characterId, "npc-resistances", getValue("Resistances", textToParse, "Weaknesses"));
@@ -368,7 +371,11 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "INT-bonus", getValue("Int", textToParse).replace("+", ""));
         setAttribute(characterId, "WIS-bonus", getValue("Wis", textToParse).replace("+", ""));
         setAttribute(characterId, "CHA-bonus", getValue("Cha", textToParse).replace("+", ""));
-        setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Other"));
+        if(!textToParse.includes("Other Abilities")) {
+            setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Gear"));
+        } else {
+            setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Other"));
+        }
 
         var gear = getValue("Gear", textToParse, "Ecology");
         if (gear == null || gear.length < 1) {
@@ -509,7 +516,9 @@ var Guidance = Guidance || (function () {
         ).replace(/ or /g, delimiter
         ).replace(/Ranged/g, delimiter
         ).replace(/Melee/g, delimiter
-        ).replace(/OFFENSE/, "");
+        ).replace(/OFFENSE/, ""
+        ).replace(/Multiattack/, delimiter + "Multiattack"
+        );
 
         if (textToParse.indexOf("Space") > 0) {
             textToParse = textToParse.substring(0, textToParse.indexOf("Space"));
@@ -639,6 +648,10 @@ var Guidance = Guidance || (function () {
 
     var getValue = function (textToFind, textToParse, delimiter) {
         var bucket = getStringValue(textToFind, textToParse, delimiter);
+        if (!(bucket == null)) {
+           let b2 = bucket.split(" ");
+            bucket = b2[0];
+        }
         return bucket.replace(";", "").replace(",", " ").trim(); // replace("+", "")
     };
 
