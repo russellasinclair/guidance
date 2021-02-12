@@ -88,6 +88,7 @@ var Guidance = Guidance || (function () {
                     setAttribute(characterId, "npc-race", characterSheet.get("name"));
                     setAttribute(characterId, "tab", 4);
                     setAttribute(characterId, "npc-tactics-show", 0);
+                    setAttribute(characterId, "npc-feats-show", 0);
                     populateHeader(characterId, section.get('header'));
                     populateDefense(characterId, section.get('defense'));
                     populateOffense(characterId, section.get('offense'));
@@ -196,6 +197,8 @@ var Guidance = Guidance || (function () {
                 level = level.substring(0, level.indexOf("Spell-Like Abilities"))
             }
             addSpell(characterId, level, attackBonus);
+        } else {
+            setAttribute(characterId, "npc-spells-show", 0);
         }
 
         if (textToParse.includes("Spell-Like Abilities")) {
@@ -217,6 +220,8 @@ var Guidance = Guidance || (function () {
                 }
                 addSpellLikeAbility(characterId, ability);
             }
+        } else {
+            setAttribute(characterId, "npc-spell-like-abilities-show", 0);
         }
     };
 
@@ -260,7 +265,7 @@ var Guidance = Guidance || (function () {
 
     var populateHeader = function (characterId, textToParse) {
         setAttribute(characterId, "npc-cr", getValue("CR", textToParse));
-        setAttribute(characterId, "npc-XP", getValue("XP", textToParse).replace(/\s/, ""));
+        setAttribute(characterId, "npc-XP", getValue("XP", textToParse).replace(/\s/, "").replace(/,/, ""));
         setAttribute(characterId, "npc-senses", getValue("Senses", textToParse, ";"));
     };
 
@@ -354,7 +359,14 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "WIS-bonus", getValue("Wis", textToParse).replace("+", ""));
         setAttribute(characterId, "CHA-bonus", getValue("Cha", textToParse).replace("+", ""));
         setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Other"));
-        setAttribute(characterId, "npc-gear", getValue("Gear", textToParse, "Ecology"));
+
+        var gear = getValue("Gear", textToParse, "Ecology");
+        if(gear == null || gear.length<1) {
+            setAttribute(characterId, "npc-gear-show", 0);
+        } else {
+            setAttribute(characterId, "npc-gear", getValue("Gear", textToParse, "Ecology"));
+        }
+
         var sq = getValue("Other Abilities", textToParse, "Gear");
         if (sq.includes("ECOLOGY")) {
             sq = sq.substring(0, sq.indexOf("ECOLOGY"))
@@ -389,6 +401,8 @@ var Guidance = Guidance || (function () {
                     setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.trim());
                 }
             }
+        } else {
+            setAttribute(characterId,"npc-special-abilities-show", 0);
         }
     };
 
