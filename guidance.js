@@ -8,10 +8,13 @@ var Guidance = Guidance || (function () {
     var version = "-=> Guidance is online. v0.9.9 <=-";
     var debugMode = true;
     on("ready", function () {
+        if (debugMode) {
+            speakAsGuidanceToGM(version);
+        }
         speakAsGuidanceToGM("Greetings, I am Guidance. I am here to assist you working with your Starfinders to make " +
             "your time in the Pact Worlds more enjoyable. To learn how to use my services, simply type " +
-            "<b>sf_help</b> into the chat");
-        speakAsGuidanceToGM(version);
+            "<b>sf_help</b> into the chat.");
+
         log(version);
     });
 
@@ -22,13 +25,13 @@ var Guidance = Guidance || (function () {
 
         try {
             if (String(chatMessage.content).startsWith("!sf_help")) {
-                speakAsGuidanceToGM("I have several commands I support:\n\n");
-                speakAsGuidanceToGM("<b><i>sf_populate</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
+                speakAsGuidanceToGM("I have several commands I support:\n\n" +
+                    "<b><i>!sf_populate</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
                     "of a selected character and I will attempt to use it to fill out the NPC section of the Starfinder " +
-                    "(Simple) character sheet\n\n");
-                speakAsGuidanceToGM("Currently, I support statblocks from the Roll20 compendium and Archives of Nethys. " +
-                    "<i>I don't do well with Society PDFs</i>. If you want to attempt using one, double check my work");
-                speakAsGuidanceToGM("<b><i>sf_clean CONFIRM</i></b> will allow me to take a selected character sheet and completely " +
+                    "(Simple) character sheet\n\n" +
+                    "Currently, I support statblocks from the Roll20 compendium and Archives of Nethys. " +
+                    "<i>I don't do well with Society PDFs</i>. If you want to attempt using one, double check my work\n\n" +
+                    "<b><i>!sf_clean CONFIRM</i></b> will allow me to take a selected character sheet and completely " +
                     "<b>AND PERMANENTLY</b> remove all data from it. <i>I recommend against using this unless you are about " +
                     "to reimport a character</i>.");
                 return;
@@ -68,7 +71,9 @@ var Guidance = Guidance || (function () {
                     tokenLinkedToNpcCharacterSheet.set("bar" + i + "_value", "");
                     tokenLinkedToNpcCharacterSheet.set("bar" + i + "_max", "");
                 }
-                tokenLinkedToNpcCharacterSheet.set("gmnotes", "");
+                if (debugMode) {
+                    tokenLinkedToNpcCharacterSheet.set("gmnotes", "");
+                }
                 try {
                     speakAsGuidanceToGM("Removed all properties for " + characterSheet.get("name"));
                 } catch (e) {
@@ -83,7 +88,9 @@ var Guidance = Guidance || (function () {
                     var section = parseBlockIntoSubSectionMap(cleanNotes);
 
                     // For Debugging purposes and general information
-                    tokenLinkedToNpcCharacterSheet.set("gmnotes", cleanNotes);
+                    if (debugMode) {
+                        tokenLinkedToNpcCharacterSheet.set("gmnotes", cleanNotes);
+                    }
 
                     // Setup Character Sheet
                     setAttribute(characterId, "npc-race", characterSheet.get("name"));
@@ -278,7 +285,7 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "Will-npc", getValue("Will", textToParse).replace("+", ""));
         setAttribute(characterId, "HP-npc", getValue("HP", textToParse));
         var rp = getValue("RP", textToParse);
-        if(!(rp == null)) {
+        if (!(rp == null)) {
             setAttribute(characterId, "RP-npc", rp);
         }
         setAttribute(characterId, "npc-SR", getValue("SR", textToParse));
@@ -371,7 +378,7 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "INT-bonus", getValue("Int", textToParse).replace("+", ""));
         setAttribute(characterId, "WIS-bonus", getValue("Wis", textToParse).replace("+", ""));
         setAttribute(characterId, "CHA-bonus", getValue("Cha", textToParse).replace("+", ""));
-        if(!textToParse.includes("Other Abilities")) {
+        if (!textToParse.includes("Other Abilities")) {
             setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Gear"));
         } else {
             setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Other"));
@@ -650,7 +657,7 @@ var Guidance = Guidance || (function () {
     var getValue = function (textToFind, textToParse, delimiter) {
         var bucket = getStringValue(textToFind, textToParse, delimiter);
         if (!(bucket == null)) {
-           let b2 = bucket.split(" ");
+            let b2 = bucket.split(" ");
             bucket = b2[0];
         }
         return bucket.replace(";", "").replace(",", " ").trim(); // replace("+", "")
@@ -678,41 +685,43 @@ var Guidance = Guidance || (function () {
 
     // Thanks Aaron
     var generateUUID = (function () {
-        "use strict";
+            "use strict";
 
-        var a = 0, b = [];
-        return function () {
-            var c = (new Date()).getTime() + 0, d = c === a;
-            a = c;
-            for (var e = new Array(8), f = 7; 0 <= f; f--) {
-                e[f] = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(c % 64);
-                c = Math.floor(c / 64);
-            }
-            c = e.join("");
-            if (d) {
-                for (f = 11; 0 <= f && 63 === b[f]; f--) {
-                    b[f] = 0;
+            var a = 0, b = [];
+            return function () {
+                var c = (new Date()).getTime() + 0, d = c === a;
+                a = c;
+                for (var e = new Array(8), f = 7; 0 <= f; f--) {
+                    e[f] = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(c % 64);
+                    c = Math.floor(c / 64);
                 }
-                b[f]++;
-            } else {
+                c = e.join("");
+                if (d) {
+                    for (f = 11; 0 <= f && 63 === b[f]; f--) {
+                        b[f] = 0;
+                    }
+                    b[f]++;
+                } else {
+                    for (f = 0; 12 > f; f++) {
+                        b[f] = Math.floor(64 * Math.random());
+                    }
+                }
                 for (f = 0; 12 > f; f++) {
-                    b[f] = Math.floor(64 * Math.random());
+                    c += "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(b[f]);
                 }
-            }
-            for (f = 0; 12 > f; f++) {
-                c += "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(b[f]);
-            }
 
-            return c;
-        };
-    }()),
+                return c;
+            };
+        }()),
         generateRowID = function () {
             "use strict";
             return generateUUID().replace(/_/g, "Z");
         };
 
     var speakAsGuidanceToGM = function (text) {
-        sendChat("Guidance", "/w gm " + text);
+        text = "/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description=" + text + "}}"
+        sendChat("Guidance", text);
+
     };
 
     var debugLog = function (text) {
