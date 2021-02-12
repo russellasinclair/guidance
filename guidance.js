@@ -4,6 +4,7 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 !sf_populate - will parse a stat-block in the GM Notes of a character, and populate the NPC tab of the character sheet with the values
 */
 var Guidance = Guidance || (function () {
+    "use strict";
     var version = "-=> Guidance is online. v0.9.9 <=-";
     var debugMode = true;
     on("ready", function () {
@@ -59,7 +60,7 @@ var Guidance = Guidance || (function () {
 
             // Wipe out all Character Data
             if (String(chatMessage.content).startsWith("!sf_clean CONFIRM")) {
-                for (prop of findObjs({_characterid: characterId, _type: "attribute"})) {
+                for (var prop of findObjs({_characterid: characterId, _type: "attribute"})) {
                     debugLog("Removing " + prop.get("name"));
                     prop.remove();
                 }
@@ -78,7 +79,7 @@ var Guidance = Guidance || (function () {
             // Populate the Character Sheet
             if (String(chatMessage.content).startsWith("!sf_populate")) {
                 characterSheet.get("gmnotes", function (gmNotes) {
-                    cleanNotes = cleanText(gmNotes);
+                    var cleanNotes = cleanText(gmNotes);
                     var section = parseBlockIntoSubSectionMap(cleanNotes);
 
                     // For Debugging purposes and general information
@@ -89,13 +90,13 @@ var Guidance = Guidance || (function () {
                     setAttribute(characterId, "tab", 4);
                     setAttribute(characterId, "npc-tactics-show", 0);
                     setAttribute(characterId, "npc-feats-show", 0);
-                    populateHeader(characterId, section.get('header'));
-                    populateDefense(characterId, section.get('defense'));
-                    populateOffense(characterId, section.get('offense'));
-                    populateStatics(characterId, section.get('statistics'));
-                    populateSkills(characterId, section.get('statistics'));
+                    populateHeader(characterId, section.get("header"));
+                    populateDefense(characterId, section.get("defense"));
+                    populateOffense(characterId, section.get("offense"));
+                    populateStatics(characterId, section.get("statistics"));
+                    populateSkills(characterId, section.get("statistics"));
                     populateNPC(characterId, cleanNotes);
-                    populateSpecialAbilities(characterId, section.get('special'));
+                    populateSpecialAbilities(characterId, section.get("special"));
 
                     // Set up Token
                     var hitPoints = getAttribute(characterId, "HP-npc");
@@ -115,7 +116,7 @@ var Guidance = Guidance || (function () {
 
         } catch (ex) {
             speakAsGuidanceToGM("Hmm... I'm afraid I can't do that.");
-            debugLog(ex);
+            log(ex);
         }
     });
 
@@ -131,25 +132,25 @@ var Guidance = Guidance || (function () {
         let sections = new Map();
         var parsedText = textToParse;
 
-        sections.set('header', parsedText.substring(0, parsedText.indexOf("DEFENSE")));
+        sections.set("header", parsedText.substring(0, parsedText.indexOf("DEFENSE")));
         parsedText = parsedText.substring(parsedText.indexOf("DEFENSE"));
 
-        sections.set('defense', parsedText.substring(0, parsedText.indexOf("OFFENSE")));
+        sections.set("defense", parsedText.substring(0, parsedText.indexOf("OFFENSE")));
         parsedText = parsedText.substring(parsedText.indexOf("OFFENSE"));
 
         if (textToParse.includes("TACTICS")) {
             speakAsGuidanceToGM("Tactics section found. Tactics Processing not yet implemented");
-            sections.set('offense', parsedText.substring(0, parsedText.indexOf("TACTICS")));
+            sections.set("offense", parsedText.substring(0, parsedText.indexOf("TACTICS")));
         } else {
-            sections.set('offense', parsedText.substring(0, parsedText.indexOf("STATISTICS")));
+            sections.set("offense", parsedText.substring(0, parsedText.indexOf("STATISTICS")));
         }
         parsedText = parsedText.substring(parsedText.indexOf("STATISTICS"));
         if (textToParse.includes("SPECIAL ABILITIES")) {
-            sections.set('statistics', parsedText.substring(0, parsedText.indexOf("SPECIAL ABILITIES")));
+            sections.set("statistics", parsedText.substring(0, parsedText.indexOf("SPECIAL ABILITIES")));
             parsedText = parsedText.substring(parsedText.indexOf("SPECIAL ABILITIES"));
-            sections.set('special', parsedText);
+            sections.set("special", parsedText);
         } else {
-            sections.set('statistics', parsedText);
+            sections.set("statistics", parsedText);
         }
 
         return sections;
@@ -158,10 +159,10 @@ var Guidance = Guidance || (function () {
     // Populate data
     var doMagic = function (characterId, textToParse) {
         textToParse = textToParse.substring(textToParse.indexOf("Spell"));
-        textToParse = textToParse.replace(/\s+/, ' ');
+        textToParse = textToParse.replace(/\s+/, " ");
         var attackBonus = "";
         if (textToParse.includes("Spells Known")) {
-            setAttribute(characterId, "spellclass-1-level", getValue("CL", textToParse, ";").replace(/\D/g, ''));
+            setAttribute(characterId, "spellclass-1-level", getValue("CL", textToParse, ";").replace(/\D/g, ""));
 
             attackBonus = textToParse.replace(/\(.*\;/, "");
             attackBonus = attackBonus.replace("Spells Known", "");
@@ -203,7 +204,7 @@ var Guidance = Guidance || (function () {
 
         if (textToParse.includes("Spell-Like Abilities")) {
             textToParse = textToParse.substring(textToParse.indexOf("Spell-Like Abilities")).trim();
-            setAttribute(characterId, "spellclass-0-level", getValue("CL", textToParse, ";").replace(/\D/g, ''));
+            setAttribute(characterId, "spellclass-0-level", getValue("CL", textToParse, ";").replace(/\D/g, ""));
             textToParse = textToParse.replace(/Spell-Like Abilities/, "").trim();
 
             attackBonus = textToParse.replace(/\(.*\;/, "");
@@ -228,7 +229,7 @@ var Guidance = Guidance || (function () {
     var addSpell = function (characterId, textToParse, additional) {
         textToParse = textToParse.replace(/—/g, "");
         var uuid = generateRowID();
-        var value = textToParse.substring(0, textToParse.indexOf("(")).replace(/\D/g, '').trim();
+        var value = textToParse.substring(0, textToParse.indexOf("(")).replace(/\D/g, "").trim();
         setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-level", value);
         value = textToParse.substring(textToParse.indexOf("("), textToParse.indexOf(")") + 1).trim();
         setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-usage", value);
@@ -238,8 +239,8 @@ var Guidance = Guidance || (function () {
 
     var addSpellLikeAbility = function (characterId, textToParse) {
         var uuid = generateRowID();
-        setAttribute(characterId, "repeating_npc-spell-like-abilities_"+uuid+"_npc-abil-usage", textToParse.substring(0, textToParse.indexOf("—")).trim());
-        setAttribute(characterId, "repeating_npc-spell-like-abilities_"+uuid+"_npc-abil-name", textToParse.substring(textToParse.indexOf("—")+2).trim());
+        setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-usage", textToParse.substring(0, textToParse.indexOf("—")).trim());
+        setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-name", textToParse.substring(textToParse.indexOf("—") + 2).trim());
     };
 
     var cleanText = function (textToClean) {
@@ -247,7 +248,7 @@ var Guidance = Guidance || (function () {
         ).replace(/&nbsp;/gi, " "
         ).replace(/&amp;/gi, "&"
         ).replace(/&amp/gi, "&"
-        ).replace(/\s+/g, ' '
+        ).replace(/\s+/g, " "
         ).replace(/Offense/i, " OFFENSE "
         ).replace(/Defense/i, " DEFENSE "
         ).replace(/Statistics/i, " STATISTICS "
@@ -270,15 +271,23 @@ var Guidance = Guidance || (function () {
     };
 
     var populateDefense = function (characterId, textToParse) {
-        setAttribute(characterId, "EAC-npc", getValue("EAC", textToParse));
+        setAttribute(characterId, "EAC-npc", getValue("EAC ", textToParse));
         setAttribute(characterId, "KAC-npc", getValue("KAC", textToParse));
         setAttribute(characterId, "Fort-npc", getValue("Fort", textToParse).replace("+", ""));
         setAttribute(characterId, "Ref-npc", getValue("Ref", textToParse).replace("+", ""));
         setAttribute(characterId, "Will-npc", getValue("Will", textToParse).replace("+", ""));
         setAttribute(characterId, "HP-npc", getValue("HP", textToParse));
-        setAttribute(characterId, "RP-npc", getValue("RP", textToParse));
+        var rp = getValue("RP", textToParse);
+        if(!(rp == null)) {
+            setAttribute(characterId, "RP-npc", rp);
+        }
         setAttribute(characterId, "npc-SR", getValue("SR", textToParse));
-        setAttribute(characterId, "npc-resistances", getValue("Resistances", textToParse, ";"));
+        if (textToParse.includes("Weaknesses")) {
+            setAttribute(characterId, "npc-resistances", getValue("Resistances", textToParse, "Weaknesses"));
+            setAttribute(characterId, "npc-weaknesses", getValue("Weaknesses", textToParse, ";"));
+        } else {
+            setAttribute(characterId, "npc-resistances", getValue("Resistances", textToParse, ";"));
+        }
         setAttribute(characterId, "npc-DR", getValue("DR", textToParse, ";"));
 
         if (textToParse.includes("SR")) {
@@ -309,10 +318,14 @@ var Guidance = Guidance || (function () {
 
     var populateOffense = function (characterId, textToParse) {
         var specialAbilities = getValue("Offensive Abilities", textToParse, "STATISTICS");
-        if(specialAbilities.includes("Spell")) {
+        if (specialAbilities.includes("Spell")) {
             specialAbilities = specialAbilities.substring(0, specialAbilities.indexOf("Spell"))
         }
-        setAttribute(characterId, "npc-special-attacks", specialAbilities);
+        if (specialAbilities == null) {
+            setAttribute(characterId, "npc-special-attacks-show", 0);
+        } else {
+            setAttribute(characterId, "npc-special-attacks", specialAbilities);
+        }
 
         setAttribute(characterId, "speed-base-npc", getMovement("Speed", textToParse));
         setAttribute(characterId, "speed-fly-npc", getMovement("fly", textToParse));
@@ -358,10 +371,14 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "INT-bonus", getValue("Int", textToParse).replace("+", ""));
         setAttribute(characterId, "WIS-bonus", getValue("Wis", textToParse).replace("+", ""));
         setAttribute(characterId, "CHA-bonus", getValue("Cha", textToParse).replace("+", ""));
-        setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Other"));
+        if(!textToParse.includes("Other Abilities")) {
+            setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Gear"));
+        } else {
+            setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Other"));
+        }
 
         var gear = getValue("Gear", textToParse, "Ecology");
-        if(gear == null || gear.length<1) {
+        if (gear == null || gear.length < 1) {
             setAttribute(characterId, "npc-gear-show", 0);
         } else {
             setAttribute(characterId, "npc-gear", getValue("Gear", textToParse, "Ecology"));
@@ -402,7 +419,7 @@ var Guidance = Guidance || (function () {
                 }
             }
         } else {
-            setAttribute(characterId,"npc-special-abilities-show", 0);
+            setAttribute(characterId, "npc-special-abilities-show", 0);
         }
     };
 
@@ -434,7 +451,7 @@ var Guidance = Guidance || (function () {
 
         try {
             var section = getStringValue("XP", textToParse, "DEFENSE").trim();
-            var subsections = section.split(' ');
+            var subsections = section.split(" ");
 
             if (section.includes("LG")) {
                 setAttribute(characterId, "npc-alignment", "LG");
@@ -457,31 +474,32 @@ var Guidance = Guidance || (function () {
             }
 
             var subtypeStart = 0;
-            if (section.includes("Medium")) {
+            var dropdown = 0;
+            if (section.toLowerCase().includes("medium")) {
                 dropdown = 0;
                 subtypeStart = section.indexOf("Medium") + "Medium".length;
-            } else if (section.includes("Large")) {
+            } else if (section.toLowerCase().includes("large")) {
                 dropdown = -1;
                 subtypeStart = section.indexOf("Large") + "Large".length;
-            } else if (section.includes("Small")) {
+            } else if (section.toLowerCase().includes("small")) {
                 dropdown = 1;
                 subtypeStart = section.indexOf("Small") + "Small".length;
-            } else if (section.includes("Gargantuan")) {
+            } else if (section.toLowerCase().includes("gargantuan")) {
                 dropdown = -4;
                 subtypeStart = section.indexOf("Gargantuan") + "Gargantuan".length;
-            } else if (section.includes("Huge")) {
+            } else if (section.toLowerCase().includes("huge")) {
                 dropdown = -2;
                 subtypeStart = section.indexOf("Huge") + "Huge".length;
-            } else if (section.includes("Tiny")) {
+            } else if (section.toLowerCase().includes("tiny")) {
                 dropdown = 2;
                 subtypeStart = section.indexOf("Tiny") + "Tiny".length;
-            } else if (section.includes("Diminutive")) {
+            } else if (section.toLowerCase().includes("diminutive")) {
                 dropdown = 4;
                 subtypeStart = section.indexOf("Diminutive") + "Diminutive".length;
-            } else if (section.includes("Fine")) {
+            } else if (section.toLowerCase().includes("fine")) {
                 dropdown = 8;
                 subtypeStart = section.indexOf("Fine") + "Fine".length;
-            } else if (section.includes("Colossal")) {
+            } else if (section.toLowerCase().includes("colossal")) {
                 dropdown = -8;
                 subtypeStart = section.indexOf("Colossal") + "Colossal".length;
             }
@@ -499,7 +517,9 @@ var Guidance = Guidance || (function () {
         ).replace(/ or /g, delimiter
         ).replace(/Ranged/g, delimiter
         ).replace(/Melee/g, delimiter
-        ).replace(/OFFENSE/, "");
+        ).replace(/OFFENSE/, ""
+        ).replace(/Multiattack/, delimiter + "Multiattack"
+        );
 
         if (textToParse.indexOf("Space") > 0) {
             textToParse = textToParse.substring(0, textToParse.indexOf("Space"));
@@ -526,7 +546,7 @@ var Guidance = Guidance || (function () {
         }
 
         var attacks = textToParse.split(delimiter);
-        for (attack of attacks) {
+        for (var attack of attacks) {
             attack = attack.trim();
             if (attack.length > 1) {
                 if (!(attack.startsWith("Space") || attack.startsWith("Reach") || attack.includes("ft"))) {
@@ -545,7 +565,7 @@ var Guidance = Guidance || (function () {
         debugLog("Parsing " + attackToParse);
         var uuid = generateRowID();
 
-        var details = attackToParse.split(' ');
+        var details = attackToParse.split(" ");
         var i = 0;
         var weapon = "";
         while (isNaN(details[i]) && i < details.length) {
@@ -560,7 +580,7 @@ var Guidance = Guidance || (function () {
         i++;
 
         var damage = details[i].replace(/\(/, "");
-        var numDice = damage.split('d');
+        var numDice = damage.split("d");
         var dnd = numDice[1].split("+");
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-dice-num", numDice[0]);
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-die", dnd[0]);
@@ -582,11 +602,19 @@ var Guidance = Guidance || (function () {
             },
 
             foundAttribute = getAttribute(characterId, attributeName);
+
         try {
             if (!foundAttribute) {
-                if (typeof operator !== 'undefined' && !isNaN(newValue)) {
+                if (typeof operator !== "undefined" && !isNaN(newValue)) {
                     debugLog(newValue + " is a number.");
                     newValue = mod_newValue[operator](newValue);
+                }
+
+                // We don't need to create "Blank Values"
+                if (!attributeName.includes("show")) {
+                    if (newValue == null || newValue == "" || newValue == 0) {
+                        return;
+                    }
                 }
 
                 debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
@@ -597,7 +625,7 @@ var Guidance = Guidance || (function () {
                     _characterid: characterId
                 });
             } else {
-                if (typeof operator !== 'undefined' && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
+                if (typeof operator !== "undefined" && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
                     newValue = parseFloat(foundAttribute.get("current")) + parseFloat(mod_newValue[operator](newValue));
                 }
                 debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
@@ -620,7 +648,11 @@ var Guidance = Guidance || (function () {
     };
 
     var getValue = function (textToFind, textToParse, delimiter) {
-        bucket = getStringValue(textToFind, textToParse, delimiter);
+        var bucket = getStringValue(textToFind, textToParse, delimiter);
+        if (!(bucket == null)) {
+           let b2 = bucket.split(" ");
+            bucket = b2[0];
+        }
         return bucket.replace(";", "").replace(",", " ").trim(); // replace("+", "")
     };
 
@@ -645,7 +677,7 @@ var Guidance = Guidance || (function () {
     };
 
     // Thanks Aaron
-    generateUUID = (function () {
+    var generateUUID = (function () {
         "use strict";
 
         var a = 0, b = [];
@@ -683,8 +715,8 @@ var Guidance = Guidance || (function () {
         sendChat("Guidance", "/w gm " + text);
     };
 
-    var debugLog = function(text) {
-        if(debugMode) {
+    var debugLog = function (text) {
+        if (debugMode) {
             log(text);
         }
     }
