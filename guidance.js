@@ -238,8 +238,8 @@ var Guidance = Guidance || (function () {
 
     var addSpellLikeAbility = function (characterId, textToParse) {
         var uuid = generateRowID();
-        setAttribute(characterId, "repeating_npc-spell-like-abilities_"+uuid+"_npc-abil-usage", textToParse.substring(0, textToParse.indexOf("—")).trim());
-        setAttribute(characterId, "repeating_npc-spell-like-abilities_"+uuid+"_npc-abil-name", textToParse.substring(textToParse.indexOf("—")+2).trim());
+        setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-usage", textToParse.substring(0, textToParse.indexOf("—")).trim());
+        setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-name", textToParse.substring(textToParse.indexOf("—") + 2).trim());
     };
 
     var cleanText = function (textToClean) {
@@ -278,7 +278,12 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "HP-npc", getValue("HP", textToParse));
         setAttribute(characterId, "RP-npc", getValue("RP", textToParse));
         setAttribute(characterId, "npc-SR", getValue("SR", textToParse));
-        setAttribute(characterId, "npc-resistances", getValue("Resistances", textToParse, ";"));
+        if (textToParse.includes("Weaknesses")) {
+            setAttribute(characterId, "npc-resistances", getValue("Resistances", textToParse, "Weaknesses"));
+            setAttribute(characterId, "npc-weaknesses", getValue("Weaknesses", textToParse, ";"));
+        } else {
+            setAttribute(characterId, "npc-resistances", getValue("Resistances", textToParse, ";"));
+        }
         setAttribute(characterId, "npc-DR", getValue("DR", textToParse, ";"));
 
         if (textToParse.includes("SR")) {
@@ -309,10 +314,14 @@ var Guidance = Guidance || (function () {
 
     var populateOffense = function (characterId, textToParse) {
         var specialAbilities = getValue("Offensive Abilities", textToParse, "STATISTICS");
-        if(specialAbilities.includes("Spell")) {
+        if (specialAbilities.includes("Spell")) {
             specialAbilities = specialAbilities.substring(0, specialAbilities.indexOf("Spell"))
         }
-        setAttribute(characterId, "npc-special-attacks", specialAbilities);
+        if (specialAbilities == null) {
+            setAttribute(characterId, "npc-special-attacks-show", 0);
+        } else {
+            setAttribute(characterId, "npc-special-attacks", specialAbilities);
+        }
 
         setAttribute(characterId, "speed-base-npc", getMovement("Speed", textToParse));
         setAttribute(characterId, "speed-fly-npc", getMovement("fly", textToParse));
@@ -361,7 +370,7 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Other"));
 
         var gear = getValue("Gear", textToParse, "Ecology");
-        if(gear == null || gear.length<1) {
+        if (gear == null || gear.length < 1) {
             setAttribute(characterId, "npc-gear-show", 0);
         } else {
             setAttribute(characterId, "npc-gear", getValue("Gear", textToParse, "Ecology"));
@@ -402,7 +411,7 @@ var Guidance = Guidance || (function () {
                 }
             }
         } else {
-            setAttribute(characterId,"npc-special-abilities-show", 0);
+            setAttribute(characterId, "npc-special-abilities-show", 0);
         }
     };
 
@@ -582,11 +591,19 @@ var Guidance = Guidance || (function () {
             },
 
             foundAttribute = getAttribute(characterId, attributeName);
+
         try {
             if (!foundAttribute) {
                 if (typeof operator !== 'undefined' && !isNaN(newValue)) {
                     debugLog(newValue + " is a number.");
                     newValue = mod_newValue[operator](newValue);
+                }
+
+                // We don't need to create "Blank Values"
+                if (!attributeName.includes("show")) {
+                    if (newValue == null || newValue == "" || newValue == 0) {
+                        return;
+                    }
                 }
 
                 debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
@@ -683,8 +700,8 @@ var Guidance = Guidance || (function () {
         sendChat("Guidance", "/w gm " + text);
     };
 
-    var debugLog = function(text) {
-        if(debugMode) {
+    var debugLog = function (text) {
+        if (debugMode) {
             log(text);
         }
     }
