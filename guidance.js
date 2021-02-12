@@ -548,7 +548,7 @@ var Guidance = Guidance || (function () {
         var damage = details[i].replace(/\(/, "");
         var numDice = damage.split('d');
         var dnd = numDice[1].split("+");
-        setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-dice-num", numDice[0]);
+        setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-dice-num", numDice[0]);
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-die", dnd[0]);
 
         if (dnd[1] != undefined) {
