@@ -115,8 +115,6 @@ var Guidance = Guidance || (function () {
                     tokenLinkedToNpcCharacterSheet.set("bar3_value", "KAC " + armorClass.get("current"));
                     tokenLinkedToNpcCharacterSheet.set("bar3_max", armorClass.get("current"));
                     tokenLinkedToNpcCharacterSheet.set("showname", true);
-
-                    // Done
                     speakAsGuidanceToGM(characterSheet.get("name") + " NPC character sheet processed");
                 });
             }
@@ -669,16 +667,25 @@ var Guidance = Guidance || (function () {
         if (textToParse.indexOf(textToFind) < 0) {
             return "";
         }
-        var start = textToParse.indexOf(textToFind) + textToFind.length;
+        let start = textToParse.indexOf(textToFind) + textToFind.length;
         if (start < 0) {
             return "";
         }
-        var bucket = textToParse.substr(start);
+
         if (delimiter === undefined) {
             delimiter = " ";
         }
+
+        var bucket = textToParse.substring(start);
+        if (delimiter !== ";") {
+            // It appears that ; ALWAYS means end of field. This is a good safety
+            if (bucket.indexOf(";") > 2) {
+                bucket = bucket.substring(0, bucket.indexOf(";"));
+            }
+        }
+
         bucket = bucket.trim();
-        var end = bucket.toLowerCase().indexOf(delimiter.toLowerCase());
+        let end = bucket.toLowerCase().indexOf(delimiter.toLowerCase());
         if (end > 1) {
             bucket = bucket.substring(0, end);
         }
