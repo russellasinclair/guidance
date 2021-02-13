@@ -275,7 +275,7 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "npc-cr", getValue("CR", textToParse));
         setAttribute(characterId, "npc-XP", getValue("XP", textToParse).replace(/\s/, "").replace(/,/, ""));
         setAttribute(characterId, "npc-senses", getValue("Senses", textToParse, ";"));
-        setAttribute(characterId, "npc-aura", getStringValue("Aura"), textToParse, "DEFENSE");
+        setAttribute(characterId, "npc-aura", getStringValue("Aura", textToParse, "DEFENSE"));
     };
 
     var populateDefense = function (characterId, textToParse) {
