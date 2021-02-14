@@ -23,20 +23,93 @@ var Guidance = Guidance || (function () {
             return;
         }
 
-        try {
-            if (String(chatMessage.content).startsWith("!sf_help")) {
-                speakAsGuidanceToGM("I have several commands I support:\n\n" +
-                    "<b><i>!sf_populate</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
-                    "of a selected character and I will attempt to use it to fill out the NPC section of the Starfinder " +
-                    "(Simple) character sheet\n\n" +
-                    "Currently, I support statblocks from the Roll20 compendium and Archives of Nethys. " +
-                    "<i>I don't do well with Society PDFs</i>. If you want to attempt using one, double check my work\n\n" +
-                    "<b><i>!sf_clean CONFIRM</i></b> will allow me to take a selected character sheet and completely " +
-                    "<b>AND PERMANENTLY</b> remove all data from it. <i>I recommend against using this unless you are about " +
-                    "to reimport a character</i>.");
-                return;
-            }
+        if (String(chatMessage.content).startsWith("!sf_help")) {
+            speakAsGuidanceToGM("I have several commands I support:<br><br>" +
+                "<b><i>!sf_populate</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
+                "of a selected character and I will attempt to use it to fill out the NPC section of the Starfinder " +
+                "(Simple) character sheet. I support statblocks from the Archives of Nethys and the Starjammer SRD. " +
+                "<i>I don't do well with Society PDFs</i>. If you want to attempt using one, double check my work.<br><br>" +
+                "<b><i>!sf_clean CONFIRM</i></b> will allow me to take a selected character sheet and completely " +
+                "<i>AND PERMANENTLY</i> remove all data from it. <i>I recommend against using this unless you are about " +
+                "to reimport a character</i>.<br><br><b><i>!sf_token</i></b> will populate the token with hitpoint, " +
+                "EAC, and KAC information in the event that the sheet is setup, but the token isn't.<br><br><b><i>" +
+                "!sf_init</i></b> will roll group initiative for all selected NPCs");
+            return;
+        }
 
+        if (String(chatMessage.content).startsWith("!sf_init")) {
+            let allTokens = chatMessage.selected;
+            if (allTokens !== undefined) {
+                var turnorder = [];
+                speakAsGuidanceToGM("Rolling NPC initiative for all selected tokens");
+                allTokens.forEach(function (i) {
+                    let obj = findObjs(i);
+                    let characterId = obj[0].get("represents");
+                    let init = attributeToInteger(characterId, "npc-init-misc");
+                    let dex = attributeToInteger(characterId, "DEX-bonus");
+                    let roll = randomInteger(20) + dex + init;
+                    turnorder.push({
+                        id: obj[0].id,
+                        pr: String(roll) + String(".0" + dex),
+                        custom: getAttribute(characterId, "name")
+                    });
+                });
+                Campaign().set("turnorder", JSON.stringify(turnorder));
+                debugLog(JSON.stringify(turnorder));
+            } else {
+                speakAsGuidanceToGM("Linked Token has not been selected");
+            }
+            return;
+        }
+
+
+        if (String(chatMessage.content).startsWith("!sf_save")) {
+            let allTokens = chatMessage.selected;
+            if (allTokens !== undefined) {
+                var args = String(chatMessage.content).split(" ");
+                try {
+                    var arg = args[1].toLowerCase();
+                    debugLog(arg);
+                    if (arg.startsWith("for")) {
+                        arg = "Fort";
+                    } else if (arg.startsWith("ref")) {
+                        arg = "Ref";
+                    } else {
+                        arg = "Will";
+                    }
+                } catch (e) {
+                    speakAsGuidanceToGM("Usage: !sf_save {typeOfSave}");
+                    return;
+                }
+                speakAsGuidanceToGM("Rolling NPC Save for all selected tokens");
+                var result = "";
+                allTokens.forEach(function (i) {
+                    let obj = findObjs(i);
+                    let characterId = obj[0].get("represents");
+                    debugLog(characterId);
+                    let save = attributeToInteger(characterId, arg + "-npc");
+                    let sheets = findObjs({_id: characterId, _type: "character"});
+                    debugLog(sheets[0]);
+                    if (isNaN(args[2])) {
+                        result += sheets[0].get("name") + ": " + String(randomInteger(20) + save) + "<br>";
+                    } else {
+                        let roll = randomInteger(20);
+                        if (roll === 20) {
+                            roll = 1000;
+                        }
+                        debugLog("Save roll = " + roll);
+                        let diceResult = roll + save + 1 > args[2] ? "Pass" : "Fail";
+                        result += sheets[0].get("name") + ": " + diceResult + "<br>";
+                    }
+                });
+                sendChat("", "&{template:pf_check} {{name=" + arg +
+                    " save}} {{check=" + result + "}}");
+            } else {
+                speakAsGuidanceToGM("Linked Token has not been selected");
+            }
+            return;
+        }
+        try {
             let tokenLinkedToNpcCharacterSheet;
             try {
                 tokenLinkedToNpcCharacterSheet = findObjs(chatMessage.selected[0])[0];
@@ -59,6 +132,7 @@ var Guidance = Guidance || (function () {
                     log(attribute);
                 }
                 log("Done");
+                return;
             }
 
             // Wipe out all Character Data
@@ -79,6 +153,15 @@ var Guidance = Guidance || (function () {
                 } catch (e) {
                     speakAsGuidanceToGM("Removed all properties for NPC (possibly not linked correctly");
                 }
+                return;
+            } else if (String(chatMessage.content).startsWith("!sf_clean")) {
+                speakAsGuidanceToGM("usage !sf_clean CONFIRM");
+                return;
+            }
+
+            if (String(chatMessage.content).startsWith("!sf_token")) {
+                setToken(characterId, tokenLinkedToNpcCharacterSheet);
+                return;
             }
 
             // Populate the Character Sheet
@@ -106,17 +189,10 @@ var Guidance = Guidance || (function () {
                     populateSpecialAbilities(characterId, section.get("special"));
 
                     // Set up Token
-                    let hitPoints = getAttribute(characterId, "HP-npc");
-                    tokenLinkedToNpcCharacterSheet.set("bar1_link", hitPoints.id);
-                    var armorClass = getAttribute(characterId, "EAC-npc");
-                    tokenLinkedToNpcCharacterSheet.set("bar2_value", "EAC " + armorClass.get("current"));
-                    tokenLinkedToNpcCharacterSheet.set("bar2_max", armorClass.get("current"));
-                    armorClass = getAttribute(characterId, "KAC-npc");
-                    tokenLinkedToNpcCharacterSheet.set("bar3_value", "KAC " + armorClass.get("current"));
-                    tokenLinkedToNpcCharacterSheet.set("bar3_max", armorClass.get("current"));
-                    tokenLinkedToNpcCharacterSheet.set("showname", true);
+                    setToken(characterId, tokenLinkedToNpcCharacterSheet);
                     speakAsGuidanceToGM(characterSheet.get("name") + " NPC character sheet processed");
                 });
+                return;
             }
 
         } catch (ex) {
@@ -124,6 +200,32 @@ var Guidance = Guidance || (function () {
             log(ex);
         }
     });
+
+    var attributeToInteger = function (characterId, attrib) {
+        let value = getAttribute(characterId, attrib);
+        if (value === undefined) {
+            return 0;
+        } else {
+            return Number(value.get("current"));
+        }
+    }
+
+    var setToken = function (characterId, tokenLinkedToNpcCharacterSheet) {
+        try {
+            let hitPoints = getAttribute(characterId, "HP-npc");
+            tokenLinkedToNpcCharacterSheet.set("bar1_link", hitPoints.id);
+            var armorClass = getAttribute(characterId, "EAC-npc");
+            tokenLinkedToNpcCharacterSheet.set("bar2_value", "EAC " + armorClass.get("current"));
+            tokenLinkedToNpcCharacterSheet.set("bar2_max", armorClass.get("current"));
+            armorClass = getAttribute(characterId, "KAC-npc");
+            tokenLinkedToNpcCharacterSheet.set("bar3_value", "KAC " + armorClass.get("current"));
+            tokenLinkedToNpcCharacterSheet.set("bar3_max", armorClass.get("current"));
+            tokenLinkedToNpcCharacterSheet.set("showname", true);
+            speakAsGuidanceToGM("Token setup. For extra settings, check out the API TokenMod");
+        } catch (e) {
+            speakAsGuidanceToGM("Check to make sure the token is linked and the character sheet is populated");
+        }
+    };
 
     var getAttribute = function (characterId, attributeName) {
         return findObjs({
@@ -458,7 +560,7 @@ var Guidance = Guidance || (function () {
 
         try {
             var section = getStringValue("XP", textToParse, "DEFENSE").trim();
-           // var subsections = section.split(" ");
+            // var subsections = section.split(" ");
 
             if (section.includes("LG")) {
                 setAttribute(characterId, "npc-alignment", "LG");
@@ -655,11 +757,11 @@ var Guidance = Guidance || (function () {
 
     var getValue = function (textToFind, textToParse, delimiter) {
         var bucket = getStringValue(textToFind, textToParse, delimiter);
-        if(bucket == null) {
+        if (bucket == null) {
             return "";
         }
-            let b2 = bucket.split(" ");
-            bucket = b2[0];
+        let b2 = bucket.split(" ");
+        bucket = b2[0];
         return bucket.replace(";", "").replace(",", " ").trim(); // replace("+", "")
     };
 
@@ -730,7 +832,6 @@ var Guidance = Guidance || (function () {
     var speakAsGuidanceToGM = function (text) {
         text = "/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description=" + text + "}}";
         sendChat("Guidance", text);
-
     };
 
     var debugLog = function (text) {
