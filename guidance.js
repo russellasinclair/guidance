@@ -62,7 +62,6 @@ var Guidance = Guidance || (function () {
             return;
         }
 
-
         if (String(chatMessage.content).startsWith("!sf_save")) {
             let allTokens = chatMessage.selected;
             if (allTokens !== undefined) {
@@ -109,6 +108,7 @@ var Guidance = Guidance || (function () {
             }
             return;
         }
+
         try {
             let tokenLinkedToNpcCharacterSheet;
             try {
@@ -208,7 +208,7 @@ var Guidance = Guidance || (function () {
         } else {
             return Number(value.get("current"));
         }
-    }
+    };
 
     var setToken = function (characterId, tokenLinkedToNpcCharacterSheet) {
         try {
