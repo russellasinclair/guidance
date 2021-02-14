@@ -6,7 +6,7 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 var Guidance = Guidance || (function () {
     "use strict";
     let version = "-=> Guidance is online. v0.9.9 <=-";
-    let debugMode = true;
+    let debugMode = false;
     on("ready", function () {
         if (debugMode) {
             speakAsGuidanceToGM(version);
@@ -56,53 +56,6 @@ var Guidance = Guidance || (function () {
                 });
                 Campaign().set("turnorder", JSON.stringify(turnorder));
                 debugLog(JSON.stringify(turnorder));
-            } else {
-                speakAsGuidanceToGM("Linked Token has not been selected");
-            }
-            return;
-        }
-
-        if (String(chatMessage.content).startsWith("!sf_save")) {
-            let allTokens = chatMessage.selected;
-            if (allTokens !== undefined) {
-                var args = String(chatMessage.content).split(" ");
-                try {
-                    var arg = args[1].toLowerCase();
-                    debugLog(arg);
-                    if (arg.startsWith("for")) {
-                        arg = "Fort";
-                    } else if (arg.startsWith("ref")) {
-                        arg = "Ref";
-                    } else {
-                        arg = "Will";
-                    }
-                } catch (e) {
-                    speakAsGuidanceToGM("Usage: !sf_save {typeOfSave}");
-                    return;
-                }
-                speakAsGuidanceToGM("Rolling NPC Save for all selected tokens");
-                var result = "";
-                allTokens.forEach(function (i) {
-                    let obj = findObjs(i);
-                    let characterId = obj[0].get("represents");
-                    debugLog(characterId);
-                    let save = attributeToInteger(characterId, arg + "-npc");
-                    let sheets = findObjs({_id: characterId, _type: "character"});
-                    debugLog(sheets[0]);
-                    if (isNaN(args[2])) {
-                        result += sheets[0].get("name") + ": " + String(randomInteger(20) + save) + "<br>";
-                    } else {
-                        let roll = randomInteger(20);
-                        if (roll === 20) {
-                            roll = 1000;
-                        }
-                        debugLog("Save roll = " + roll);
-                        let diceResult = roll + save + 1 > args[2] ? "Pass" : "Fail";
-                        result += sheets[0].get("name") + ": " + diceResult + "<br>";
-                    }
-                });
-                sendChat("", "&{template:pf_check} {{name=" + arg +
-                    " save}} {{check=" + result + "}}");
             } else {
                 speakAsGuidanceToGM("Linked Token has not been selected");
             }
