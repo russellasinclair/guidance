@@ -763,7 +763,7 @@ var Guidance = Guidance || (function () {
         return bucket;
     };
 
-    // Thanks Aaron
+    // Thanks https://app.roll20.net/users/104025/the-aaron
     var generateUUID = (function () {
             "use strict";
 
