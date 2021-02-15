@@ -74,20 +74,6 @@ var Guidance = Guidance || (function () {
             let characterId = tokenLinkedToNpcCharacterSheet.get("represents");
             let characterSheet = findObjs({_id: characterId, _type: "character"})[0];
 
-            // Code for Testing and Debugging
-            if (String(chatMessage.content).startsWith("!sf_debug") && debugMode) {
-                log("start");
-                let foundAttributes = findObjs({
-                    _characterid: characterId,
-                    _type: "attribute",
-                });
-                for (const attribute of foundAttributes) {
-                    log(attribute);
-                }
-                log("Done");
-                return;
-            }
-
             // Wipe out all Character Data
             if (String(chatMessage.content).startsWith("!sf_clean CONFIRM")) {
                 for (var prop of findObjs({_characterid: characterId, _type: "attribute"})) {
@@ -143,6 +129,13 @@ var Guidance = Guidance || (function () {
 
                     // Set up Token
                     setToken(characterId, tokenLinkedToNpcCharacterSheet);
+
+                    createObj("ability", {
+                        name: "Trick Attack (settings on main sheet)",
+                        description: "",
+                        action: "&{template:pf_check}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
+                        _characterid: characterId,
+                    });
                     speakAsGuidanceToGM(characterSheet.get("name") + " NPC character sheet processed");
                 });
                 return;
@@ -426,12 +419,15 @@ var Guidance = Guidance || (function () {
     };
 
     var populateStatics = function (characterId, textToParse) {
-        setAttribute(characterId, "STR-bonus", getValue("Str", textToParse).replace("+", ""));
-        setAttribute(characterId, "DEX-bonus", getValue("Dex", textToParse).replace("+", ""));
-        setAttribute(characterId, "CON-bonus", getValue("Con", textToParse).replace("+", ""));
-        setAttribute(characterId, "INT-bonus", getValue("Int", textToParse).replace("+", ""));
-        setAttribute(characterId, "WIS-bonus", getValue("Wis", textToParse).replace("+", ""));
-        setAttribute(characterId, "CHA-bonus", getValue("Cha", textToParse).replace("+", ""));
+        var stats = ["Str", "Dex", "Con", "Int", "Wis", "Cha"];
+
+        for (const att of stats) {
+            var stat = Number(getValue(att, textToParse).replace("+", ""));
+            var attUpper = att.toUpperCase();
+            setAttribute(characterId, attUpper + "-bonus", String(stat));
+            setAttribute(characterId, attUpper + "-temp", String(stat * 2));
+        }
+
         if (!textToParse.includes("Other Abilities")) {
             setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Gear"));
         } else {
@@ -504,6 +500,24 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "Sleight-of-Hand-npc-misc", getSkillValue("Sleight-of-Hand", "Dex", textToParse));
         setAttribute(characterId, "Stealth-npc-misc", getSkillValue("Stealth", "Dex", textToParse));
         setAttribute(characterId, "Survival-npc-misc", getSkillValue("Survival", "Wis", textToParse));
+        setAttribute(characterId, "Acrobatics-ranks", getSkillValue("Acrobatics", "Dex", textToParse));
+        setAttribute(characterId, "Athletics-ranks", getSkillValue("Athletics", "Str", textToParse));
+        setAttribute(characterId, "Bluff-ranks", getSkillValue("Bluff", "Cha", textToParse));
+        setAttribute(characterId, "Computers-ranks", getSkillValue("Computers", "Int", textToParse));
+        setAttribute(characterId, "Culture-ranks", getSkillValue("Culture", "Int", textToParse));
+        setAttribute(characterId, "Diplomacy-ranks", getSkillValue("Diplomacy", "Cha", textToParse));
+        setAttribute(characterId, "Disguise-ranks", getSkillValue("Disguise", "Cha", textToParse));
+        setAttribute(characterId, "Engineering-ranks", getSkillValue("Engineering", "Int", textToParse));
+        setAttribute(characterId, "Intimidate-ranks", getSkillValue("Intimidate", "Cha", textToParse));
+        setAttribute(characterId, "Life-Science-ranks", getSkillValue("Life-Science", "Int", textToParse));
+        setAttribute(characterId, "Medicine-ranks", getSkillValue("Medicine", "Int", textToParse));
+        setAttribute(characterId, "Mysticism-ranks", getSkillValue("Mysticism", "Wis", textToParse));
+        setAttribute(characterId, "Physical-Science-ranks", getSkillValue("Physical-Science", "Int", textToParse));
+        setAttribute(characterId, "Piloting-ranks", getSkillValue("Piloting", "Dex", textToParse));
+        setAttribute(characterId, "Sense-Motive-ranks", getSkillValue("Sense-Motive", "Wis", textToParse));
+        setAttribute(characterId, "Sleight-of-Hand-ranks", getSkillValue("Sleight-of-Hand", "Dex", textToParse));
+        setAttribute(characterId, "Stealth-ranks", getSkillValue("Stealth", "Dex", textToParse));
+        setAttribute(characterId, "Survival-ranks", getSkillValue("Survival", "Wis", textToParse));
     };
 
     // Everything Else that needs more detail
