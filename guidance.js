@@ -5,8 +5,8 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 */
 var Guidance = Guidance || (function () {
     "use strict";
-    let version = "-=> Guidance is online. v0.9.9 <=-";
-    let debugMode = false;
+    let version = "-=> Guidance is online. v1.Dogfood <=-";
+    let debugMode = true;
     on("ready", function () {
         if (debugMode) {
             speakAsGuidanceToGM(version);
@@ -129,13 +129,15 @@ var Guidance = Guidance || (function () {
 
                     // Set up Token
                     setToken(characterId, tokenLinkedToNpcCharacterSheet);
-
-                    createObj("ability", {
-                        name: "Trick Attack (settings on main sheet)",
-                        description: "",
-                        action: "&{template:pf_check}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
-                        _characterid: characterId,
-                    });
+                    if (cleanNotes.toLowerCase().includes("trick attack")) {
+                        createObj("ability", {
+                            name: "Trick Attack (settings on main sheet)",
+                            description: "",
+                            action: "&{template:pf_check}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
+                            _characterid: characterId,
+                        });
+                        speakAsGuidanceToGM("Trick attack added to selected character");
+                    }
                     speakAsGuidanceToGM(characterSheet.get("name") + " NPC character sheet processed");
                 });
                 return;
