@@ -22,6 +22,9 @@ var Guidance = Guidance || (function () {
         if (chatMessage.type !== "api" || !playerIsGM(chatMessage.playerid)) {
             return;
         }
+        if (chatMessage.selected === undefined || chatMessage.selected.length < 1) {
+            speakAsGuidanceToGM("Please select a token representing a character for me to work with");
+        }
 
         if (String(chatMessage.content).startsWith("!sf_help")) {
             speakAsGuidanceToGM("I have several commands I support:<br><br>" +
@@ -37,32 +40,33 @@ var Guidance = Guidance || (function () {
             return;
         }
 
-        if (String(chatMessage.content).startsWith("!sf_init")) {
-            let allTokens = chatMessage.selected;
-            if (allTokens !== undefined) {
-                var turnorder = [];
-                speakAsGuidanceToGM("Rolling NPC initiative for all selected tokens");
-                allTokens.forEach(function (i) {
-                    let obj = findObjs(i);
-                    let characterId = obj[0].get("represents");
-                    let init = attributeToInteger(characterId, "npc-init-misc");
-                    let dex = attributeToInteger(characterId, "DEX-bonus");
-                    let roll = randomInteger(20) + dex + init;
-                    turnorder.push({
-                        id: obj[0].id,
-                        pr: String(roll) + String(".0" + dex),
-                        custom: getAttribute(characterId, "name")
-                    });
-                });
-                Campaign().set("turnorder", JSON.stringify(turnorder));
-                debugLog(JSON.stringify(turnorder));
-            } else {
-                speakAsGuidanceToGM("Linked Token has not been selected");
-            }
-            return;
-        }
-
         try {
+
+            if (String(chatMessage.content).startsWith("!sf_init")) {
+                let allTokens = chatMessage.selected;
+                if (allTokens !== undefined) {
+                    var turnorder = [];
+                    speakAsGuidanceToGM("Rolling NPC initiative for all selected tokens");
+                    allTokens.forEach(function (i) {
+                        let obj = findObjs(i);
+                        let characterId = obj[0].get("represents");
+                        let init = attributeToInteger(characterId, "npc-init-misc");
+                        let dex = attributeToInteger(characterId, "DEX-bonus");
+                        let roll = randomInteger(20) + dex + init;
+                        turnorder.push({
+                            id: obj[0].id,
+                            pr: String(roll) + String(".0" + dex),
+                            custom: getAttribute(characterId, "name")
+                        });
+                    });
+                    Campaign().set("turnorder", JSON.stringify(turnorder));
+                    debugLog(JSON.stringify(turnorder));
+                } else {
+                    speakAsGuidanceToGM("Linked Token has not been selected");
+                }
+                return;
+            }
+
             let tokenLinkedToNpcCharacterSheet;
             try {
                 tokenLinkedToNpcCharacterSheet = findObjs(chatMessage.selected[0])[0];
@@ -717,8 +721,8 @@ var Guidance = Guidance || (function () {
     //@formatter:off
     var getAttribute=function(characterId,attributeName){return findObjs({_characterid:characterId,_type:"attribute",name:attributeName})[0]};
     var debugLog=function(g){debugMode&&log(g)};
-    var speakAsGuidanceToGM=function(e){e="/w gm  &{template:pf_spell} {{name=Matrix}} {{spell_description="+e+"}}",sendChat("Rassilon",e)};
-    var generateUUID=function(){"use strict";var r=0,e=[];return function(){var t=(new Date).getTime()+0,a=t===r;r=t;for(var n=new Array(8),o=7;0<=o;o--)n[o]="-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(t%64),t=Math.floor(t/64);if(t=n.join(""),a){for(o=11;0<=o&&63===e[o];o--)e[o]=0;e[o]++}else for(o=0;12>o;o++)e[o]=Math.floor(64*Math.random());for(o=0;12>o;o++)t+="-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(e[o]);return t}}(),generateRowID=function(){"use strict";return generateUUID().replace(/_/g,"Z")};
+    var speakAsGuidanceToGM=function(e){e="/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description="+e+"}}",sendChat("Rassilon",e)};
+    var generateUUID=function(){"use strict";var r=0,e=[];return function(){var t=(new Date).getTime(),a=t===r;r=t;for(var n=new Array(8),o=7;0<=o;o--)n[o]="-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(t%64),t=Math.floor(t/64);if(t=n.join(""),a){for(o=11;0<=o&&63===e[o];o--)e[o]=0;e[o]++}else for(o=0;12>o;o++)e[o]=Math.floor(64*Math.random());for(o=0;12>o;o++)t+="-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(e[o]);return t}}(),generateRowID=function(){"use strict";return generateUUID().replace(/_/g,"Z")};
     var setbute=function(t,e,r,a){var u={"+":function(t){return t},"-":function(t){return-t}},i=getAttribute(t,e);try{if(i)void 0===a||isNaN(r)||isNaN(i.get("current"))||(r=parseFloat(i.get("current"))+parseFloat(u[a](r))),debugLog("DefaultAttributes: Setting "+e+" on character ID "+t+" to a value of "+r+"."),i.set("current",r),i.set("max",r);else{if(void 0===a||isNaN(r)||(debugLog(r+" is a number."),r=u[a](r)),!e.includes("show")&&(null==r||""==r||0==r))return;debugLog("DefaultAttributes: Initializing "+e+" on character ID "+t+" with a value of "+r+"."),createObj("attribute",{name:e,current:r,max:r,_characterid:t})}}catch(t){debugLog("Error parsing "+e)}};
     //@formatter:on
 }
