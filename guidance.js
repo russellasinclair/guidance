@@ -7,6 +7,7 @@ var Guidance = Guidance || (function () {
     "use strict";
     let version = "-=> Guidance is online. v1.Dogfood <=-";
     let debugMode = true;
+
     on("ready", function () {
         if (debugMode) {
             speakAsGuidanceToGM(version);
@@ -22,6 +23,7 @@ var Guidance = Guidance || (function () {
         if (chatMessage.type !== "api" || !playerIsGM(chatMessage.playerid)) {
             return;
         }
+
         if (chatMessage.selected === undefined || chatMessage.selected.length < 1) {
             speakAsGuidanceToGM("Please select a token representing a character for me to work with");
         }
@@ -41,7 +43,6 @@ var Guidance = Guidance || (function () {
         }
 
         try {
-
             if (String(chatMessage.content).startsWith("!sf_init")) {
                 let allTokens = chatMessage.selected;
                 if (allTokens !== undefined) {
@@ -207,7 +208,6 @@ var Guidance = Guidance || (function () {
         return sections;
     };
 
-    // Populate data
     var doMagic = function (characterId, textToParse) {
         textToParse = textToParse.substring(textToParse.indexOf("Spell"));
         textToParse = textToParse.replace(/\s+/, " ");
@@ -664,6 +664,53 @@ var Guidance = Guidance || (function () {
         }
     };
 
+    // borrowed from https://app.roll20.net/users/901082/invincible-spleen in the forums
+    var setAttribute = function (characterId, attributeName, newValue, operator) {
+        var mod_newValue = {
+                "+": function (num) {
+                    return num;
+                },
+                "-": function (num) {
+                    return -num;
+                }
+            },
+
+            foundAttribute = getAttribute(characterId, attributeName);
+
+        try {
+            if (!foundAttribute) {
+                if (typeof operator !== "undefined" && !isNaN(newValue)) {
+                    debugLog(newValue + " is a number.");
+                    newValue = mod_newValue[operator](newValue);
+                }
+
+                // We don't need to create "Blank Values"
+                if (!attributeName.includes("show")) {
+                    if (newValue == null || newValue == "" || newValue == 0) {
+                        return;
+                    }
+                }
+
+                debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
+                createObj("attribute", {
+                    name: attributeName,
+                    current: newValue,
+                    max: newValue,
+                    _characterid: characterId
+                });
+            } else {
+                if (typeof operator !== "undefined" && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
+                    newValue = parseFloat(foundAttribute.get("current")) + parseFloat(mod_newValue[operator](newValue));
+                }
+                debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
+                foundAttribute.set("current", newValue);
+                foundAttribute.set("max", newValue);
+            }
+        } catch (err) {
+            debugLog("Error parsing " + attributeName);
+        }
+    };
+
     // Parsing routines
     var getSkillValue = function (skillName, attribute, textToParse) {
         if (parseFloat(getValue(skillName, textToParse).trim()) > 2) {
@@ -712,18 +759,58 @@ var Guidance = Guidance || (function () {
         return bucket;
     };
 
-    // wrapper for usability
-    var setAttribute = function (characterId, attributeName, newValue, operator) {
-        return setbute(characterId, attributeName, newValue, operator);
+    // Thanks Aaron
+    var generateUUID = (function () {
+            "use strict";
+
+            var a = 0, b = [];
+            return function () {
+                var c = (new Date()).getTime() + 0, d = c === a;
+                a = c;
+                for (var e = new Array(8), f = 7; 0 <= f; f--) {
+                    e[f] = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(c % 64);
+                    c = Math.floor(c / 64);
+                }
+                c = e.join("");
+                if (d) {
+                    for (f = 11; 0 <= f && 63 === b[f]; f--) {
+                        b[f] = 0;
+                    }
+                    b[f]++;
+                } else {
+                    for (f = 0; 12 > f; f++) {
+                        b[f] = Math.floor(64 * Math.random());
+                    }
+                }
+                for (f = 0; 12 > f; f++) {
+                    c += "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(b[f]);
+                }
+
+                return c;
+            };
+        }()),
+        generateRowID = function () {
+            "use strict";
+            return generateUUID().replace(/_/g, "Z");
+        };
+
+    var debugLog = function (text) {
+        if (debugMode) {
+            log(text);
+        }
     };
 
-    // Libraries of stable code
-    //@formatter:off
-    var getAttribute=function(characterId,attributeName){return findObjs({_characterid:characterId,_type:"attribute",name:attributeName})[0]};
-    var debugLog=function(g){debugMode&&log(g)};
-    var speakAsGuidanceToGM=function(e){e="/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description="+e+"}}",sendChat("Guidance",e)};
-    var generateUUID=function(){"use strict";var r=0,e=[];return function(){var t=(new Date).getTime(),a=t===r;r=t;for(var n=new Array(8),o=7;0<=o;o--)n[o]="-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(t%64),t=Math.floor(t/64);if(t=n.join(""),a){for(o=11;0<=o&&63===e[o];o--)e[o]=0;e[o]++}else for(o=0;12>o;o++)e[o]=Math.floor(64*Math.random());for(o=0;12>o;o++)t+="-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(e[o]);return t}}(),generateRowID=function(){"use strict";return generateUUID().replace(/_/g,"Z")};
-    var setbute=function(t,e,r,a){var u={"+":function(t){return t},"-":function(t){return-t}},i=getAttribute(t,e);try{if(i)void 0===a||isNaN(r)||isNaN(i.get("current"))||(r=parseFloat(i.get("current"))+parseFloat(u[a](r))),debugLog("DefaultAttributes: Setting "+e+" on character ID "+t+" to a value of "+r+"."),i.set("current",r),i.set("max",r);else{if(void 0===a||isNaN(r)||(debugLog(r+" is a number."),r=u[a](r)),!e.includes("show")&&(null==r||""==r||0==r))return;debugLog("DefaultAttributes: Initializing "+e+" on character ID "+t+" with a value of "+r+"."),createObj("attribute",{name:e,current:r,max:r,_characterid:t})}}catch(t){debugLog("Error parsing "+e)}};
-    //@formatter:on
+    var speakAsGuidanceToGM = function (text) {
+        text = "/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description=" + text + "}}";
+        sendChat("Guidance", text);
+    };
+
+    var getAttribute = function (characterId, attributeName) {
+        return findObjs({
+            _characterid: characterId,
+            _type: "attribute",
+            name: attributeName
+        })[0];
+    };
 }
 ());
