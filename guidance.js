@@ -158,7 +158,7 @@ var Guidance = Guidance || (function () {
         if (value === undefined) {
             return 0;
         } else {
-            return Number(value.get("current"));
+            return parseFloat(value.get("current"));
         }
     };
 
@@ -420,7 +420,7 @@ var Guidance = Guidance || (function () {
         var stats = ["Str", "Dex", "Con", "Int", "Wis", "Cha"];
 
         for (const att of stats) {
-            var stat = Number(getValue(att, textToParse).replace("+", ""));
+            var stat = parseFloat(getValue(att, textToParse).replace("+", ""));
             var attUpper = att.toUpperCase();
             setAttribute(characterId, attUpper + "-bonus", String(stat));
             setAttribute(characterId, attUpper + "-temp", String(stat * 2));
@@ -666,9 +666,9 @@ var Guidance = Guidance || (function () {
 
     // Parsing routines
     var getSkillValue = function (skillName, attribute, textToParse) {
-        if (Number(getValue(skillName, textToParse).trim()) > 2) {
+        if (parseFloat(getValue(skillName, textToParse).trim()) > 2) {
             debugLog(skillName + " : " + getValue(skillName, textToParse) + " - " + attribute + " : " + getValue(attribute, textToParse));
-            return Number(getValue(skillName, textToParse).trim()) - Number(getValue(attribute, textToParse).trim());
+            return parseFloat(getValue(skillName, textToParse).trim()) - parseFloat(getValue(attribute, textToParse).trim());
         }
         return 0;
     };
@@ -721,7 +721,7 @@ var Guidance = Guidance || (function () {
     //@formatter:off
     var getAttribute=function(characterId,attributeName){return findObjs({_characterid:characterId,_type:"attribute",name:attributeName})[0]};
     var debugLog=function(g){debugMode&&log(g)};
-    var speakAsGuidanceToGM=function(e){e="/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description="+e+"}}",sendChat("Rassilon",e)};
+    var speakAsGuidanceToGM=function(e){e="/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description="+e+"}}",sendChat("Guidance",e)};
     var generateUUID=function(){"use strict";var r=0,e=[];return function(){var t=(new Date).getTime(),a=t===r;r=t;for(var n=new Array(8),o=7;0<=o;o--)n[o]="-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(t%64),t=Math.floor(t/64);if(t=n.join(""),a){for(o=11;0<=o&&63===e[o];o--)e[o]=0;e[o]++}else for(o=0;12>o;o++)e[o]=Math.floor(64*Math.random());for(o=0;12>o;o++)t+="-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(e[o]);return t}}(),generateRowID=function(){"use strict";return generateUUID().replace(/_/g,"Z")};
     var setbute=function(t,e,r,a){var u={"+":function(t){return t},"-":function(t){return-t}},i=getAttribute(t,e);try{if(i)void 0===a||isNaN(r)||isNaN(i.get("current"))||(r=parseFloat(i.get("current"))+parseFloat(u[a](r))),debugLog("DefaultAttributes: Setting "+e+" on character ID "+t+" to a value of "+r+"."),i.set("current",r),i.set("max",r);else{if(void 0===a||isNaN(r)||(debugLog(r+" is a number."),r=u[a](r)),!e.includes("show")&&(null==r||""==r||0==r))return;debugLog("DefaultAttributes: Initializing "+e+" on character ID "+t+" with a value of "+r+"."),createObj("attribute",{name:e,current:r,max:r,_characterid:t})}}catch(t){debugLog("Error parsing "+e)}};
     //@formatter:on
