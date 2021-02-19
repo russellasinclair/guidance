@@ -1,7 +1,7 @@
 /*
 Starfinder utilities for Roll20
 Requires API, Starfinder (Simple) character sheets - official sheets not supported at this time.
-!sf_populate - will parse a stat-block in the GM Notes of a character, and populate the NPC tab of the character sheet with the values
+!sf_character - will parse a stat-block in the GM Notes of a character, and populate the NPC tab of the character sheet with the values
 */
 var Guidance = Guidance || (function () {
     "use strict";
@@ -25,7 +25,7 @@ var Guidance = Guidance || (function () {
 
         if (String(chatMessage.content).startsWith("!sf_help")) {
             speakAsGuidanceToGM("I have several commands I support:<br><br>" +
-                "<b><i>!sf_populate</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
+                "<b><i>!sf_character</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
                 "of a selected character and I will attempt to use it to fill out the NPC section of the Starfinder " +
                 "(Simple) character sheet. I support statblocks from the Archives of Nethys and the Starjammer SRD. " +
                 "<i>I don't do well with Society PDFs</i>. If you want to attempt using one, double check my work.<br><br>" +
@@ -118,7 +118,7 @@ var Guidance = Guidance || (function () {
             }
 
             // Populate the Character Sheet
-            if (String(chatMessage.content).startsWith("!sf_populate")) {
+            if (String(chatMessage.content).startsWith("!sf_character")) {
                 characterSheet.get("gmnotes", function (gmNotes) {
                     var cleanNotes = cleanText(gmNotes);
                     var section = parseBlockIntoSubSectionMap(cleanNotes);
