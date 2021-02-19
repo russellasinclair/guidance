@@ -5,6 +5,7 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 */
 let Guidance = Guidance || (function () {
     "use strict";
+
     let version = "-=> Guidance is online. v1.Dogfood <=-";
     let debugMode = true;
 
@@ -17,8 +18,8 @@ let Guidance = Guidance || (function () {
         }
 
         showContents() {
-            debugLog("Character ID = " + characterId);
-            debugLog("tokenLinkedToNpcCharacterSheet = " + tokenLinkedToNpcCharacterSheet);
+            debugLog("Character ID = " + this.characterId);
+            debugLog("tokenLinkedToNpcCharacterSheet = " + this.tokenLinkedToNpcCharacterSheet);
         }
     }
 
@@ -52,7 +53,7 @@ let Guidance = Guidance || (function () {
             return;
         }
 
-        if (chatMessage.selected === undefined || chatMessage.selected.length < 1) {
+        if (isFalsy(chatMessage.selected) || chatMessage.selected.length < 1) {
             speakAsGuidanceToGM("Please select a token representing a character for me to work with");
             return;
         }
@@ -85,7 +86,7 @@ let Guidance = Guidance || (function () {
             // Wipe out all Character Data
             ////////////////////////////////////////////////////////////
             if (String(chatMessage.content).startsWith("!sf_clean CONFIRM")) {
-                let msg = String(chatMessage.content).replace("!sf_clean ");
+                let msg = String(chatMessage.content).replace("!sf_clean ", "");
                 if (npcs.length > 1) {
                     speakAsGuidanceToGM("Please do not select more than 1 NPC at a time. This command is potentially dangerous.");
                     return;
@@ -177,7 +178,7 @@ let Guidance = Guidance || (function () {
     // Roll 20 object Interactions
     /////////////////////////////////////////////////////////////////
     let getSelectedNPCs = function (selected) {
-        var npcs = [];
+        let npcs = [];
         for (const t of selected) {
             let token = findObjs(t);
             let cid = token.get("represents");
@@ -197,7 +198,7 @@ let Guidance = Guidance || (function () {
 
     // borrowed from https://app.roll20.net/users/901082/invincible-spleen in the forums
     let setAttribute = function (characterId, attributeName, newValue, operator) {
-        var mod_newValue = {
+        let mod_newValue = {
                 "+": function (num) {
                     return num;
                 },
@@ -217,7 +218,7 @@ let Guidance = Guidance || (function () {
 
                 // We don't need to create "Blank Values"
                 if (!attributeName.includes("show")) {
-                    if (newValue == null || newValue == "" || newValue == 0) {
+                    if (isFalsy(newValue) || newValue === "" || newValue === 0) {
                         return;
                     }
                 }
@@ -246,7 +247,7 @@ let Guidance = Guidance || (function () {
         try {
             let hitPoints = getAttribute(characterId, "HP-npc");
             tokenLinkedToNpcCharacterSheet.set("bar1_link", hitPoints.id);
-            var armorClass = getAttribute(characterId, "EAC-npc");
+            let armorClass = getAttribute(characterId, "EAC-npc");
             tokenLinkedToNpcCharacterSheet.set("bar2_value", "EAC " + armorClass.get("current"));
             tokenLinkedToNpcCharacterSheet.set("bar2_max", armorClass.get("current"));
             armorClass = getAttribute(characterId, "KAC-npc");
@@ -264,7 +265,7 @@ let Guidance = Guidance || (function () {
     /////////////////////////////////////////////////////////////////
     let parseBlockIntoSubSectionMap = function (textToParse) {
         let sections = new Map();
-        var parsedText = textToParse;
+        let parsedText = textToParse;
 
         sections.set("header", parsedText.substring(0, parsedText.indexOf("DEFENSE")));
         parsedText = parsedText.substring(parsedText.indexOf("DEFENSE"));
@@ -293,7 +294,7 @@ let Guidance = Guidance || (function () {
     let doMagic = function (characterId, textToParse) {
         textToParse = textToParse.substring(textToParse.indexOf("Spell"));
         textToParse = textToParse.replace(/\s+/, " ");
-        var attackBonus = "";
+        let attackBonus = "";
         if (textToParse.includes("Spells Known")) {
             setAttribute(characterId, "spellclass-1-level", getValue("CL", textToParse, ";").replace(/\D/g, ""));
 
@@ -302,7 +303,7 @@ let Guidance = Guidance || (function () {
             attackBonus = attackBonus.substring(0, attackBonus.indexOf(")"));
             textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
 
-            var level = "";
+            let level = "";
             if (textToParse.includes("6th")) {
                 level = textToParse.substring(textToParse.indexOf("6th"), textToParse.indexOf("5th")).trim();
                 addSpell(characterId, level, attackBonus);
@@ -344,10 +345,10 @@ let Guidance = Guidance || (function () {
             attackBonus = textToParse.replace(/\(.*;/, "");
             attackBonus = attackBonus.substring(0, attackBonus.indexOf(")") + 1);
 
-            var lines = textToParse.match(/\d\/\w+|At will|Constant/);
-            for (var i = 0; i < lines.length; i++) {
-                var ability = "";
-                if (lines[i + 1] == null) {
+            let lines = textToParse.match(/\d\/\w+|At will|Constant/);
+            for (let i = 0; i < lines.length; i++) {
+                let ability = "";
+                if (isFalsy(lines[i + 1])) {
                     ability = textToParse.substring(textToParse.indexOf(lines[i]));
                 } else {
                     ability = textToParse.substring(textToParse.indexOf(lines[i]), textToParse.indexOf(lines[i + 1]));
@@ -361,8 +362,8 @@ let Guidance = Guidance || (function () {
 
     let addSpell = function (characterId, textToParse, additional) {
         textToParse = textToParse.replace(/—/g, "");
-        var uuid = generateRowID();
-        var value = textToParse.substring(0, textToParse.indexOf("(")).replace(/\D/g, "").trim();
+        let uuid = generateRowID();
+        let value = textToParse.substring(0, textToParse.indexOf("(")).replace(/\D/g, "").trim();
         setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-level", value);
         value = textToParse.substring(textToParse.indexOf("("), textToParse.indexOf(")") + 1).trim();
         setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-usage", value);
@@ -371,7 +372,7 @@ let Guidance = Guidance || (function () {
     };
 
     let addSpellLikeAbility = function (characterId, textToParse, attackBonus) {
-        var uuid = generateRowID();
+        let uuid = generateRowID();
         setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-usage", textToParse.substring(0, textToParse.indexOf("—")).trim());
         setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-name", attackBonus + " " + textToParse.substring(textToParse.indexOf("—") + 2).trim());
     };
@@ -390,8 +391,8 @@ let Guidance = Guidance || (function () {
         setAttribute(characterId, "Ref-npc", getValue("Ref", textToParse).replace("+", ""));
         setAttribute(characterId, "Will-npc", getValue("Will", textToParse).replace("+", ""));
         setAttribute(characterId, "HP-npc", getValue("HP", textToParse));
-        var rp = getValue("RP", textToParse);
-        if (rp != null) {
+        let rp = getValue("RP", textToParse);
+        if (!isFalsy(rp)) {
             setAttribute(characterId, "RP-npc", rp);
         }
         setAttribute(characterId, "npc-SR", getValue("SR", textToParse));
@@ -409,9 +410,9 @@ let Guidance = Guidance || (function () {
             setAttribute(characterId, "npc-immunities", getValue("Immunities", textToParse, "OFFENSE"));
         }
 
-        var defensiveAbilities = "";
+        let defensiveAbilities = "";
         if (textToParse.includes("vs.")) {
-            var extraSaveStart = textToParse.indexOf("Will") + 3;
+            let extraSaveStart = textToParse.indexOf("Will") + 3;
             defensiveAbilities = textToParse.substr(extraSaveStart);
             extraSaveStart = defensiveAbilities.indexOf(";");
             defensiveAbilities = defensiveAbilities.substr(extraSaveStart + 1);
@@ -420,7 +421,7 @@ let Guidance = Guidance || (function () {
             }
         }
         if (textToParse.includes("Defensive")) {
-            var start = textToParse.indexOf("Defensive Abilities") + "Defensive Abilities".length;
+            let start = textToParse.indexOf("Defensive Abilities") + "Defensive Abilities".length;
             if (textToParse.includes("Immunities")) {
                 textToParse = textToParse.substring(0, textToParse.indexOf("Immunities"));
             }
@@ -430,11 +431,11 @@ let Guidance = Guidance || (function () {
     };
 
     let populateOffense = function (characterId, textToParse) {
-        var specialAbilities = getValue("Offensive Abilities", textToParse, "STATISTICS");
+        let specialAbilities = getValue("Offensive Abilities", textToParse, "STATISTICS");
         if (specialAbilities.includes("Spell")) {
             specialAbilities = specialAbilities.substring(0, specialAbilities.indexOf("Spell"));
         }
-        if (specialAbilities == null) {
+        if (isFalsy(specialAbilities)) {
             setAttribute(characterId, "npc-special-attacks-show", 0);
         } else {
             setAttribute(characterId, "npc-special-attacks", specialAbilities);
@@ -478,11 +479,11 @@ let Guidance = Guidance || (function () {
     };
 
     let populateStatics = function (characterId, textToParse) {
-        var stats = ["Str", "Dex", "Con", "Int", "Wis", "Cha"];
+        let stats = ["Str", "Dex", "Con", "Int", "Wis", "Cha"];
 
         for (const att of stats) {
-            var stat = parseFloat(getValue(att, textToParse).replace("+", ""));
-            var attUpper = att.toUpperCase();
+            let stat = parseFloat(getValue(att, textToParse).replace("+", ""));
+            let attUpper = att.toUpperCase();
             setAttribute(characterId, attUpper + "-bonus", String(stat));
             setAttribute(characterId, attUpper + "-temp", String(stat * 2));
         }
@@ -493,14 +494,14 @@ let Guidance = Guidance || (function () {
             setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Other"));
         }
 
-        var gear = getValue("Gear", textToParse, "Ecology");
-        if (gear == null || gear.length < 1) {
+        let gear = getValue("Gear", textToParse, "Ecology");
+        if (isFalsy(gear) || gear.length < 1) {
             setAttribute(characterId, "npc-gear-show", 0);
         } else {
             setAttribute(characterId, "npc-gear", getValue("Gear", textToParse, "Ecology"));
         }
 
-        var sq = getValue("Other Abilities", textToParse, "Gear");
+        let sq = getValue("Other Abilities", textToParse, "Gear");
         if (sq.includes("ECOLOGY")) {
             sq = sq.substring(0, sq.indexOf("ECOLOGY"));
         }
@@ -509,22 +510,22 @@ let Guidance = Guidance || (function () {
 
     let populateSpecialAbilities = function (characterId, textToParse) {
         debugLog("Parsing Special Abilities");
-        var uuid;
-        if (textToParse != null) { //} && textToParse != undefined) {
+        let uuid;
+        if (!isFalsy(textToParse)) {
             if (textToParse.includes("SPECIAL ABILITIES")) {
                 textToParse = textToParse.replace("SPECIAL ABILITIES", "").trim();
                 if (textToParse.includes("(")) {
                     do {
                         uuid = generateRowID();
-                        var abilityName = textToParse.substring(0, textToParse.indexOf(")") + 1);
+                        let abilityName = textToParse.substring(0, textToParse.indexOf(")") + 1);
                         setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", abilityName.trim());
                         textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
-                        var nextAbility = textToParse.match(/\.([^\.]*?)\(..\)/);
-                        if (nextAbility == null) {
+                        let nextAbility = textToParse.match(/\.([^\.]*?)\(..\)/);
+                        if (isFalsy(nextAbility)) {
                             setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.trim());
                             return;
                         }
-                        var endPoint = textToParse.indexOf(nextAbility[0]) + 1;
+                        let endPoint = textToParse.indexOf(nextAbility[0]) + 1;
                         setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.substring(0, endPoint).trim());
                         textToParse = textToParse.substring(endPoint);
                     } while (textToParse.includes("("));
@@ -584,8 +585,8 @@ let Guidance = Guidance || (function () {
         setAttribute(characterId, "npc-init-misc", getSkillValue("Init", "Dex", textToParse));
 
         try {
-            var section = getStringValue("XP", textToParse, "DEFENSE").trim();
-            // var subsections = section.split(" ");
+            let section = getStringValue("XP", textToParse, "DEFENSE").trim();
+            // let subsections = section.split(" ");
 
             if (section.includes("LG")) {
                 setAttribute(characterId, "npc-alignment", "LG");
@@ -607,8 +608,8 @@ let Guidance = Guidance || (function () {
                 setAttribute(characterId, "npc-alignment", "N");
             }
 
-            var subtypeStart = 0;
-            var dropdown = 0;
+            let subtypeStart = 0;
+            let dropdown = 0;
             if (section.toLowerCase().includes("medium")) {
                 dropdown = 0;
                 subtypeStart = section.indexOf("Medium") + "Medium".length;
@@ -646,7 +647,7 @@ let Guidance = Guidance || (function () {
     };
 
     let doWeapons = function (characterId, textToParse) {
-        var delimiter = "~~~";
+        let delimiter = "~~~";
         textToParse = textToParse.replace(/Attacks/i, ""
         ).replace(/ or /g, delimiter
         ).replace(/Ranged/g, delimiter
@@ -679,8 +680,8 @@ let Guidance = Guidance || (function () {
             textToParse = textToParse.substring(0, textToParse.indexOf("Offensive Abilities"));
         }
 
-        var attacks = textToParse.split(delimiter);
-        for (var attack of attacks) {
+        let attacks = textToParse.split(delimiter);
+        for (let attack of attacks) {
             attack = attack.trim();
             if (attack.length > 1) {
                 if (!(attack.startsWith("Space") || attack.startsWith("Reach") || attack.includes("ft"))) {
@@ -697,11 +698,11 @@ let Guidance = Guidance || (function () {
 
     let armNPC = function (characterId, attackToParse) {
         debugLog("Parsing " + attackToParse);
-        var uuid = generateRowID();
+        let uuid = generateRowID();
 
-        var details = attackToParse.split(" ");
-        var i = 0;
-        var weapon = "";
+        let details = attackToParse.split(" ");
+        let i = 0;
+        let weapon = "";
         while (isNaN(details[i]) && i < details.length) {
             weapon = weapon + details[i] + " ";
             i++;
@@ -709,17 +710,17 @@ let Guidance = Guidance || (function () {
 
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-notes", attackToParse);
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-name", weapon);
-        var attackBonus = details[i];
+        let attackBonus = details[i];
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-attack", attackBonus);
         i++;
 
-        var damage = details[i].replace(/\(/, "");
-        var numDice = damage.split("d");
-        var dnd = numDice[1].split("+");
+        let damage = details[i].replace(/\(/, "");
+        let numDice = damage.split("d");
+        let dnd = numDice[1].split("+");
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-dice-num", numDice[0]);
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-die", dnd[0]);
 
-        if (dnd[1] !== undefined) {
+        if (!isFalsy(dnd[1])) {
             setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-damage", dnd[1]);
         }
     };
@@ -736,8 +737,8 @@ let Guidance = Guidance || (function () {
     };
 
     let getValue = function (textToFind, textToParse, delimiter) {
-        var bucket = getStringValue(textToFind, textToParse, delimiter);
-        if (bucket == null) {
+        let bucket = getStringValue(textToFind, textToParse, delimiter);
+        if (isFalsy(bucket)) {
             return "";
         }
         let b2 = bucket.split(" ");
@@ -754,11 +755,11 @@ let Guidance = Guidance || (function () {
             return "";
         }
 
-        if (delimiter === undefined) {
+        if (isFalsy(delimiter)) {
             delimiter = " ";
         }
 
-        var bucket = textToParse.substring(start);
+        let bucket = textToParse.substring(start);
         if (delimiter !== ";") {
             // It appears that ; ALWAYS means end of field. This is a good safety
             if (bucket.indexOf(";") > 2) {
@@ -797,7 +798,7 @@ let Guidance = Guidance || (function () {
 
     let attributeToInteger = function (characterId, attrib) {
         let value = getAttribute(characterId, attrib);
-        if (value === undefined) {
+        if (isFalsy(value)) {
             return 0;
         } else {
             return parseFloat(value.get("current"));
@@ -813,26 +814,26 @@ let Guidance = Guidance || (function () {
     let generateUUID = (function () {
             "use strict";
 
-            var a = 0, b = [];
+            let a = 0, b = [];
             return function () {
-                var c = (new Date()).getTime() + 0, d = c === a;
+                let c = (new Date()).getTime() + 0, d = c === a;
                 a = c;
-                for (var e = new Array(8), f = 7; 0 <= f; f--) {
+                for (let e = new Array(8), f = 7; 0 <= f; f--) {
                     e[f] = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(c % 64);
                     c = Math.floor(c / 64);
                 }
                 c = e.join("");
                 if (d) {
-                    for (var f = 11; 0 <= f && 63 === b[f]; f--) {
+                    for (let f = 11; 0 <= f && 63 === b[f]; f--) {
                         b[f] = 0;
                     }
                     b[f]++;
                 } else {
-                    for (var f = 0; 12 > f; f++) {
+                    for (let f = 0; 12 > f; f++) {
                         b[f] = Math.floor(64 * Math.random());
                     }
                 }
-                for (var f = 0; 12 > f; f++) {
+                for (let f = 0; 12 > f; f++) {
                     c += "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(b[f]);
                 }
 
@@ -854,6 +855,18 @@ let Guidance = Guidance || (function () {
         text = "/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description=" + text + "}}";
         sendChat("Guidance", text);
     };
+
     //@formatter:on
+
+    // This is used until I get a better handle on undefined vs null vs whatever....
+    let isFalsy = function (v) {
+        if (v === null) {
+            return true;
+        }
+        if (v === undefined) {
+            return true;
+        }
+        return false;
+    };
 }
 ());
