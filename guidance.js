@@ -5,7 +5,7 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 */
 var Guidance = Guidance || (function () {
     "use strict";
-    let version = "-=> Guidance is online. v0.9.9 <=-";
+    let version = "-=> Guidance is online. v1.0.0 <=-";
     let debugMode = false;
     on("ready", function () {
         if (debugMode) {
