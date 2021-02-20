@@ -712,15 +712,18 @@ var Guidance = Guidance || (function () {
 
             //<editor-fold desc="Add Trick Attack to a Character Sheet">
             if (String(chatMessage.content).startsWith("!sf_addTrick")) {
-                createObj("ability", {
-                    name: "Trick Attack (settings on main sheet)",
-                    description: "",
-                    action: "&{template:pf_check}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
-                    _characterid: character.characterId,
+                npcs.forEach(function (character) {
+                    debugLog("Adding Trick Attack");
+                    character.showContents();
+                    createObj("ability", {
+                        name: "Trick Attack (settings on main sheet)",
+                        description: "",
+                        action: "&{template:pf_check}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
+                        _characterid: character.characterId,
+                    });
+                    addSpecialAbility(character.characterId, "Trick Attack (Ex) You can trick or startle a foe and then attack when she drops her guard. As a full action, you can move up to your speed. Whether or not you moved, you can then make an attack with a melee weapon with the operative special property or with any small arm. Just before making your attack, attempt a Bluff, Intimidate, or Stealth check (or a check associated with your specialization; see page 94) with a DC equal to 20 + your target’s CR. If you succeed at the check, you deal 1d4 additional damage and the target is flat-footed. This damage increases to 1d8 at 3rd level, to 3d8 at 5th level, and by an additional 1d8 every 2 levels thereafter. You can’t use this ability with a weapon that has the unwieldy special property or that requires a full action to make a single attack.");
                 });
-                addSpecialAbility(character.characterId, "Trick Attack (Ex) You can trick or startle a foe and then attack when she drops her guard. As a full action, you can move up to your speed. Whether or not you moved, you can then make an attack with a melee weapon with the operative special property or with any small arm. Just before making your attack, attempt a Bluff, Intimidate, or Stealth check (or a check associated with your specialization; see page 94) with a DC equal to 20 + your target’s CR. If you succeed at the check, you deal 1d4 additional damage and the target is flat-footed. This damage increases to 1d8 at 3rd level, to 3d8 at 5th level, and by an additional 1d8 every 2 levels thereafter. You can’t use this ability with a weapon that has the unwieldy special property or that requires a full action to make a single attack.");
-
-                speakAsGuidanceToGM("Trick attack added to selected character");
+                speakAsGuidanceToGM("Trick attack added to selected character(s)");
                 return;
             }
             //</editor-fold>
@@ -747,16 +750,20 @@ var Guidance = Guidance || (function () {
             }
             //</editor-fold>
 
-            // TODO add help text to clarify how to use this.
             //<editor-fold desc="Add a Spell to a character sheet as a macro">
             if (String(chatMessage.content).startsWith("!sf_addspell")) {
                 let c = npcs[0];
                 let cleanNotes = chatMessage.content.replace("!sf_addspell ", "");
+                if (!cleanNotes.toLowerCase().includes("classes")) {
+                    speakAsGuidanceToGM("usage:<br>!sf_addspell ?{text}<br></br>Type that exactly, and a dialog will appear where you can past the full text of the spell.");
+                    return;
+                }
                 cleanNotes = cleanNotes.replace("SFS Legal", "").trim();
                 let spell = parseStatBlock(getSpellStatBlocks(), cleanNotes);
                 let spellText = formatSpellAsMacro(spell);
                 debugLog(spellText);
                 let name = spellText.match(/(?<={{name=)(.*?)(?=}})/);
+
                 if (c.characterId !== undefined) {
                     createObj("ability", {
                         name: name[0] + " spell",
