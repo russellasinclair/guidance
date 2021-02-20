@@ -735,7 +735,7 @@ var Guidance = Guidance || (function () {
                     if (gmNotes.includes("TL")) {
                         populateStarshipData(gmNotes, c);
                     } else {
-                        speakAsGuidanceToGM("This is not a starship statblock")
+                        speakAsGuidanceToGM("This is not a starship statblock");
                     }
                 });
                 return;
@@ -755,7 +755,7 @@ var Guidance = Guidance || (function () {
                 let c = npcs[0];
                 let cleanNotes = chatMessage.content.replace("!sf_addspell ", "");
                 if (!cleanNotes.toLowerCase().includes("classes")) {
-                    speakAsGuidanceToGM("usage:<br>!sf_addspell ?{text}<br></br>Type that exactly, and a dialog will appear where you can past the full text of the spell.");
+                    speakAsGuidanceToGM("usage:<br>!sf_addspell ?{text}<br>Type that exactly, and a dialog will appear where you can past the full text of the spell.");
                     return;
                 }
                 cleanNotes = cleanNotes.replace("SFS Legal", "").trim();
