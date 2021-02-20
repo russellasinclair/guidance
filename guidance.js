@@ -601,15 +601,20 @@ var Guidance = Guidance || (function () {
             //<editor-fold desc="Roll Initiative for a group of NPCs">
             if (String(chatMessage.content).startsWith("!sf_init")) {
                 speakAsGuidanceToGM("Rolling NPC initiative for all selected tokens");
+                let turnorder = [];
                 npcs.forEach(function (npc) {
-                    let characterId = npc.characterId;
-                    let init = attributeToInteger(characterId, "npc-init-misc");
-                    let dex = attributeToInteger(characterId, "DEX-bonus");
+                    npc.showContents();
+                    debugLog("npc id = " + npc.characterId);
+                    let init = attributeToInteger(npc.characterId, "npc-init-misc");
+                    debugLog("Init Bonus = " + init);
+                    let dex = attributeToInteger(npc.characterId, "DEX-bonus");
+                    debugLog("Dex bonus = " + dex);
                     let roll = randomInteger(20) + dex + init;
+                    debugLog("Init Roll = " + roll);
                     turnorder.push({
-                        id: obj[0].id,
+                        id: npc.npcToken.id,
                         pr: String(roll) + String(".0" + dex),
-                        custom: getAttribute(characterId, "name")
+                        custom: getAttribute(npc.characterId, "name")
                     });
                 });
                 Campaign().set("turnorder", JSON.stringify(turnorder));
