@@ -77,7 +77,7 @@ var Guidance = Guidance || (function () {
         sendChat("Guidance", text);
     };
 
-    // This is used until I get a better handle on undefined vs null vs whatever....
+    // For Debugging purposes
     let isFalsy = function (v) {
         var err = new Error();
         if (v === undefined) {
@@ -104,31 +104,28 @@ var Guidance = Guidance || (function () {
             return "";
         }
 
-        if (isFalsy(delimiter)) {
+        if (delimiter === undefined) {
             delimiter = " ";
         }
 
         let bucket = textToParse.substring(start);
         if (delimiter !== ";") {
             // It appears that ; ALWAYS means end of field. This is a good safety
-            if (bucket.indexOf(";") > 2) {
+            if (bucket.includes(";")) {
                 bucket = bucket.substring(0, bucket.indexOf(";"));
             }
         }
 
         bucket = bucket.trim();
-        let end = bucket.toLowerCase().indexOf(delimiter.toLowerCase());
-        if (end > 1) {
-            bucket = bucket.substring(0, end);
+        if (bucket.toLowerCase().includes(delimiter.toLowerCase())) {
+            let end = bucket.toLowerCase().indexOf(delimiter.toLowerCase());
+            bucket = bucket.substring(0, end).trim();
         }
         return bucket;
     };
 
     let getValue = function (textToFind, textToParse, delimiter) {
         let bucket = getStringValue(textToFind, textToParse, delimiter);
-        if (isFalsy(bucket)) {
-            return "";
-        }
         let b2 = bucket.split(" ");
         bucket = b2[0];
         return bucket.replace(";", "").replace(",", " ").trim(); // replace("+", "")
@@ -387,6 +384,9 @@ var Guidance = Guidance || (function () {
 
     let setUpToken = function (characterId, npcToken) {
         try {
+            if (npcToken.represents === undefined) {
+                speakAsGuidanceToGM("Check to make sure the token is linked and the character sheet is populated");
+            }
             let hitPoints = getAttribute(characterId, "HP-npc");
             npcToken.set("bar1_link", hitPoints.id);
             let armorClass = getAttribute(characterId, "EAC-npc");
@@ -425,7 +425,6 @@ var Guidance = Guidance || (function () {
     //</editor-fold>
 
     //<editor-fold desc="Population helpers for v 2.0">
-
     let populateStarshipData = function (gmNotes, c) {
         for (let prop of findObjs({_characterid: c.characterId, _type: "ability"})) {
             debugLog("Removing " + prop.get("name"));
@@ -591,7 +590,7 @@ var Guidance = Guidance || (function () {
             return;
         }
 
-        if (String(chatMessage.content).startsWith("!sf_help")) {
+        if (chatMessage.content.startsWith("!sf_help")) {
             speakAsGuidanceToGM("I have several commands I support:<br><br>" +
                 "<b><i>!sf_populate</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
                 "of a selected character and I will attempt to use it to fill out the NPC section of the Starfinder " +
@@ -614,7 +613,7 @@ var Guidance = Guidance || (function () {
 
         try {
             //<editor-fold desc="Roll Initiative for a group of NPCs">
-            if (String(chatMessage.content).startsWith("!sf_init")) {
+            if (chatMessage.content.startsWith("!sf_init")) {
                 speakAsGuidanceToGM("Rolling NPC initiative for all selected tokens");
                 let turnorder = [];
                 npcs.forEach(function (npc) {
@@ -639,8 +638,8 @@ var Guidance = Guidance || (function () {
             //</editor-fold>
 
             //<editor-fold desc="Wipe out all Character Data">
-            if (String(chatMessage.content).startsWith("!sf_clean CONFIRM")) {
-                let msg = String(chatMessage.content).replace("!sf_clean ", "");
+            if (chatMessage.content.startsWith("!sf_clean CONFIRM")) {
+                let msg = chatMessage.content.replace("!sf_clean ", "");
                 if (npcs.length > 1) {
                     speakAsGuidanceToGM("Please do not select more than 1 NPC at a time. This command is potentially dangerous.");
                     return;
@@ -672,7 +671,7 @@ var Guidance = Guidance || (function () {
             //</editor-fold>
 
             //<editor-fold desc="Set up Token">
-            if (String(chatMessage.content).startsWith("!sf_token")) {
+            if (chatMessage.content.startsWith("!sf_token")) {
                 let c = npcs[0];
                 setUpToken(c.characterId, c.npcToken);
                 return;
@@ -680,7 +679,7 @@ var Guidance = Guidance || (function () {
             //</editor-fold>
 
             //<editor-fold desc="Populate the Character Sheet">
-            if (String(chatMessage.content).startsWith("!sf_character")) {
+            if (chatMessage.content.startsWith("!sf_character")) {
                 let c = npcs[0];
 
                 if (enableNewNPCParser) {
@@ -739,7 +738,7 @@ var Guidance = Guidance || (function () {
             //</editor-fold>
 
             //<editor-fold desc="Add Trick Attack to a Character Sheet">
-            if (String(chatMessage.content).startsWith("!sf_addtrick")) {
+            if (chatMessage.content.startsWith("!sf_addtrick")) {
                 npcs.forEach(function (character) {
                     debugLog("Adding Trick Attack");
                     character.showContents();
@@ -757,7 +756,7 @@ var Guidance = Guidance || (function () {
             //</editor-fold>
 
             //<editor-fold desc="Populate Starship Character Sheet">
-            if (String(chatMessage.content).startsWith("!sf_starship")) {
+            if (chatMessage.content.startsWith("!sf_starship")) {
                 let c = npcs[0];
                 c.characterSheet.get("gmnotes", function (gmNotes) {
                     if (gmNotes.includes("TL")) {
@@ -772,14 +771,14 @@ var Guidance = Guidance || (function () {
 
             // TODO add help text to clarify how to use this.
             //<editor-fold desc="Add Special Ability to Character sheet">
-            if (String(chatMessage.content).startsWith("!sf_ability")) {
+            if (chatMessage.content.startsWith("!sf_ability")) {
                 let cleanNotes = chatMessage.content.replace("!sf_ability ", "");
                 addSpecialAbility(character.characterId, cleanNotes);
             }
             //</editor-fold>
 
             //<editor-fold desc="Add a Spell to a character sheet as a macro">
-            if (String(chatMessage.content).startsWith("!sf_addspell")) {
+            if (chatMessage.content.startsWith("!sf_addspell")) {
                 let c = npcs[0];
                 let cleanNotes = chatMessage.content.replace("!sf_addspell ", "");
                 if (!cleanNotes.toLowerCase().includes("classes")) {
@@ -808,7 +807,7 @@ var Guidance = Guidance || (function () {
             //<editor-fold desc="Code for Testing and Debugging">
             if (debugMode) {
                 let character = npcs[0];
-                if (String(chatMessage.content).startsWith("!sf_get")) {
+                if (chatMessage.content.startsWith("!sf_get")) {
                     character.characterSheet.get("gmnotes", function (gmNotes) {
                         queryCharacterSheet(gmNotes, chatMessage, character.characterId);
                     });
@@ -816,7 +815,7 @@ var Guidance = Guidance || (function () {
                 }
 
                 // Code for Testing and Debugging
-                if (String(chatMessage.content).startsWith("!sf_debug")) {
+                if (chatMessage.content.startsWith("!sf_debug")) {
                     debugLog("start");
                     let attribs = findObjs({
                         _characterid: character.characterId,
@@ -1177,66 +1176,62 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "Perception-npc-misc", getSkillValue("Perception", "Wis", textToParse));
         setAttribute(characterId, "npc-init-misc", getSkillValue("Init", "Dex", textToParse));
 
-        try {
-            let section = getStringValue("XP", textToParse, "DEFENSE").trim();
-            // let subsections = section.split(" ");
+        let section = getStringValue("XP", textToParse, "DEFENSE").trim();
+        // let subsections = section.split(" ");
 
-            if (section.includes("LG")) {
-                setAttribute(characterId, "npc-alignment", "LG");
-            } else if (section.includes("NG")) {
-                setAttribute(characterId, "npc-alignment", "NG");
-            } else if (section.includes("CG")) {
-                setAttribute(characterId, "npc-alignment", "CG");
-            } else if (section.includes("LN")) {
-                setAttribute(characterId, "npc-alignment", "LN");
-            } else if (section.includes("CN")) {
-                setAttribute(characterId, "npc-alignment", "CN");
-            } else if (section.includes("LE")) {
-                setAttribute(characterId, "npc-alignment", "LE");
-            } else if (section.includes("NE")) {
-                setAttribute(characterId, "npc-alignment", "NE");
-            } else if (section.includes("CE")) {
-                setAttribute(characterId, "npc-alignment", "CE");
-            } else {
-                setAttribute(characterId, "npc-alignment", "N");
-            }
-
-            let subtypeStart = 0;
-            let dropdown = 0;
-            if (section.toLowerCase().includes("medium")) {
-                dropdown = 0;
-                subtypeStart = section.indexOf("Medium") + "Medium".length;
-            } else if (section.toLowerCase().includes("large")) {
-                dropdown = -1;
-                subtypeStart = section.indexOf("Large") + "Large".length;
-            } else if (section.toLowerCase().includes("small")) {
-                dropdown = 1;
-                subtypeStart = section.indexOf("Small") + "Small".length;
-            } else if (section.toLowerCase().includes("gargantuan")) {
-                dropdown = -4;
-                subtypeStart = section.indexOf("Gargantuan") + "Gargantuan".length;
-            } else if (section.toLowerCase().includes("huge")) {
-                dropdown = -2;
-                subtypeStart = section.indexOf("Huge") + "Huge".length;
-            } else if (section.toLowerCase().includes("tiny")) {
-                dropdown = 2;
-                subtypeStart = section.indexOf("Tiny") + "Tiny".length;
-            } else if (section.toLowerCase().includes("diminutive")) {
-                dropdown = 4;
-                subtypeStart = section.indexOf("Diminutive") + "Diminutive".length;
-            } else if (section.toLowerCase().includes("fine")) {
-                dropdown = 8;
-                subtypeStart = section.indexOf("Fine") + "Fine".length;
-            } else if (section.toLowerCase().includes("colossal")) {
-                dropdown = -8;
-                subtypeStart = section.indexOf("Colossal") + "Colossal".length;
-            }
-
-            setAttribute(characterId, "npc-size", dropdown);
-            setAttribute(characterId, "npc-subtype", section.substring(subtypeStart, section.indexOf("Init")));
-        } catch (err) {
-            debugLog("Problems with alignment, size,subtype");
+        if (section.includes("LG")) {
+            setAttribute(characterId, "npc-alignment", "LG");
+        } else if (section.includes("NG")) {
+            setAttribute(characterId, "npc-alignment", "NG");
+        } else if (section.includes("CG")) {
+            setAttribute(characterId, "npc-alignment", "CG");
+        } else if (section.includes("LN")) {
+            setAttribute(characterId, "npc-alignment", "LN");
+        } else if (section.includes("CN")) {
+            setAttribute(characterId, "npc-alignment", "CN");
+        } else if (section.includes("LE")) {
+            setAttribute(characterId, "npc-alignment", "LE");
+        } else if (section.includes("NE")) {
+            setAttribute(characterId, "npc-alignment", "NE");
+        } else if (section.includes("CE")) {
+            setAttribute(characterId, "npc-alignment", "CE");
+        } else {
+            setAttribute(characterId, "npc-alignment", "N");
         }
+
+        let subtypeStart = 0;
+        let dropdown = 0;
+        if (section.toLowerCase().includes("medium")) {
+            dropdown = 0;
+            subtypeStart = section.indexOf("Medium") + "Medium".length;
+        } else if (section.toLowerCase().includes("large")) {
+            dropdown = -1;
+            subtypeStart = section.indexOf("Large") + "Large".length;
+        } else if (section.toLowerCase().includes("small")) {
+            dropdown = 1;
+            subtypeStart = section.indexOf("Small") + "Small".length;
+        } else if (section.toLowerCase().includes("gargantuan")) {
+            dropdown = -4;
+            subtypeStart = section.indexOf("Gargantuan") + "Gargantuan".length;
+        } else if (section.toLowerCase().includes("huge")) {
+            dropdown = -2;
+            subtypeStart = section.indexOf("Huge") + "Huge".length;
+        } else if (section.toLowerCase().includes("tiny")) {
+            dropdown = 2;
+            subtypeStart = section.indexOf("Tiny") + "Tiny".length;
+        } else if (section.toLowerCase().includes("diminutive")) {
+            dropdown = 4;
+            subtypeStart = section.indexOf("Diminutive") + "Diminutive".length;
+        } else if (section.toLowerCase().includes("fine")) {
+            dropdown = 8;
+            subtypeStart = section.indexOf("Fine") + "Fine".length;
+        } else if (section.toLowerCase().includes("colossal")) {
+            dropdown = -8;
+            subtypeStart = section.indexOf("Colossal") + "Colossal".length;
+        }
+
+        setAttribute(characterId, "npc-size", dropdown);
+        setAttribute(characterId, "npc-subtype", section.substring(subtypeStart, section.indexOf("Init")));
     };
 
     let doWeapons = function (characterId, textToParse) {
@@ -1303,6 +1298,10 @@ var Guidance = Guidance || (function () {
             i++;
         }
 
+        if (i === details.length) {
+            debugLog("Problem parsing Weapons");
+            return;
+        }
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-notes", attackToParse);
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-name", weapon);
         let attackBonus = details[i];
@@ -1315,7 +1314,7 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-dice-num", numDice[0]);
         setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-die", dnd[0]);
 
-        if (!isFalsy(dnd[1])) {
+        if (dnd[1] !== undefined) {
             setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-damage", dnd[1]);
         }
     };
