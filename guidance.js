@@ -8,6 +8,7 @@ var Guidance = Guidance || (function () {
 
     let version = "-=> Guidance is online. v1.Dogfood <=-";
     let debugMode = true;
+    let enableNewNPCParser = false;
 
     /// Class that represents a NPC/Starship that is being worked on.
     class NPC {
@@ -32,8 +33,6 @@ var Guidance = Guidance || (function () {
         }
     }
 
-    /////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////
     //<editor-fold desc="GENERIC HELPER ROUTINES">
     // Borrowed from https://app.roll20.net/users/104025/the-aaron
     let generateUUID = (function () {
@@ -314,10 +313,8 @@ var Guidance = Guidance || (function () {
     };
     //</editor-fold>
 
+    //<editor-fold desc="Roll 20 object Interactions">
 
-    /////////////////////////////////////////////////////////////////
-    // Roll 20 object Interactions
-    /////////////////////////////////////////////////////////////////
     let getSelectedNPCs = function (selected) {
         let npcs = [];
         for (const t of selected) {
@@ -425,10 +422,9 @@ var Guidance = Guidance || (function () {
         let spellAsMacro = "?{Hide this roll?|No, |Yes,/w GM} &{template:pf_spell}";
         return formatTemplateAsMacro(spellAsMacro, template);
     };
+    //</editor-fold>
 
-    /////////////////////////////////////////////////////////////////
-    // Population helpers for v 2.0
-    /////////////////////////////////////////////////////////////////
+    //<editor-fold desc="Population helpers for v 2.0">
 
     let populateStarshipData = function (gmNotes, c) {
         for (let prop of findObjs({_characterid: c.characterId, _type: "ability"})) {
@@ -553,10 +549,29 @@ var Guidance = Guidance || (function () {
         speakAsGuidanceToGM(c.characterSheet.get("name") + " a " + basics.type + " has been constructed");
     };
 
-    /////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////
+    let populateNPCData = function (gmNotes, c) {
+        let cleanNotes = cleanText(gmNotes).trim();
+        debugLog("clean notes = " + cleanNotes);
 
+        if (debugMode) {
+            isFalsy(cleanNotes);
+            c.npcToken.set("gmnotes", cleanNotes);
+        }
+
+        let npc = parseStatBlock(getNPCStatBlocks(), cleanNotes);
+
+        let filtered = npc.filter(element => !isFalsy(element.val) && !isFalsy(element.sheetAttribute) && !element.sheetAttribute.includes("weapon"));
+        filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
+        filtered.forEach(function (i) {
+            i.val = i.val.replace(i.attribute, "").trim();
+            setAttribute(c.characterId, attrib.sheetAttribute, attrib.val);
+        });
+
+    };
+
+    //</editor-fold>
+
+    //////////////////////////////////////////////////////////////////
     //<editor-fold desc="On-Ready event Code">
     on("ready", function () {
         if (debugMode) {
@@ -667,6 +682,19 @@ var Guidance = Guidance || (function () {
             //<editor-fold desc="Populate the Character Sheet">
             if (String(chatMessage.content).startsWith("!sf_character")) {
                 let c = npcs[0];
+
+                if (enableNewNPCParser) {
+                    c.characterSheet.get("gmnotes", function (gmNotes) {
+                        if (!cleanNotes.includes("Will")) {
+                            speakAsGuidanceToGM("This does not appear to be a character statblock");
+                            return;
+                        }
+
+                        populateNPCData(gmNotes, c);
+                    });
+                    return;
+                }
+
                 c.characterSheet.get("gmnotes", function (gmNotes) {
                     let cleanNotes = cleanText(gmNotes);
                     if (!cleanNotes.includes("Will")) {
@@ -711,7 +739,7 @@ var Guidance = Guidance || (function () {
             //</editor-fold>
 
             //<editor-fold desc="Add Trick Attack to a Character Sheet">
-            if (String(chatMessage.content).startsWith("!sf_addTrick")) {
+            if (String(chatMessage.content).startsWith("!sf_addtrick")) {
                 npcs.forEach(function (character) {
                     debugLog("Adding Trick Attack");
                     character.showContents();
@@ -777,7 +805,6 @@ var Guidance = Guidance || (function () {
             }
             //</editor-fold>
 
-
             //<editor-fold desc="Code for Testing and Debugging">
             if (debugMode) {
                 let character = npcs[0];
@@ -818,10 +845,7 @@ var Guidance = Guidance || (function () {
         }
     });
     //</editor-fold>
-
-    /////////////////////////////////////////////////////////////////
-    // Population helpers for v 1.0
-    /////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
 
     //<editor-fold desc="Old Population Helpers - try to move to new helper">
     let parseBlockIntoSubSectionMap = function (textToParse) {
@@ -1297,9 +1321,7 @@ var Guidance = Guidance || (function () {
     };
     //</editor-fold>
 
-    /////////////////////////////////////////////////////////////////
-    // Stat block formatters
-    /////////////////////////////////////////////////////////////////
+    //<editor-fold desc="Stat block formatter templates">
     let getShipStatBlocks = function () {
         let t = [];
         t.push(new TemplateRow(t.length, "starship-name", ""));
@@ -1449,6 +1471,6 @@ var Guidance = Guidance || (function () {
         });
         return t;
     };
-
+    //</editor-fold>
 }
 ());
