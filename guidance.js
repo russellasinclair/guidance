@@ -80,10 +80,15 @@ var Guidance = Guidance || (function () {
 
     // This is used until I get a better handle on undefined vs null vs whatever....
     let isFalsy = function (v) {
-        if (v === null) {
+        var err = new Error();
+        if (v === undefined) {
+            debugLog("undefined");
+            debugLog(err.stack);
             return true;
         }
-        if (v === undefined) {
+        if (v === null) {
+            debugLog("null");
+            debugLog(err.stack);
             return true;
         }
         return false;
@@ -209,7 +214,7 @@ var Guidance = Guidance || (function () {
         debugLog(statBlockTemplate.length);
         let statBlockData = [];
         for (let i = 0; i < statBlockTemplate.length; i++) {
-            if (statBlockTemplate[i].attribute !== undefined) {
+            if (!isFalsy(statBlockTemplate[i].attribute)) {
                 let val = getSheetValue(statBlockTemplate, statBlockTemplate[i].attribute, statBlockText);
                 statBlockData.push(new TemplateRow(i, statBlockTemplate[i].sheetAttribute, statBlockTemplate[i].attribute, val));
                 debugLog(statBlockTemplate[i].attribute + " = " + val);
@@ -346,6 +351,9 @@ var Guidance = Guidance || (function () {
 
             foundAttribute = getAttribute(characterId, attributeName);
 
+        isFalsy(attributeName);
+        isFalsy(newValue);
+
         try {
             if (!foundAttribute) {
                 if (typeof operator !== "undefined" && !isNaN(newValue)) {
@@ -431,6 +439,7 @@ var Guidance = Guidance || (function () {
         debugLog("clean notes = " + cleanNotes);
 
         if (debugMode) {
+            isFalsy(cleanNotes);
             c.npcToken.set("gmnotes", cleanNotes);
         }
 
@@ -471,6 +480,7 @@ var Guidance = Guidance || (function () {
         let gunnery = cleanNotes.substring(cleanNotes.indexOf("unnery")).substring(0, cleanNotes.indexOf("("));
 
         let filtered = ship.filter(element => !isFalsy(element.val) && !isFalsy(element.sheetAttribute) && !element.sheetAttribute.includes("weapon"));
+        filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
         filtered.forEach(function (i) {
             i.val = i.val.replace(i.attribute, "").trim();
             let attrib = shipTemplateRowConvert(i);
@@ -542,7 +552,6 @@ var Guidance = Guidance || (function () {
 
         speakAsGuidanceToGM(c.characterSheet.get("name") + " a " + basics.type + " has been constructed");
     };
-
 
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
@@ -655,6 +664,10 @@ var Guidance = Guidance || (function () {
                 let c = npcs[0];
                 c.characterSheet.get("gmnotes", function (gmNotes) {
                     let cleanNotes = cleanText(gmNotes);
+                    if (!cleanNotes.includes("Will")) {
+                        speakAsGuidanceToGM("This does not appear to be a character statblock");
+                        return;
+                    }
                     let section = parseBlockIntoSubSectionMap(cleanNotes);
 
                     // For Debugging purposes and general information
@@ -707,12 +720,19 @@ var Guidance = Guidance || (function () {
             }
             //</editor-fold>
 
+            //<editor-fold desc="Populate Starship Character Sheet">
             if (String(chatMessage.content).startsWith("!sf_starship")) {
                 let c = npcs[0];
                 c.characterSheet.get("gmnotes", function (gmNotes) {
-                    populateStarshipData(gmNotes, c);
+                    if (gmNotes.includes("TL")) {
+                        populateStarshipData(gmNotes, c);
+                    } else {
+                        speakAsGuidanceToGM("This is not a starship statblock")
+                    }
                 });
+                return;
             }
+            //</editor-fold>
 
             // TODO add help text to clarify how to use this.
             //<editor-fold desc="Add Special Ability to Character sheet">
@@ -786,7 +806,6 @@ var Guidance = Guidance || (function () {
         }
     });
     //</editor-fold>
-
 
     /////////////////////////////////////////////////////////////////
     // Population helpers for v 1.0
@@ -1265,7 +1284,6 @@ var Guidance = Guidance || (function () {
         }
     };
     //</editor-fold>
-
 
     /////////////////////////////////////////////////////////////////
     // Stat block formatters
