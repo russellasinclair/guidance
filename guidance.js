@@ -279,19 +279,19 @@ var Guidance = Guidance || (function () {
         } else if (templateRow.attribute.startsWith("Maneuverability")) {
             debugLog("Setting Maneuver");
             if (templateRow.val.includes("poor")) {
-                templateRow.val = parseFloat(-2);
+                templateRow.val = String(-2);
             } else if (templateRow.val.includes("clumsy")) {
-                templateRow.val = parseFloat(-1);
+                templateRow.val = String(-1);
             } else if (templateRow.val.includes("average")) {
-                templateRow.val = parseFloat(0);
+                templateRow.val = String(0);
             } else if (templateRow.val.includes("good")) {
-                templateRow.val = parseFloat(1);
+                templateRow.val = String(1);
             } else {
-                templateRow.val = parseFloat(2);
+                templateRow.val = String(2);
             }
             debugLog("Maneuvered");
         } else if (templateRow.sheetAttribute.includes("shield")) {
-            templateRow.val = parseFloat(templateRow.val.replace(/\D/g, ""));
+            templateRow.val = templateRow.val.replace(/\D/g, "");
         }
         return templateRow;
     };
@@ -778,7 +778,7 @@ var Guidance = Guidance || (function () {
             //<editor-fold desc="Add Special Ability to Character sheet">
             if (chatMessage.content.startsWith("!sf_ability")) {
                 let cleanNotes = chatMessage.content.replace("!sf_ability ", "");
-                addSpecialAbility(character.characterId, cleanNotes);
+                npcs.forEach(character => addSpecialAbility(character.characterId, cleanNotes));
             }
             //</editor-fold>
 
