@@ -6,7 +6,7 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 var Guidance = Guidance || (function () {
     "use strict";
 
-    let version = "-=> Guidance is online. v1.Dogfood <=-";
+    let version = "-=> Guidance is online. v2.Dogfood <=-";
     let debugMode = true;
     let enableNewNPCParser = false;
 
@@ -560,7 +560,7 @@ var Guidance = Guidance || (function () {
         filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
         filtered.forEach(function (i) {
             i.val = i.val.replace(i.attribute, "").trim();
-            setAttribute(c.characterId, attrib.sheetAttribute, attrib.val);
+            setAttribute(c.characterId, i.sheetAttribute, i.val);
         });
 
     };
@@ -607,7 +607,7 @@ var Guidance = Guidance || (function () {
             return;
         }
 
-        if (chatMessage.selected === undefine) {
+        if (chatMessage.selected === undefined) {
             speakAsGuidanceToGM("Please select a token representing a character for me to work with");
             return;
         }
@@ -687,6 +687,7 @@ var Guidance = Guidance || (function () {
                 npcs.forEach(function (c) {
                     if (enableNewNPCParser) {
                         c.characterSheet.get("gmnotes", function (gmNotes) {
+                            let cleanNotes = cleanText(gmNotes);
                             if (!cleanNotes.includes("Will")) {
                                 speakAsGuidanceToGM("This does not appear to be a character statblock");
                                 return;
@@ -1120,7 +1121,7 @@ var Guidance = Guidance || (function () {
                 setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", abilityName.trim());
                 textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
                 let nextAbility = textToParse.match(/\.([^\.]*?)\(..\)/);
-                if (nextAbility === undefined) {
+                if (nextAbility === undefined || nextAbility === null) {
                     setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.trim());
                     return;
                 }
