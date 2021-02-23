@@ -80,7 +80,7 @@ var Guidance = Guidance || (function () {
     };
 
     // For Debugging purposes
-    let isFalsy = function (v) {
+    let isNullOrUndefined = function (v) {
         var err = new Error();
         if (v === undefined) {
             debugLog("undefined");
@@ -162,7 +162,7 @@ var Guidance = Guidance || (function () {
 
     let attributeToInteger = function (characterId, attrib) {
         let value = getAttribute(characterId, attrib);
-        if (isFalsy(value)) {
+        if (isNaN(value)) {
             return 0;
         } else {
             return parseFloat(value.get("current"));
@@ -355,8 +355,8 @@ var Guidance = Guidance || (function () {
 
             foundAttribute = getAttribute(characterId, attributeName);
 
-        isFalsy(attributeName);
-        isFalsy(newValue);
+        isNullOrUndefined(attributeName);
+        isNullOrUndefined(newValue);
 
         try {
             if (!foundAttribute) {
@@ -367,7 +367,7 @@ var Guidance = Guidance || (function () {
 
                 // We don't need to create "Blank Values"
                 if (!attributeName.includes("show")) {
-                    if (isFalsy(newValue) || newValue === "" || newValue === 0) {
+                    if (newValue === undefined || newValue === "" || newValue === 0) {
                         return;
                     }
                 }
@@ -421,7 +421,7 @@ var Guidance = Guidance || (function () {
     };
 
     let formatTemplateAsMacro = function (spellAsMacro, template) {
-        let filteredTemplate = template.filter(element => !isFalsy(element.attribute) && !isFalsy(element.val !== undefined));
+        let filteredTemplate = template.filter(element => element.attribute !== undefined && element.val !== undefined);
         for (let i = 0; i < filteredTemplate.length; i++) {
             spellAsMacro += "{{" + filteredTemplate[i].sheetAttribute + "=" + filteredTemplate[i].val + "}}";
         }
@@ -444,7 +444,7 @@ var Guidance = Guidance || (function () {
         debugLog("clean notes = " + cleanNotes);
 
         if (debugMode) {
-            isFalsy(cleanNotes);
+            isNullOrUndefined(cleanNotes);
             c.npcToken.set("gmnotes", cleanNotes);
         }
 
@@ -503,7 +503,7 @@ var Guidance = Guidance || (function () {
             gunnery = "";
         }
 
-        let filtered = ship.filter(element => !isFalsy(element.val) && !isFalsy(element.sheetAttribute) && !element.sheetAttribute.includes("weapon"));
+        let filtered = ship.filter(element => element.val !== undefined && element.sheetAttribute !== undefined && !element.sheetAttribute.includes("weapon"));
         filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
         filtered.forEach(function (i) {
             i.val = i.val.replace(i.attribute, "").trim();
@@ -597,7 +597,7 @@ var Guidance = Guidance || (function () {
         debugLog("clean notes = " + cleanNotes);
 
         if (debugMode) {
-            isFalsy(cleanNotes);
+            isNullOrUndefined(cleanNotes);
             c.npcToken.set("gmnotes", cleanNotes);
         }
 
@@ -608,7 +608,7 @@ var Guidance = Guidance || (function () {
         setAttribute(c.characterId, "npc-feats-show", 0);
 
 
-        let filtered = npc.filter(element => !isFalsy(element.val) && !isFalsy(element.sheetAttribute) && !element.sheetAttribute.includes("weapon"));
+        let filtered = npc.filter(element => element.val !== undefined && element.sheetAttribute !== undefined && !element.sheetAttribute.includes("weapon"));
         filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
         filtered.forEach(function (i) {
             i.val = i.val.replace(i.attribute, "").trim();
@@ -960,6 +960,7 @@ var Guidance = Guidance || (function () {
         textToParse = textToParse.replace(/\s+/, " ");
         let attackBonus = "";
         if (textToParse.includes("Spells Known")) {
+            speakAsGuidanceToGM("This character has spells. Check Out the command sf_addspell to assist in adding Spell Macros");
             setAttribute(characterId, "spellclass-1-level", getValue("CL", textToParse, ";").replace(/\D/g, ""));
 
             attackBonus = textToParse.replace(/\(.*;/, "");
@@ -1012,7 +1013,7 @@ var Guidance = Guidance || (function () {
             let lines = textToParse.match(/\d\/\w+|At will|Constant/);
             for (let i = 0; i < lines.length; i++) {
                 let ability = "";
-                if (isFalsy(lines[i + 1])) {
+                if (isNullOrUndefined(lines[i + 1])) {
                     ability = textToParse.substring(textToParse.indexOf(lines[i]));
                 } else {
                     ability = textToParse.substring(textToParse.indexOf(lines[i]), textToParse.indexOf(lines[i + 1]));
@@ -1096,13 +1097,15 @@ var Guidance = Guidance || (function () {
 
     let populateOffense = function (characterId, textToParse) {
         let specialAbilities = getValue("Offensive Abilities", textToParse, "STATISTICS");
+
         if (specialAbilities.includes("Spell")) {
             specialAbilities = specialAbilities.substring(0, specialAbilities.indexOf("Spell"));
         }
-        if (isFalsy(specialAbilities)) {
+        if (isNullOrUndefined(specialAbilities)) {
             setAttribute(characterId, "npc-special-attacks-show", 0);
         } else {
-            setAttribute(characterId, "npc-special-attacks", specialAbilities);
+            let offensiveAbilities = getSheetValue(getNPCStatBlocks(), "Offensive Abilities", textToParse, "STATISTICS");
+            setAttribute(characterId, "npc-special-attacks", offensiveAbilities);
         }
 
         setAttribute(characterId, "speed-base-npc", getMovement("Speed", textToParse));
@@ -1159,7 +1162,7 @@ var Guidance = Guidance || (function () {
         }
 
         let gear = getValue("Gear", textToParse, "Ecology");
-        if (isFalsy(gear) || gear.length < 1) {
+        if (isNullOrUndefined(gear) || gear.length < 1) {
             setAttribute(characterId, "npc-gear-show", 0);
         } else {
             setAttribute(characterId, "npc-gear", getValue("Gear", textToParse, "Ecology"));
