@@ -472,10 +472,15 @@ var Guidance = Guidance || (function () {
         if (cleanNotes.includes("iloting")) {
             let piloting = cleanNotes.substring(cleanNotes.indexOf("iloting")).substring(0, cleanNotes.indexOf(")"));
             piloting = piloting.trim();
-            pilotBonus = piloting.substring(piloting.indexOf("+") + 1).substring(0, piloting.indexOf("("));
+            debugLog("Piloting candidate = " + piloting);
+            pilotBonus = piloting.substring(piloting.indexOf("+") + 1).trim();
+            if (pilotBonus.includes("(")) {
+                pilotBonus = pilotBonus.substring(0, pilotBonus.indexOf("("));
+            }
+            debugLog("Piloting cleaned = " + pilotBonus);
             pilotingRanks = piloting.substring(piloting.indexOf("(") + 1, piloting.indexOf(")"));
         }
-        if (pilotBonus === undefined || pilotBonus.trim() === "") {
+        if (pilotBonus === undefined || pilotBonus.trim() === "" || isNaN(pilotBonus.trim())) {
             pilotBonus = "?{Piloting Bonus?|0}";
             pilotingRanks = "Ranks Not Defined";
         }
@@ -493,7 +498,7 @@ var Guidance = Guidance || (function () {
         // get gunnery stat for macros
         let gunnery = "";
         if (cleanNotes.includes("unnery ")) {
-            cleanNotes.substring(cleanNotes.indexOf("unnery")).substring(0, cleanNotes.indexOf("("));
+            gunnery = cleanNotes.substring(cleanNotes.indexOf("unnery")).substring(0, cleanNotes.indexOf("("));
         } else {
             gunnery = "";
         }
@@ -528,13 +533,17 @@ var Guidance = Guidance || (function () {
                     return;
                 }
                 let bonus = gunnery.substring(gunnery.indexOf("+") + 1, gunnery.indexOf("(")).trim();
-                if (bonus === undefined || bonus.trim() === "") {
+                if (bonus === undefined || bonus.trim() === "" || isNaN(bonus)) {
                     bonus = "?{Gunner's Attack Bonus|0}";
                 }
 
                 debugLog("Bonus = " + bonus);
-                let damage = w.substring(w.indexOf("(") + 1, w.indexOf(")"));
-                debugLog(damage);
+                debugLog("w (before getting damage) = " + w);
+                let damage = w.substring(w.indexOf("(") + 1);
+                if (damage.includes(")")) {
+                    damage = damage.substring(0, damage.indexOf(")"));
+                }
+                debugLog("damage = " + damage);
                 let range = "";
                 if (damage.includes(";")) {
                     damage = damage.substring(0, damage.indexOf(";")).trim();
@@ -698,14 +707,15 @@ var Guidance = Guidance || (function () {
             //</editor-fold>
 
             //<editor-fold desc="Wipe out all Character Data">
-            if (chatMessage.content.startsWith("!sf_clean CONFIRM")) {
+            if (chatMessage.content.startsWith("!sf_clean")) {
                 let msg = chatMessage.content.replace("!sf_clean ", "");
                 if (npcs.length > 1) {
                     speakAsGuidanceToGM("Please do not select more than 1 NPC at a time. This command is potentially dangerous.");
                     return;
                 }
                 let c = npcs[0];
-                if (msg.startsWith("CONFIRM")) {
+                debugLog("INCLUDES = " + msg);
+                if (msg.includes("CONFIRM")) {
                     for (const attribute of findObjs({_characterid: c.characterId, _type: "attribute"})) {
                         debugLog("Removing " + attribute.get("name"));
                         attribute.remove();
@@ -723,6 +733,14 @@ var Guidance = Guidance || (function () {
                     }
 
                     speakAsGuidanceToGM("Removed all properties for " + c.characterSheet.get("name"));
+                    return;
+                } else if (msg.includes("ABILITIES")) {
+                    c.showContents();
+                    for (let prop of findObjs({_characterid: c.characterId, _type: "ability"})) {
+                        debugLog("Removing " + prop.get("name"));
+                        prop.remove();
+                    }
+                    speakAsGuidanceToGM("Removed all abilities for " + c.characterSheet.get("name"));
                     return;
                 }
                 speakAsGuidanceToGM("Check usage for !sf_clean");
@@ -884,7 +902,7 @@ var Guidance = Guidance || (function () {
                         _type: "attribute",
                     });
                     for (const att of attribs) {
-                        log(att);
+                        log(att.get("name"));
                     }
 
                     let ables = findObjs({
@@ -892,7 +910,7 @@ var Guidance = Guidance || (function () {
                         _type: "ability",
                     });
                     for (const ab of ables) {
-                        debugLog(ab);
+                        debugLog(ab.get("name"));
                     }
                     debugLog("Done");
 
