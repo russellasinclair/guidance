@@ -169,6 +169,15 @@ var Guidance = Guidance || (function () {
         }
     };
 
+    let getCleanSheetValue = function (statBlockTemplate, statToFind, statBlockText, delimiter) {
+        let x = getSheetValue(statBlockTemplate, statToFind, statBlockText, delimiter);
+        if (x !== undefined) {
+            return x.replace(statToFind, "");
+        } else {
+            return "";
+        }
+    };
+
     // new parsing logic
     let getSheetValue = function (statBlockTemplate, statToFind, statBlockText, delimiter) {
         if (!statBlockText.includes(statToFind)) {
@@ -1104,7 +1113,7 @@ var Guidance = Guidance || (function () {
         if (isNullOrUndefined(specialAbilities)) {
             setAttribute(characterId, "npc-special-attacks-show", 0);
         } else {
-            let offensiveAbilities = getSheetValue(getNPCStatBlocks(), "Offensive Abilities", textToParse, "STATISTICS");
+            let offensiveAbilities = getCleanSheetValue(getNPCStatBlocks(), "Offensive Abilities", textToParse, "STATISTICS");
             setAttribute(characterId, "npc-special-attacks", offensiveAbilities);
         }
 
@@ -1155,15 +1164,11 @@ var Guidance = Guidance || (function () {
             setAttribute(characterId, attUpper + "-temp", String(stat * 2));
         }
 
-        if (!textToParse.includes("Other Abilities")) {
-            setAttribute(characterId, "languages-npc", getSheetValue(getNPCStatBlocks(), "Languages", textToParse, "Gear"));
-        } else {
-            setAttribute(characterId, "languages-npc", getSheetValue(getNPCStatBlocks(), "Languages", textToParse, "Other"));
-        }
+        setAttribute(characterId, "languages-npc", getCleanSheetValue(getNPCStatBlocks(), "Language", textToParse, "ECOLOGY"));
 
         let gear = "";
         if (textToParse.includes("Gear")) {
-            gear = getSheetValue(getNPCStatBlocks(), "Gear", textToParse, "ECOLOGY");
+            gear = getCleanSheetValue(getNPCStatBlocks(), "Gear", textToParse, "ECOLOGY");
             setAttribute(characterId, "npc-gear", gear);
         } else {
             setAttribute(characterId, "npc-gear-show", 0);
