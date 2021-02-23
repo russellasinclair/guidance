@@ -1,7 +1,7 @@
 /*
 Starfinder utilities for Roll20
 Requires API, Starfinder (Simple) character sheets - official sheets not supported at this time.
-!sf_populate - will parse a stat-block in the GM Notes of a character, and populate the NPC tab of the character sheet with the values
+
 */
 var Guidance = Guidance || (function () {
     "use strict";
@@ -68,7 +68,9 @@ var Guidance = Guidance || (function () {
 
     let debugLog = function (text) {
         if (debugMode) {
-            log(text);
+            let d = new Date();
+            let lines = new Error().stack.split("\n");
+            log(d.toUTCString() + " " + lines[2].trim() + " " + text);
         }
     };
 
@@ -208,8 +210,12 @@ var Guidance = Guidance || (function () {
         debugLog(statBlockTemplate.length);
         let statBlockData = [];
         for (let i = 0; i < statBlockTemplate.length; i++) {
-            if (statBlockTemplate[i].attribute !== undefined) {
-                let val = getSheetValue(statBlockTemplate, statBlockTemplate[i].attribute, statBlockText);
+            if (statBlockTemplate[i].attribute !== undefined && statBlockTemplate[i].attribute !== "") {
+                let preParsedText = statBlockText;
+                if (i > 0 && statBlockTemplate[i - 1].attribute !== "") {
+                    preParsedText = statBlockText.substring(statBlockText.indexOf(statBlockTemplate[i - 1].attribute));
+                }
+                let val = getSheetValue(statBlockTemplate, statBlockTemplate[i].attribute, preParsedText);
                 statBlockData.push(new TemplateRow(i, statBlockTemplate[i].sheetAttribute, statBlockTemplate[i].attribute, val));
                 debugLog(statBlockTemplate[i].attribute + " = " + val);
             }
@@ -461,10 +467,19 @@ var Guidance = Guidance || (function () {
         setAttribute(c.characterId, "starship-weapon-stbd-weapon1-show", 0);
 
         // get piloting stat and make macro
-        let piloting = cleanNotes.substring(cleanNotes.indexOf("iloting")).substring(0, cleanNotes.indexOf(")"));
-        piloting = piloting.trim();
-        let pilotBonus = piloting.substring(piloting.indexOf("+") + 1).substring(0, piloting.indexOf("("));
-        let pilotingRanks = piloting.substring(piloting.indexOf("(") + 1, piloting.indexOf(")"));
+        let pilotBonus = "";
+        let pilotingRanks = "";
+        if (cleanNotes.includes("iloting")) {
+            let piloting = cleanNotes.substring(cleanNotes.indexOf("iloting")).substring(0, cleanNotes.indexOf(")"));
+            piloting = piloting.trim();
+            pilotBonus = piloting.substring(piloting.indexOf("+") + 1).substring(0, piloting.indexOf("("));
+            pilotingRanks = piloting.substring(piloting.indexOf("(") + 1, piloting.indexOf(")"));
+        }
+        if (pilotBonus === undefined || pilotBonus.trim() === "") {
+            pilotBonus = "?{Piloting Bonus?|0}";
+            pilotingRanks = "Ranks Not Defined";
+        }
+
         let pilotingMacro = "&{template:pf_check} {{name=" + c.characterSheet.get("name") +
             "'s Piloting}} {{skill_chk=[[[[d20+" + pilotBonus + "]] + ?{Any other modifiers?|0}]]}}{{notes=" + pilotingRanks + "}}";
 
@@ -476,7 +491,12 @@ var Guidance = Guidance || (function () {
         });
 
         // get gunnery stat for macros
-        let gunnery = cleanNotes.substring(cleanNotes.indexOf("unnery")).substring(0, cleanNotes.indexOf("("));
+        let gunnery = "";
+        if (cleanNotes.includes("unnery ")) {
+            cleanNotes.substring(cleanNotes.indexOf("unnery")).substring(0, cleanNotes.indexOf("("));
+        } else {
+            gunnery = "";
+        }
 
         let filtered = ship.filter(element => !isFalsy(element.val) && !isFalsy(element.sheetAttribute) && !element.sheetAttribute.includes("weapon"));
         filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
@@ -508,12 +528,23 @@ var Guidance = Guidance || (function () {
                     return;
                 }
                 let bonus = gunnery.substring(gunnery.indexOf("+") + 1, gunnery.indexOf("(")).trim();
-                debugLog("Bonus = " + bonus);
-                let damage = w.substring(w.indexOf("(") + 1, w.indexOf(";"));
-                debugLog("Damage = " + damage);
+                if (bonus === undefined || bonus.trim() === "") {
+                    bonus = "?{Gunner's Attack Bonus|0}";
+                }
 
-                let range = w.substring(w.indexOf(";") + 1);
-                range = range.substring(0, range.indexOf(")")).trim();
+                debugLog("Bonus = " + bonus);
+                let damage = w.substring(w.indexOf("(") + 1, w.indexOf(")"));
+                debugLog(damage);
+                let range = "";
+                if (damage.includes(";")) {
+                    damage = damage.substring(0, damage.indexOf(";")).trim();
+                    range = damage.substring(damage.indexOf(";") + 1).trim();
+                } else if (damage.includes(",")) {
+                    damage = damage.substring(0, damage.indexOf(",")).trim();
+                    range = damage.substring(damage.indexOf(",") + 1).trim();
+                }
+                debugLog("Damage = " + damage);
+                debugLog("Range = " + range);
 
                 let weaponMacro = "&{template:pf_attack} {{name=" + c.characterSheet.get("name") +
                     "'s " + weaponName + "}} {{attack=[[ [[d20+" + bonus + "]] + ?{Any other modifiers?|0}]] }}" +
@@ -644,7 +675,7 @@ var Guidance = Guidance || (function () {
             //<editor-fold desc="Roll Initiative for a group of NPCs">
             if (chatMessage.content.startsWith("!sf_init")) {
                 speakAsGuidanceToGM("Rolling NPC initiative for all selected tokens");
-                let turnorder = [];
+                let turnorder = JSON.parse(Campaign().get("turnorder"));
                 npcs.forEach(function (npc) {
                     npc.showContents();
                     debugLog("npc id = " + npc.characterId);
