@@ -1156,16 +1156,17 @@ var Guidance = Guidance || (function () {
         }
 
         if (!textToParse.includes("Other Abilities")) {
-            setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Gear"));
+            setAttribute(characterId, "languages-npc", getSheetValue(getNPCStatBlocks(), "Languages", textToParse, "Gear"));
         } else {
-            setAttribute(characterId, "languages-npc", getValue("Languages", textToParse, "Other"));
+            setAttribute(characterId, "languages-npc", getSheetValue(getNPCStatBlocks(), "Languages", textToParse, "Other"));
         }
 
-        let gear = getValue("Gear", textToParse, "Ecology");
-        if (isNullOrUndefined(gear) || gear.length < 1) {
-            setAttribute(characterId, "npc-gear-show", 0);
+        let gear = "";
+        if (textToParse.includes("Gear")) {
+            gear = getSheetValue(getNPCStatBlocks(), "Gear", textToParse, "ECOLOGY");
+            setAttribute(characterId, "npc-gear", gear);
         } else {
-            setAttribute(characterId, "npc-gear", getValue("Gear", textToParse, "Ecology"));
+            setAttribute(characterId, "npc-gear-show", 0);
         }
 
         let sq = getValue("Other Abilities", textToParse, "Gear");
