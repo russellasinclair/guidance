@@ -489,7 +489,7 @@ var Guidance = Guidance || (function () {
             debugLog("Piloting cleaned = " + pilotBonus);
             pilotingRanks = piloting.substring(piloting.indexOf("(") + 1, piloting.indexOf(")"));
         }
-        if (pilotBonus === undefined || pilotBonus.trim() === "" || isNaN(pilotBonus.trim())) {
+        if (pilotBonus === undefined || pilotBonus.trim() === "" || isNaN(pilotBonus)) {
             pilotBonus = "?{Piloting Bonus?|0}";
             pilotingRanks = "Ranks Not Defined";
         }
@@ -1012,12 +1012,9 @@ var Guidance = Guidance || (function () {
         }
 
         if (textToParse.includes("Spell-Like Abilities")) {
-            textToParse = textToParse.substring(textToParse.indexOf("Spell-Like Abilities")).trim()
+            textToParse = textToParse.substring(textToParse.indexOf("Spell-Like Abilities")).trim();
             setAttribute(characterId, "spellclass-0-level", parseFloat(getValue("CL", textToParse, ";")));
             textToParse = textToParse.replace(/Spell-Like Abilities/, "").trim();
-
-            attackBonus = textToParse.substring(textToParse.indexOf("CL"));
-            attackBonus = attackBonus.substring(attackBonus.indexOf(")") + 1);
 
             debugLog("Spell like ability = " + textToParse);
             let lines = textToParse.match(/\d\/\w+|At will|Constant/g);
@@ -1027,12 +1024,12 @@ var Guidance = Guidance || (function () {
                 if (isNullOrUndefined(lines[i + 1])) {
 
                     ability = textToParse.substring(textToParse.indexOf(lines[i]));
-                    debugLog("ability match a")
+                    debugLog("ability match a");
                 } else {
                     ability = textToParse.substring(textToParse.indexOf(lines[i]), textToParse.indexOf(lines[i + 1]));
-                    debugLog("ability match b")
-                    debugLog("Text to parse 1 " + lines[i] + " " + textToParse.indexOf(lines[i]))
-                    debugLog("Text to parse 2 " + lines[i + 1] + " " + textToParse.indexOf(lines[i + 1]))
+                    debugLog("ability match b");
+                    debugLog("Text to parse 1 " + lines[i] + " " + textToParse.indexOf(lines[i]));
+                    debugLog("Text to parse 2 " + lines[i + 1] + " " + textToParse.indexOf(lines[i + 1]));
 
                 }
                 addSpellLikeAbility(characterId, ability);
@@ -1079,10 +1076,10 @@ var Guidance = Guidance || (function () {
         }
         setAttribute(characterId, "npc-SR", getValue("SR", textToParse));
         if (textToParse.includes("Weaknesses")) {
-            setAttribute(characterId, "npc-resistances", getValue("Resistances", textToParse, "Weaknesses"));
-            setAttribute(characterId, "npc-weaknesses", getValue("Weaknesses", textToParse, ";"));
+            setAttribute(characterId, "npc-resistances", getCleanSheetValue(getNPCStatBlocks(), "Resistances", textToParse, "Weaknesses"));
+            setAttribute(characterId, "npc-weaknesses", getCleanSheetValue(getNPCStatBlocks(), "Weaknesses", textToParse, ";"));
         } else {
-            setAttribute(characterId, "npc-resistances", getValue("Resistances", textToParse, ";"));
+            setAttribute(characterId, "npc-resistances", getCleanSheetValue(getNPCStatBlocks(), "Resistances", textToParse, ";"));
         }
         setAttribute(characterId, "npc-DR", getValue("DR", textToParse, ";"));
 
