@@ -649,8 +649,16 @@ var Guidance = Guidance || (function () {
             speakAsGuidanceToGM(version);
         }
         speakAsGuidanceToGM("Greetings, I am Guidance. I am here to assist you working with your Starfinders to make " +
-            "your time in the Pact Worlds more enjoyable. To learn how to use my services, simply type " +
-            "<b>sf_help</b> into the chat.");
+            "your time in the Pact Worlds more enjoyable. To learn more, I created a welcome guide in the journal section.");
+
+        let handoutName = "Welcome To Guidance";
+        let objs = findObjs({name: handoutName, _type: "handout"});
+        if (objs.length < 1) {
+            let userGuide = createObj("handout", {
+                name: handoutName
+            });
+            userGuide.set('notes', welcomeHandout());
+        }
 
         log(version);
     });
@@ -921,8 +929,25 @@ var Guidance = Guidance || (function () {
                     for (const ab of ables) {
                         debugLog(ab.get("name"));
                     }
-                    debugLog("Done");
 
+                    let macros = findObjs({
+                        _type: "macro",
+                    });
+                    for (const ab of macros) {
+                        debugLog(ab.get("name"));
+                        debugLog(ab.get("action"));
+                    }
+                    let handouts = findObjs({
+                        _type: "handout",
+                    });
+                    for (const ab of handouts) {
+                        ab.get("notes", function (notes) {
+                            debugLog(ab.get("name"));
+                            debugLog(notes);
+                        });
+
+                    }
+                    debugLog("Done");
                 }
             }
             //</editor-fold>
@@ -1486,6 +1511,10 @@ var Guidance = Guidance || (function () {
         });
         return spellArray;
     };
+
+    let welcomeHandout = function () {
+        return "<p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">I have several commands I support.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\"><br></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\"> </p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 20.0pt\"><span style=\"font-weight: bold\">THE MAIN COMMANDS</span></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 18.0pt\"><span style=\"font-weight: bold ; font-style: italic\">!sf_character</span></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">This will allow you to take a Starfinder statblock and<span>&nbsp; </span>fill out the NPC section of the Starfinder (Simple) character sheet. Furthermore, I'll configure the token's hit points and give EAC/KAC indicators.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\"><span style=\"font-weight: bold\">How to</span>:</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">Select and copy a stat block and paste it into the \"GM NOTES\" section of a Character sheet. Don't worry about removing any formatting, I will take care of that. Click Save. Then select the token that you have<a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\"> linked to the character sheet</a>. Type !sf_character.<span>&nbsp; </span>I will attempt to use the statblock to fill out the NPC section of the Starfinder (Simple) character sheet.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">I support character statblocks from the <span style=\"font-weight: bold ; font-style: italic\">Archives of Nethys</span> and the <span style=\"font-weight: bold ; font-style: italic\">Starjammer SRD</span>.&nbsp;<span style=\"font-style: italic\">I don't do well with Society PDFs as the style isn't completely consistent - at least in the earlier ones</span>. If you want to attempt using one, double check my work.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 18.0pt\"><span style=\"font-weight: bold ; font-style: italic\">!sf_starship</span></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">This will allow you to take a Starfinder starship statblock in the GM Notes section of a <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked character sheet</a> and populate it. Furthermore, I will add gunnery and piloting check macros. If the statblock doesn’t have stats for the pilot/gunner, I'll put in prompts so that when you click the macro, you will be prompted for the bonus.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">This works the same as !sf_character but in practice, statblocks for starships are less consistent across platforms.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 18.0pt\"><span style=\"font-weight: bold ; font-style: italic\">!sf_token </span></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">This will populate the token with hitpoint, EAC, and KAC information in the event that the NPC sheet is setup, but the token isn't. The token will look like the one produced by !sf_character</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 18.0pt\"><span style=\"font-weight: bold ; font-style: italic\">!sf_clean</span></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">I've included this for completeness, but be warned - this command will <span style=\"font-style: italic\">PERMANENTLY</span>&nbsp;erase things from the character sheet so use with caution. As above, this command requires selecting a token that has been <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked to the character sheet</a>.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\"><b>HOW TO:</b></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">!sf_clean CONFIRM<span>&nbsp; </span>- This will erase ALL stats from the character sheet AND remove ALL formatting from the token. It will not touch the GM Notes section of the character sheet so it can be reimported using !sf_character.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">!sf_clean ABILITIES - This will rease ALL macros from the character sheet.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 20.0pt\"><span style=\"font-weight: bold\">OTHER USEFUL COMMANDS</span></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 18.0pt\"><span style=\"font-weight: bold ; font-style: italic\">!sf_init</span></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">This will roll group initiative for all selected NPCs. It looks at the Initiative bonus on the NPC tab of the character sheet to do this.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 18.0pt\"><span style=\"font-weight: bold ; font-style: italic\">!sf_addtrick </span></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">This will add a macro to handle Trick Attacks for the NPC. After running the sf_character command, click over to the main \"Character\" page, and configure Trick Attacks to make it work.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">The next two commands will require creating a simple macro to run correctly</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">The macro will look like this.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">!sf_ability ?{textToPaste}</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 18.0pt\"><span style=\"font-weight: bold ; font-style: italic\">!sf_ability</span></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">Using the macro described above will allow me to add a special ability to the character sheet for quick reference. When the macro is run, a box will appear that you can paste in the full text of a special ability. I will do my best to parse that and append it to the special abilities section of the NPC character sheet.</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p style=\"margin: 0in ; font-family: &#34;cambria&#34;\"><span style=\"font-weight: bold ; font-style: italic ; font-size: 18.0pt\">!sf_addspell</span><span style=\"font-size: 14.0pt\">&nbsp;</span></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">Using the macro described above will allow me to add a macro to display a formatted spell stat block for a spell. <span style=\"font-style: italic\">I recommend editing the description of the new macro to display the appropriate rolls for the spell.</span></p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\">&nbsp;</p><p> </p><p style=\"margin: 0in ; font-family: &#34;cambria&#34; ; font-size: 14.0pt\"><span style=\"font-weight: bold ; font-style: italic ; text-decoration: underline\">That is all for now. Feel free to reach out to my creator if you encounter any issues.</span></p>";
+    }
 
     let getNPCStatBlocks = function () {
         let t = [];
