@@ -318,6 +318,28 @@ var Guidance = Guidance || (function () {
         return templateRow;
     };
 
+    let setAlignment = function (characterId, section) {
+        if (section.includes("LG")) {
+            setAttribute(characterId, "npc-alignment", "LG");
+        } else if (section.includes("NG")) {
+            setAttribute(characterId, "npc-alignment", "NG");
+        } else if (section.includes("CG")) {
+            setAttribute(characterId, "npc-alignment", "CG");
+        } else if (section.includes("LN")) {
+            setAttribute(characterId, "npc-alignment", "LN");
+        } else if (section.includes("CN")) {
+            setAttribute(characterId, "npc-alignment", "CN");
+        } else if (section.includes("LE")) {
+            setAttribute(characterId, "npc-alignment", "LE");
+        } else if (section.includes("NE")) {
+            setAttribute(characterId, "npc-alignment", "NE");
+        } else if (section.includes("CE")) {
+            setAttribute(characterId, "npc-alignment", "CE");
+        } else {
+            setAttribute(characterId, "npc-alignment", "N");
+        }
+    };
+
     let abbreviateArc = function (arc) {
         if (arc.includes("orward")) {
             return "fwd";
@@ -445,10 +467,6 @@ var Guidance = Guidance || (function () {
 
     //<editor-fold desc="Population helpers for v 2.0">
     let populateStarshipData = function (gmNotes, c) {
-        for (let prop of findObjs({_characterid: c.characterId, _type: "ability"})) {
-            debugLog("Removing " + prop.get("name"));
-            prop.remove();
-        }
         let cleanNotes = cleanText(gmNotes).trim();
         debugLog("clean notes = " + cleanNotes);
 
@@ -603,28 +621,46 @@ var Guidance = Guidance || (function () {
 
     let populateNPCData = function (gmNotes, c) {
         let cleanNotes = cleanText(gmNotes).trim();
-        debugLog("clean notes = " + cleanNotes);
 
         if (debugMode) {
             isNullOrUndefined(cleanNotes);
             c.npcToken.set("gmnotes", cleanNotes);
         }
 
-        let npc = parseStatBlock(getNPCStatBlocks(), cleanNotes);
         setAttribute(c.characterId, "tab", 4);
         setAttribute(c.characterId, "npc-race", c.characterSheet.get("name"));
         setAttribute(c.characterId, "npc-tactics-show", 0);
         setAttribute(c.characterId, "npc-feats-show", 0);
 
+        // reduce chance of error
+        let section = parseBlockIntoSubSectionMap(cleanNotes);
 
-        let filtered = npc.filter(element => element.val !== undefined && element.sheetAttribute !== undefined && !element.sheetAttribute.includes("weapon"));
-        filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
-        filtered.forEach(function (i) {
-            i.val = i.val.replace(i.attribute, "").trim();
-            let attrib = npcTemplateRowConvert(i);
-            setAttribute(c.characterId, attrib.sheetAttribute, attrib.val);
-        });
+        if (enableNewNPCParser) {
+            let npc = parseStatBlock(getNPCStatBlocks(), cleanNotes);
 
+            let filtered = npc.filter(element => element.val !== undefined && element.sheetAttribute !== undefined && !element.sheetAttribute.includes("weapon"));
+            filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
+            filtered.forEach(function (i) {
+                i.val = i.val.replace(i.attribute, "").trim();
+                let attrib = npcTemplateRowConvert(i);
+                setAttribute(c.characterId, attrib.sheetAttribute, attrib.val);
+            });
+        } else {
+            populateHeader(c.characterId, section.get("header"));
+
+            // Setup Character Sheet
+            populateDefense(c.characterId, section.get("defense"));
+            populateOffense(c.characterId, section.get("offense"));
+            populateStatics(c.characterId, section.get("statistics"));
+            populateSkills(c.characterId, section.get("statistics"));
+            populateNPC(c.characterId, cleanNotes);
+        }
+
+        populateSpecialAbilities(c.characterId, section.get("special"));
+        setAlignment(c.characterId, cleanNotes);
+
+        // Set up Token
+        setUpToken(c.characterId, c.npcToken);
         if (cleanNotes.toLowerCase().includes("trick attack")) {
             createObj("ability", {
                 name: "Trick Attack (settings on main sheet)",
@@ -634,8 +670,6 @@ var Guidance = Guidance || (function () {
             });
             speakAsGuidanceToGM("Trick attack added to selected character");
         }
-
-        setUpToken(c.characterId, c.npcToken);
 
         speakAsGuidanceToGM(c.characterSheet.get("name") + " NPC character sheet processed");
     };
@@ -777,56 +811,12 @@ var Guidance = Guidance || (function () {
             //<editor-fold desc="Populate all selected Character Sheet">
             if (chatMessage.content.startsWith("!sf_character")) {
                 npcs.forEach(function (c) {
-
                     c.characterSheet.get("gmnotes", function (gmNotes) {
-                        let cleanNotes = cleanText(gmNotes);
-                        if (!cleanNotes.includes("Will")) {
+                        if (!gmNotes.includes("Will")) {
                             speakAsGuidanceToGM("This does not appear to be a character statblock");
                             return;
                         }
-                        let section = parseBlockIntoSubSectionMap(cleanNotes);
-
-                        // For Debugging purposes and general information
-                        if (debugMode) {
-                            c.npcToken.set("gmnotes", cleanNotes);
-                        }
-
-                        if (enableNewNPCParser) {
-                            let cleanNotes2 = section.get("header");
-                            if (!cleanNotes2.includes("Will")) {
-                                speakAsGuidanceToGM("This does not appear to be a character statblock");
-                                return;
-                            }
-
-                            populateNPCData(cleanNotes2, c);
-                        } else {
-                            populateHeader(c.characterId, section.get("header"));
-                        }
-
-                        // Setup Character Sheet
-                        setAttribute(c.characterId, "npc-race", c.characterSheet.get("name"));
-                        setAttribute(c.characterId, "tab", 4);
-                        setAttribute(c.characterId, "npc-tactics-show", 0);
-                        setAttribute(c.characterId, "npc-feats-show", 0);
-                        populateDefense(c.characterId, section.get("defense"));
-                        populateOffense(c.characterId, section.get("offense"));
-                        populateStatics(c.characterId, section.get("statistics"));
-                        populateSkills(c.characterId, section.get("statistics"));
-                        populateNPC(c.characterId, cleanNotes);
-                        populateSpecialAbilities(c.characterId, section.get("special"));
-
-                        // Set up Token
-                        setUpToken(c.characterId, c.npcToken);
-                        if (cleanNotes.toLowerCase().includes("trick attack")) {
-                            createObj("ability", {
-                                name: "Trick Attack (settings on main sheet)",
-                                description: "",
-                                action: "&{template:pf_check}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
-                                _characterid: c.characterId,
-                            });
-                            speakAsGuidanceToGM("Trick attack added to selected character");
-                        }
-                        speakAsGuidanceToGM(c.characterSheet.get("name") + " NPC character sheet processed");
+                        populateNPCData(gmNotes, c);
                     });
                 });
                 return;
@@ -855,18 +845,17 @@ var Guidance = Guidance || (function () {
             if (chatMessage.content.startsWith("!sf_starship")) {
                 npcs.forEach(function (c) {
                     c.characterSheet.get("gmnotes", function (gmNotes) {
-                        if (gmNotes.includes("TL")) {
-                            populateStarshipData(gmNotes, c);
-                        } else {
-                            speakAsGuidanceToGM("This is not a starship statblock");
+                        if (!gmNotes.includes("TL")) {
+                            speakAsGuidanceToGM("This does not appear to be a starship statblock");
+                            return;
                         }
+                        populateStarshipData(gmNotes, c);
                     });
                 });
                 return;
             }
             //</editor-fold>
 
-            // TODO add help text to clarify how to use this.
             //<editor-fold desc="Add Special Ability to Character sheet">
             if (chatMessage.content.startsWith("!sf_ability")) {
                 let cleanNotes = chatMessage.content.replace("!sf_ability ", "");
@@ -1253,7 +1242,6 @@ var Guidance = Guidance || (function () {
             textToParse = textToParse.replace(/\./, ".\n");
             setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.trim());
         }
-
     };
 
     let populateSkills = function (characterId, textToParse) {
@@ -1302,25 +1290,6 @@ var Guidance = Guidance || (function () {
         let section = getStringValue("XP", textToParse, "DEFENSE").trim();
         // let subsections = section.split(" ");
 
-        if (section.includes("LG")) {
-            setAttribute(characterId, "npc-alignment", "LG");
-        } else if (section.includes("NG")) {
-            setAttribute(characterId, "npc-alignment", "NG");
-        } else if (section.includes("CG")) {
-            setAttribute(characterId, "npc-alignment", "CG");
-        } else if (section.includes("LN")) {
-            setAttribute(characterId, "npc-alignment", "LN");
-        } else if (section.includes("CN")) {
-            setAttribute(characterId, "npc-alignment", "CN");
-        } else if (section.includes("LE")) {
-            setAttribute(characterId, "npc-alignment", "LE");
-        } else if (section.includes("NE")) {
-            setAttribute(characterId, "npc-alignment", "NE");
-        } else if (section.includes("CE")) {
-            setAttribute(characterId, "npc-alignment", "CE");
-        } else {
-            setAttribute(characterId, "npc-alignment", "N");
-        }
 
         let subtypeStart = 0;
         let dropdown = 0;
