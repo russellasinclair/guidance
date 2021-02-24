@@ -1012,22 +1012,30 @@ var Guidance = Guidance || (function () {
         }
 
         if (textToParse.includes("Spell-Like Abilities")) {
-            textToParse = textToParse.substring(textToParse.indexOf("Spell-Like Abilities")).trim();
-            setAttribute(characterId, "spellclass-0-level", getValue("CL", textToParse, ";").replace(/\D/g, ""));
+            textToParse = textToParse.substring(textToParse.indexOf("Spell-Like Abilities")).trim()
+            setAttribute(characterId, "spellclass-0-level", parseFloat(getValue("CL", textToParse, ";")));
             textToParse = textToParse.replace(/Spell-Like Abilities/, "").trim();
 
-            attackBonus = textToParse.replace(/\(.*;/, "");
-            attackBonus = attackBonus.substring(0, attackBonus.indexOf(")") + 1);
+            attackBonus = textToParse.substring(textToParse.indexOf("CL"));
+            attackBonus = attackBonus.substring(attackBonus.indexOf(")") + 1);
 
-            let lines = textToParse.match(/\d\/\w+|At will|Constant/);
+            debugLog("Spell like ability = " + textToParse);
+            let lines = textToParse.match(/\d\/\w+|At will|Constant/g);
+
             for (let i = 0; i < lines.length; i++) {
                 let ability = "";
                 if (isNullOrUndefined(lines[i + 1])) {
+
                     ability = textToParse.substring(textToParse.indexOf(lines[i]));
+                    debugLog("ability match a")
                 } else {
                     ability = textToParse.substring(textToParse.indexOf(lines[i]), textToParse.indexOf(lines[i + 1]));
+                    debugLog("ability match b")
+                    debugLog("Text to parse 1 " + lines[i] + " " + textToParse.indexOf(lines[i]))
+                    debugLog("Text to parse 2 " + lines[i + 1] + " " + textToParse.indexOf(lines[i + 1]))
+
                 }
-                addSpellLikeAbility(characterId, ability, attackBonus);
+                addSpellLikeAbility(characterId, ability);
             }
         } else {
             setAttribute(characterId, "npc-spell-like-abilities-show", 0);
@@ -1045,10 +1053,10 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-list", value);
     };
 
-    let addSpellLikeAbility = function (characterId, textToParse, attackBonus) {
+    let addSpellLikeAbility = function (characterId, textToParse) {
         let uuid = generateRowID();
         setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-usage", textToParse.substring(0, textToParse.indexOf("—")).trim());
-        setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-name", attackBonus + " " + textToParse.substring(textToParse.indexOf("—") + 2).trim());
+        setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-name", textToParse.substring(textToParse.indexOf("—") + 2).trim());
     };
 
     let populateHeader = function (characterId, textToParse) {
@@ -1164,7 +1172,11 @@ var Guidance = Guidance || (function () {
             setAttribute(characterId, attUpper + "-temp", String(stat * 2));
         }
 
-        setAttribute(characterId, "languages-npc", getCleanSheetValue(getNPCStatBlocks(), "Language", textToParse, "ECOLOGY"));
+        let langs = getCleanSheetValue(getNPCStatBlocks(), "Language", textToParse, "ECOLOGY");
+        if (langs.startsWith("s ")) {
+            langs = langs.substring(2);
+        }
+        setAttribute(characterId, "languages-npc", langs);
 
         let gear = "";
         if (textToParse.includes("Gear")) {
@@ -1174,7 +1186,7 @@ var Guidance = Guidance || (function () {
             setAttribute(characterId, "npc-gear-show", 0);
         }
 
-        let sq = getValue("Other Abilities", textToParse, "Gear");
+        let sq = getCleanSheetValue(getNPCStatBlocks(), "Other Abilities", textToParse, "Gear");
         if (sq.includes("ECOLOGY")) {
             sq = sq.substring(0, sq.indexOf("ECOLOGY"));
         }
