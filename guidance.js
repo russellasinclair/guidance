@@ -1024,41 +1024,68 @@ var Guidance = Guidance || (function () {
             textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
 
             let level = "";
-            if (textToParse.includes("6th")) {
-                level = textToParse.substring(textToParse.indexOf("6th"), textToParse.indexOf("5th")).trim();
-                addSpell(characterId, level, attackBonus);
+            if (hasLevels(textToParse)) {
+                if (textToParse.includes("6th")) {
+                    level = textToParse.substring(textToParse.indexOf("6th"), textToParse.indexOf("5th")).trim();
+                    addSpellWithLevel(characterId, level, attackBonus);
+                }
+                if (textToParse.includes("5th")) {
+                    level = textToParse.substring(textToParse.indexOf("5th"), textToParse.indexOf("4th")).trim();
+                    addSpellWithLevel(characterId, level, attackBonus);
+                }
+                if (textToParse.includes("4th")) {
+                    level = textToParse.substring(textToParse.indexOf("4th"), textToParse.indexOf("3rd")).trim();
+                    addSpellWithLevel(characterId, level, attackBonus);
+                }
+                if (textToParse.includes("3rd")) {
+                    level = textToParse.substring(textToParse.indexOf("3rd"), textToParse.indexOf("2nd")).trim();
+                    addSpellWithLevel(characterId, level, attackBonus);
+                }
+                if (textToParse.includes("2nd")) {
+                    level = textToParse.substring(textToParse.indexOf("2nd"), textToParse.indexOf("1st")).trim();
+                    addSpellWithLevel(characterId, level, attackBonus);
+                }
+                if (textToParse.includes("1st")) {
+                    level = textToParse.substring(textToParse.indexOf("1st"), textToParse.indexOf("0 (at will)")).trim();
+                    addSpellWithLevel(characterId, level, attackBonus);
+                }
+                if (textToParse.includes("Constant")) {
+                    level = textToParse.substring(textToParse.indexOf("0 (at"), textToParse.indexOf("Constant")).trim();
+                } else {
+                    level = textToParse.substring(textToParse.indexOf("0 (at"));
+                }
+                addSpellWithLevel(characterId, level, attackBonus);
+            } else {
+                let lines = textToParse.match(/\d\/\w+|At will|Constant/g);
+
+                for (let i = 0; i < lines.length; i++) {
+                    let spell = "";
+                    if (isNullOrUndefined(lines[i + 1])) {
+                        spell = textToParse.substring(textToParse.indexOf(lines[i]));
+                        debugLog("spell match a");
+                    } else {
+                        spell = textToParse.substring(textToParse.indexOf(lines[i]), textToParse.indexOf(lines[i + 1]));
+                        debugLog("spell match b");
+                        debugLog("Text to parse 1 " + lines[i] + " " + textToParse.indexOf(lines[i]));
+                        debugLog("Text to parse 2 " + lines[i + 1] + " " + textToParse.indexOf(lines[i + 1]));
+
+                    }
+                    addSpellWithoutLevel(characterId, spell);
+                }
             }
-            if (textToParse.includes("5th")) {
-                level = textToParse.substring(textToParse.indexOf("5th"), textToParse.indexOf("4th")).trim();
-                addSpell(characterId, level, attackBonus);
-            }
-            if (textToParse.includes("4th")) {
-                level = textToParse.substring(textToParse.indexOf("4th"), textToParse.indexOf("3rd")).trim();
-                addSpell(characterId, level, attackBonus);
-            }
-            if (textToParse.includes("3rd")) {
-                level = textToParse.substring(textToParse.indexOf("3rd"), textToParse.indexOf("2nd")).trim();
-                addSpell(characterId, level, attackBonus);
-            }
-            if (textToParse.includes("2nd")) {
-                level = textToParse.substring(textToParse.indexOf("2nd"), textToParse.indexOf("1st")).trim();
-                addSpell(characterId, level, attackBonus);
-            }
-            if (textToParse.includes("1st")) {
-                level = textToParse.substring(textToParse.indexOf("1st"), textToParse.indexOf("0 (at will)")).trim();
-                addSpell(characterId, level, attackBonus);
-            }
-            level = textToParse.substring(textToParse.indexOf("0 (at")).trim();
-            if (textToParse.includes("Spell-Like Abilities")) {
-                level = level.substring(0, level.indexOf("Spell-Like Abilities"));
-            }
-            addSpell(characterId, level, attackBonus);
         } else {
             setAttribute(characterId, "npc-spells-show", 0);
         }
     };
 
-    let addSpell = function (characterId, textToParse, additional) {
+    let hasLevels = function (textToParse) {
+        if (textToParse.includes("1st") || textToParse.includes("0 (at")) {
+            return true;
+        }
+        return false;
+    }
+
+    let addSpellWithLevel = function (characterId, textToParse, additional) {
         textToParse = textToParse.replace(/—/g, "");
         let uuid = generateRowID();
         let value = textToParse.substring(0, textToParse.indexOf("(")).replace(/\D/g, "").trim();
@@ -1068,6 +1095,13 @@ var Guidance = Guidance || (function () {
         value = "(" + additional.trim() + ") " + textToParse.substring(textToParse.indexOf(")") + 1).trim();
         setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-list", value);
     };
+
+    let addSpellWithoutLevel = function (characterId, textToParse) {
+        let uuid = generateRowID();
+        setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-usage", textToParse.substring(0, textToParse.indexOf("—")).trim());
+        setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-list", textToParse.substring(textToParse.indexOf("—") + 2).trim());
+    };
+
 
     let addSpellLikeAbility = function (characterId, textToParse) {
         let uuid = generateRowID();
