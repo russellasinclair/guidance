@@ -978,6 +978,7 @@ var Guidance = Guidance || (function () {
     };
 
     let doMagic = function (characterId, textToParse) {
+        let guidanceMsg = "";
         textToParse = textToParse.substring(textToParse.indexOf("Spell"));
         textToParse = textToParse.replace(/\s+/, " ");
         let attackBonus = "";
@@ -1015,7 +1016,12 @@ var Guidance = Guidance || (function () {
 
         if (textToParse.includes("Spells Known")) {
             textToParse = textToParse.substring(textToParse.indexOf("Spells Known")).trim();
-            speakAsGuidanceToGM("This character has spells. Check Out the command sf_addspell to assist in adding Spell Macros");
+            if (textToParse.includes("Spell-Like Abilities")) {
+                guidanceMsg += "Warning! Spell-like Abilities appears twice! I can't handle a 2nd entry of Spell like abilities! What the heck Paizo???<br>";
+                guidanceMsg += "*grumble* I bet this is an Emotivore Mastermind *grumble*<br><br>Anyway, ";
+                textToParse = textToParse.substring(0, textToParse.indexOf("Spell-Like Abilities"));
+            }
+            guidanceMsg += "This character has spells. Check Out the command sf_addspell to assist in adding Spell Macros <br>";
             setAttribute(characterId, "spellclass-1-level", getValue("CL", textToParse, ";").replace(/\D/g, ""));
 
             attackBonus = textToParse.replace(/\(.*;/, "");
@@ -1025,36 +1031,34 @@ var Guidance = Guidance || (function () {
 
             let level = "";
             if (hasLevels(textToParse)) {
-                if (textToParse.includes("6th")) {
-                    level = textToParse.substring(textToParse.indexOf("6th"), textToParse.indexOf("5th")).trim();
+                level = spellSubString(textToParse, "6th", "5th");
+                if (level !== undefined) {
                     addSpellWithLevel(characterId, level, attackBonus);
                 }
-                if (textToParse.includes("5th")) {
-                    level = textToParse.substring(textToParse.indexOf("5th"), textToParse.indexOf("4th")).trim();
+                level = spellSubString(textToParse, "5th", "4th");
+                if (level !== undefined) {
                     addSpellWithLevel(characterId, level, attackBonus);
                 }
-                if (textToParse.includes("4th")) {
-                    level = textToParse.substring(textToParse.indexOf("4th"), textToParse.indexOf("3rd")).trim();
+                level = spellSubString(textToParse, "4th", "3rd");
+                if (level !== undefined) {
                     addSpellWithLevel(characterId, level, attackBonus);
                 }
-                if (textToParse.includes("3rd")) {
-                    level = textToParse.substring(textToParse.indexOf("3rd"), textToParse.indexOf("2nd")).trim();
+                level = spellSubString(textToParse, "3rd", "2nd");
+                if (level !== undefined) {
                     addSpellWithLevel(characterId, level, attackBonus);
                 }
-                if (textToParse.includes("2nd")) {
-                    level = textToParse.substring(textToParse.indexOf("2nd"), textToParse.indexOf("1st")).trim();
+                level = spellSubString(textToParse, "2nd", "1st");
+                if (level !== undefined) {
                     addSpellWithLevel(characterId, level, attackBonus);
                 }
-                if (textToParse.includes("1st")) {
-                    level = textToParse.substring(textToParse.indexOf("1st"), textToParse.indexOf("0 (at will)")).trim();
+                level = spellSubString(textToParse, "1st", "0 (at will)");
+                if (level !== undefined) {
                     addSpellWithLevel(characterId, level, attackBonus);
                 }
-                if (textToParse.includes("Constant")) {
-                    level = textToParse.substring(textToParse.indexOf("0 (at"), textToParse.indexOf("Constant")).trim();
-                } else {
-                    level = textToParse.substring(textToParse.indexOf("0 (at"));
+                level = spellSubString(textToParse, "0 (at will)", "Constant");
+                if (level !== undefined) {
+                    addSpellWithLevel(characterId, level, attackBonus);
                 }
-                addSpellWithLevel(characterId, level, attackBonus);
             } else {
                 let lines = textToParse.match(/\d\/\w+|At will|Constant/g);
 
@@ -1076,14 +1080,28 @@ var Guidance = Guidance || (function () {
         } else {
             setAttribute(characterId, "npc-spells-show", 0);
         }
+        speakAsGuidanceToGM(guidanceMsg);
     };
 
-    let hasLevels = function (textToParse) {
-        if (textToParse.includes("1st") || textToParse.includes("0 (at")) {
-            return true;
+    let spellSubString = function (text, start, end) {
+        if (text.includes(start)) {
+            if (text.includes(end)) {
+                return text.substring(text.indexOf(start), text.indexOf(end)).trim();
+            } else {
+                return text.substring(text.indexOf(start)).trim();
+            }
+        }
+        return undefined;
+    };
+
+    let hasLevels = function (t) {
+        if (t.includes("1st") || t.includes("0 (at") || t.includes("2nd") || t.includes("3rd") || t.includes("4th") || t.includes("5th") || t.includes("6th")) {
+            if (!t.includes("Level") && !t.includes("level")) {
+                return true;
+            }
         }
         return false;
-    }
+    };
 
     let addSpellWithLevel = function (characterId, textToParse, additional) {
         textToParse = textToParse.replace(/—/g, "");
@@ -1200,6 +1218,7 @@ var Guidance = Guidance || (function () {
                 setAttribute(characterId, "speed-fly-maneuverability-npc", 0);
             }
         }
+
 
         doWeapons(characterId, textToParse);
         doMagic(characterId, textToParse);
