@@ -425,9 +425,6 @@ var Guidance = Guidance || (function () {
 
     let setUpToken = function (characterId, npcToken) {
         try {
-            if (npcToken.represents === undefined) {
-                speakAsGuidanceToGM("Check to make sure the token is linked and the character sheet is populated");
-            }
             let hitPoints = getAttribute(characterId, "HP-npc");
             npcToken.set("bar1_link", hitPoints.id);
             let armorClass = getAttribute(characterId, "EAC-npc");
@@ -439,6 +436,8 @@ var Guidance = Guidance || (function () {
             npcToken.set("showname", true);
             speakAsGuidanceToGM("Token setup. For extra settings, check out the API TokenMod");
         } catch (e) {
+            debugLog("Token failure");
+            debugLog(e);
             speakAsGuidanceToGM("Check to make sure the token is linked and the character sheet is populated");
         }
     };
@@ -982,7 +981,40 @@ var Guidance = Guidance || (function () {
         textToParse = textToParse.substring(textToParse.indexOf("Spell"));
         textToParse = textToParse.replace(/\s+/, " ");
         let attackBonus = "";
+
+        if (textToParse.includes("Spell-Like Abilities")) {
+            let spellLikeAbilities = textToParse;
+            if (spellLikeAbilities.includes("Spells Known")) {
+                spellLikeAbilities = spellLikeAbilities.substring(0, spellLikeAbilities.indexOf("Spells Known"));
+            }
+
+            spellLikeAbilities = spellLikeAbilities.substring(spellLikeAbilities.indexOf("Spell-Like Abilities")).trim();
+            setAttribute(characterId, "spellclass-0-level", parseFloat(getValue("CL", spellLikeAbilities, ";")));
+            spellLikeAbilities = spellLikeAbilities.replace(/Spell-Like Abilities/, "").trim();
+
+            debugLog("Spell like ability = " + spellLikeAbilities);
+            let lines = spellLikeAbilities.match(/\d\/\w+|At will|Constant/g);
+
+            for (let i = 0; i < lines.length; i++) {
+                let ability = "";
+                if (isNullOrUndefined(lines[i + 1])) {
+                    ability = spellLikeAbilities.substring(spellLikeAbilities.indexOf(lines[i]));
+                    debugLog("ability match a");
+                } else {
+                    ability = spellLikeAbilities.substring(spellLikeAbilities.indexOf(lines[i]), spellLikeAbilities.indexOf(lines[i + 1]));
+                    debugLog("ability match b");
+                    debugLog("Text to parse 1 " + lines[i] + " " + spellLikeAbilities.indexOf(lines[i]));
+                    debugLog("Text to parse 2 " + lines[i + 1] + " " + spellLikeAbilities.indexOf(lines[i + 1]));
+
+                }
+                addSpellLikeAbility(characterId, ability);
+            }
+        } else {
+            setAttribute(characterId, "npc-spell-like-abilities-show", 0);
+        }
+
         if (textToParse.includes("Spells Known")) {
+            textToParse = textToParse.substring(textToParse.indexOf("Spells Known")).trim();
             speakAsGuidanceToGM("This character has spells. Check Out the command sf_addspell to assist in adding Spell Macros");
             setAttribute(characterId, "spellclass-1-level", getValue("CL", textToParse, ";").replace(/\D/g, ""));
 
@@ -1023,33 +1055,6 @@ var Guidance = Guidance || (function () {
             addSpell(characterId, level, attackBonus);
         } else {
             setAttribute(characterId, "npc-spells-show", 0);
-        }
-
-        if (textToParse.includes("Spell-Like Abilities")) {
-            textToParse = textToParse.substring(textToParse.indexOf("Spell-Like Abilities")).trim();
-            setAttribute(characterId, "spellclass-0-level", parseFloat(getValue("CL", textToParse, ";")));
-            textToParse = textToParse.replace(/Spell-Like Abilities/, "").trim();
-
-            debugLog("Spell like ability = " + textToParse);
-            let lines = textToParse.match(/\d\/\w+|At will|Constant/g);
-
-            for (let i = 0; i < lines.length; i++) {
-                let ability = "";
-                if (isNullOrUndefined(lines[i + 1])) {
-
-                    ability = textToParse.substring(textToParse.indexOf(lines[i]));
-                    debugLog("ability match a");
-                } else {
-                    ability = textToParse.substring(textToParse.indexOf(lines[i]), textToParse.indexOf(lines[i + 1]));
-                    debugLog("ability match b");
-                    debugLog("Text to parse 1 " + lines[i] + " " + textToParse.indexOf(lines[i]));
-                    debugLog("Text to parse 2 " + lines[i + 1] + " " + textToParse.indexOf(lines[i + 1]));
-
-                }
-                addSpellLikeAbility(characterId, ability);
-            }
-        } else {
-            setAttribute(characterId, "npc-spell-like-abilities-show", 0);
         }
     };
 
