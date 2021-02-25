@@ -162,7 +162,9 @@ var Guidance = Guidance || (function () {
 
     let attributeToInteger = function (characterId, attrib) {
         let value = getAttribute(characterId, attrib);
-        if (isNaN(value)) {
+        let current = value.get("current");
+        debugLog(attrib + " value = " + current)
+        if (isNaN(current)) {
             return 0;
         } else {
             return parseFloat(value.get("current"));
@@ -737,16 +739,38 @@ var Guidance = Guidance || (function () {
                 let turnorder = JSON.parse(Campaign().get("turnorder"));
                 npcs.forEach(function (npc) {
                     npc.showContents();
-                    debugLog("npc id = " + npc.characterId);
-                    let init = attributeToInteger(npc.characterId, "npc-init-misc");
-                    debugLog("Init Bonus = " + init);
-                    let dex = attributeToInteger(npc.characterId, "DEX-bonus");
-                    debugLog("Dex bonus = " + dex);
-                    let roll = randomInteger(20) + dex + init;
-                    debugLog("Init Roll = " + roll);
+
+                    let init = "";
+                    init = getAttribute(npc.characterId, "npc-init-misc");
+                    if (init === undefined) {
+                        init = 0;
+                    } else {
+                        init = init.get("current");
+                    }
+                    if (isNullOrUndefined(init) || isNaN(init)) {
+                        init = 0;
+                    }
+                    debugLog("init " + init);
+
+                    let dex = "";
+                    dex = getAttribute(npc.characterId, "DEX-bonus");
+                    if (dex === undefined) {
+                        dex = 0;
+                    } else {
+                        dex = dex.get("current");
+                    }
+                    if (isNullOrUndefined(dex) || isNaN(dex)) {
+                        init = 0;
+                    }
+                    debugLog("dex " + dex);
+
+                    let roll = randomInteger(20);
+                    speakAsGuidanceToGM(npc.characterSheet.get("name") + " rolls initiative<br><br>d20=" + roll + " + Dex=" + dex + " + Init=" + init);
+                    roll = roll + parseFloat(dex) + parseFloat(init);
+
                     turnorder.push({
                         id: npc.npcToken.id,
-                        pr: String(roll) + String(".0" + dex),
+                        pr: String(roll) + String(".0" + init),
                         custom: getAttribute(npc.characterId, "name")
                     });
                 });
