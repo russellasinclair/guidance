@@ -1187,9 +1187,9 @@ var Guidance = Guidance || (function () {
         let defensiveAbilities = "";
         if (textToParse.includes("vs.")) {
             let extraSaveStart = textToParse.indexOf("Will") + 3;
-            defensiveAbilities = textToParse.substr(extraSaveStart);
+            defensiveAbilities = textToParse.substring(extraSaveStart);
             extraSaveStart = defensiveAbilities.indexOf(";");
-            defensiveAbilities = defensiveAbilities.substr(extraSaveStart + 1);
+            defensiveAbilities = defensiveAbilities.substring(extraSaveStart + 1);
             if (defensiveAbilities.includes("Defensive")) {
                 defensiveAbilities = defensiveAbilities.substring(0, defensiveAbilities.indexOf("Defensive"));
             }
@@ -1242,7 +1242,6 @@ var Guidance = Guidance || (function () {
                 setAttribute(characterId, "speed-fly-maneuverability-npc", 0);
             }
         }
-
 
         doWeapons(characterId, textToParse);
         doMagic(characterId, textToParse);
@@ -1370,8 +1369,6 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "npc-init-misc", getSkillValue("Init", "Dex", textToParse));
 
         let section = getStringValue("XP", textToParse, "DEFENSE").trim();
-        // let subsections = section.split(" ");
-
 
         let subtypeStart = 0;
         let dropdown = 0;
