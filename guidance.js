@@ -433,6 +433,15 @@ var Guidance = Guidance || (function () {
         }
     };
 
+    let populateFeats = function (characterId, text) {
+        let match = text.split(",");
+        for (const m of match) {
+            setAttribute(characterId, "npc-feats-show", 1);
+            let uuid = generateRowID();
+            setAttribute(characterId, "repeating_npc-feat_" + uuid + "_npc-feat-name", m.trim());
+        }
+    };
+
     let queryCharacterSheet = function (gmNotes, chatMessage, characterId) {
         let cleanNotes = cleanText(gmNotes);
         let lookup = chatMessage.content.replace("!sf_get ", "");
@@ -637,7 +646,6 @@ var Guidance = Guidance || (function () {
             });
         } else {
             populateHeader(c.characterId, section.get("header"));
-
             // Setup Character Sheet
             populateDefense(c.characterId, section.get("defense"));
             populateOffense(c.characterId, section.get("offense"));
@@ -646,6 +654,8 @@ var Guidance = Guidance || (function () {
             populateNPC(c.characterId, cleanNotes);
         }
 
+        let featText = getCleanSheetValue(getNPCStatBlocks(), "Feats", cleanNotes);
+        populateFeats(c.characterId, featText);
         populateSpecialAbilities(c.characterId, section.get("special"));
         setAlignment(c.characterId, cleanNotes);
 
@@ -1139,7 +1149,7 @@ var Guidance = Guidance || (function () {
     let populateHeader = function (characterId, textToParse) {
         setAttribute(characterId, "npc-cr", getValue("CR", textToParse));
         setAttribute(characterId, "npc-XP", getValue("XP", textToParse).replace(/\s/, "").replace(/,/, ""));
-        setAttribute(characterId, "npc-senses", getValue("Senses", textToParse, ";"));
+        setAttribute(characterId, "npc-senses", getCleanSheetValue(getNPCStatBlocks(), "Senses", textToParse));
         setAttribute(characterId, "npc-aura", getStringValue("Aura", textToParse, "DEFENSE"));
     };
 
@@ -1600,6 +1610,7 @@ var Guidance = Guidance || (function () {
         t.push(new TemplateRow(t.length, "INT-bonus", "Int"));
         t.push(new TemplateRow(t.length, "WIS-bonus", "Wis"));
         t.push(new TemplateRow(t.length, "CHA-bonus", "Cha"));
+        t.push(new TemplateRow(t.length, "", "Feats"));
         t.push(new TemplateRow(t.length, "", "Skills"));
         t.push(new TemplateRow(t.length, "Acrobatics-npc-misc", "Acrobatics"));
         t.push(new TemplateRow(t.length, "Athletics-npc-misc", "Athletics"));
