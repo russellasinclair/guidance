@@ -7,7 +7,7 @@ var Guidance = Guidance || (function () {
     "use strict";
 
     let version = "-=> Guidance is online. v2.0 Candidate <=-";
-    let debugMode = false;
+    let debugMode = true;
     let enableNewNPCParser = false;
 
     /// Class that represents a NPC/Starship that is being worked on.
@@ -158,17 +158,6 @@ var Guidance = Guidance || (function () {
         ).replace(/ Wis /i, " Wis "
         ).replace(/ Cha /i, " Cha "
         );
-    };
-
-    let attributeToInteger = function (characterId, attrib) {
-        let value = getAttribute(characterId, attrib);
-        let current = value.get("current");
-        debugLog(attrib + " value = " + current)
-        if (isNaN(current)) {
-            return 0;
-        } else {
-            return parseFloat(value.get("current"));
-        }
     };
 
     let getCleanSheetValue = function (statBlockTemplate, statToFind, statBlockText, delimiter) {
@@ -508,7 +497,7 @@ var Guidance = Guidance || (function () {
             debugLog("Piloting cleaned = " + pilotBonus);
             pilotingRanks = piloting.substring(piloting.indexOf("(") + 1, piloting.indexOf(")"));
         }
-        if (pilotBonus === undefined || pilotBonus.trim() === "" || isNaN(pilotBonus)) {
+        if (pilotBonus === undefined || String(pilotBonus).trim() === "" || isNaN(pilotBonus)) {
             pilotBonus = "?{Piloting Bonus?|0}";
             pilotingRanks = "Ranks Not Defined";
         }
@@ -561,7 +550,7 @@ var Guidance = Guidance || (function () {
                     return;
                 }
                 let bonus = gunnery.substring(gunnery.indexOf("+") + 1, gunnery.indexOf("(")).trim();
-                if (bonus === undefined || bonus.trim() === "" || isNaN(bonus)) {
+                if (bonus === undefined || String(bonus).trim() === "" || isNaN(bonus)) {
                     bonus = "?{Gunner's Attack Bonus|0}";
                 }
 
@@ -740,8 +729,7 @@ var Guidance = Guidance || (function () {
                 npcs.forEach(function (npc) {
                     npc.showContents();
 
-                    let init = "";
-                    init = getAttribute(npc.characterId, "npc-init-misc");
+                    let init = getAttribute(npc.characterId, "npc-init-misc");
                     if (init === undefined) {
                         init = 0;
                     } else {
@@ -752,8 +740,7 @@ var Guidance = Guidance || (function () {
                     }
                     debugLog("init " + init);
 
-                    let dex = "";
-                    dex = getAttribute(npc.characterId, "DEX-bonus");
+                    let dex = getAttribute(npc.characterId, "DEX-bonus");
                     if (dex === undefined) {
                         dex = 0;
                     } else {
@@ -883,12 +870,12 @@ var Guidance = Guidance || (function () {
             if (chatMessage.content.startsWith("!sf_ability")) {
                 let cleanNotes = chatMessage.content.replace("!sf_ability ", "");
                 npcs.forEach(character => addSpecialAbility(character.characterId, cleanNotes));
+                return;
             }
             //</editor-fold>
 
             //<editor-fold desc="Add a Spell to a character sheet as a macro">
             if (chatMessage.content.startsWith("!sf_addspell")) {
-                debugMode = true;
                 try {
                     let c = npcs[0];
                     let cleanNotes = chatMessage.content.replace("!sf_addspell ", "");
@@ -935,7 +922,6 @@ var Guidance = Guidance || (function () {
 
                 // Code for Testing and Debugging
                 if (chatMessage.content.startsWith("!sf_debug")) {
-                    debugLog("start");
                     let attribs = findObjs({
                         _characterid: character.characterId,
                         _type: "attribute",
@@ -959,17 +945,6 @@ var Guidance = Guidance || (function () {
                         debugLog(ab.get("name"));
                         debugLog(ab.get("action"));
                     }
-                    let handouts = findObjs({
-                        _type: "handout",
-                    });
-                    for (const ab of handouts) {
-                        ab.get("notes", function (notes) {
-                            debugLog(ab.get("name"));
-                            debugLog(notes);
-                        });
-
-                    }
-                    debugLog("Done");
                 }
             }
             //</editor-fold>
@@ -1333,6 +1308,7 @@ var Guidance = Guidance || (function () {
             textToParse = textToParse.replace(/\./, ".\n");
             setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.trim());
         }
+        speakAsGuidanceToGM("Added " + abilityName + " to Character");
     };
 
     let populateSkills = function (characterId, textToParse) {
