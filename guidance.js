@@ -7,7 +7,7 @@ var Guidance = Guidance || (function () {
     "use strict";
 
     let version = "-=> Guidance is online. v2.0 Candidate <=-";
-    let debugMode = true;
+    let debugMode = false;
     let enableNewNPCParser = false;
 
     /// Class that represents a NPC/Starship that is being worked on.
@@ -888,27 +888,37 @@ var Guidance = Guidance || (function () {
 
             //<editor-fold desc="Add a Spell to a character sheet as a macro">
             if (chatMessage.content.startsWith("!sf_addspell")) {
-                let c = npcs[0];
-                let cleanNotes = chatMessage.content.replace("!sf_addspell ", "");
-                if (!cleanNotes.toLowerCase().includes("classes")) {
-                    speakAsGuidanceToGM("usage:<br>!sf_addspell ?{text}<br>Type that exactly, and a dialog will appear where you can past the full text of the spell.");
-                    return;
-                }
-                cleanNotes = cleanNotes.replace("SFS Legal", "").trim();
-                let spell = parseStatBlock(getSpellStatBlocks(), cleanNotes);
-                let spellText = formatSpellAsMacro(spell);
-                debugLog(spellText);
-                let name = spellText.match(/(?<={{name=)(.*?)(?=}})/);
+                debugMode = true;
+                try {
+                    let c = npcs[0];
+                    let cleanNotes = chatMessage.content.replace("!sf_addspell ", "");
+                    if (!cleanNotes.toLowerCase().includes("classes")) {
+                        speakAsGuidanceToGM("usage:<br>!sf_addspell ?{text}<br>Type that exactly, and a dialog will appear where you can past the full text of the spell.");
+                        return;
+                    }
 
-                if (c.characterId !== undefined) {
-                    createObj("ability", {
-                        name: name[0] + " spell",
-                        description: "",
-                        action: spellText,
-                        _characterid: c.characterId,
-                    });
+                    cleanNotes = cleanNotes.replace("SFS Legal", "").trim();
+                    let spellName = cleanNotes.substring(0, cleanNotes.indexOf("Source"));
+                    let spell = parseStatBlock(getSpellStatBlocks(), cleanNotes);
+
+                    spell.push(new TemplateRow(0, "name", "name", spellName));
+
+                    let spellText = formatSpellAsMacro(spell);
+                    debugLog(spellText);
+                    let name = spellText.match(/(?<={{name=)(.*?)(?=}})/);
+
+                    if (c.characterId !== undefined) {
+                        createObj("ability", {
+                            name: name[0] + " spell",
+                            description: "",
+                            action: spellText,
+                            _characterid: c.characterId,
+                        });
+                    }
+                    speakAsGuidanceToGM("Spell has been added to " + c.characterSheet.get("name"));
+                } catch (e) {
+                    debugLog(e);
                 }
-                speakAsGuidanceToGM("Spell has been added to " + c.characterSheet.get("name"));
                 return;
             }
             //</editor-fold>
