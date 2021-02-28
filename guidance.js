@@ -6,7 +6,7 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 var Guidance = Guidance || (function () {
     "use strict";
 
-    let version = "-=> Guidance is online. v2.0 Candidate <=-";
+    let version = "-=> Guidance is online. v2.0 Dogfood <=-";
     let debugMode = true;
     let enableNewNPCParser = false;
 
@@ -25,11 +25,12 @@ var Guidance = Guidance || (function () {
     }
 
     class TemplateRow {
-        constructor(sortOrder, sheetAttrib, attribute, value) {
+        constructor(sortOrder, sheetAttrib, attribute, value, officialAttribute) {
             this.val = value;
             this.order = sortOrder;
             this.sheetAttribute = sheetAttrib;
             this.attribute = attribute;
+            this.official = officialAttribute;
         }
     }
 
