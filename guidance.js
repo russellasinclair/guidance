@@ -280,8 +280,6 @@ var Guidance = Guidance || (function () {
     };
 
     let npcTemplateRowConvert = function (templateRow) {
-
-
         return templateRow;
     };
 
@@ -937,7 +935,9 @@ var Guidance = Guidance || (function () {
                         _type: "attribute",
                     });
                     for (const att of attribs) {
-                        log(att.get("name"));
+                        log("{\"name\":" + att.get("name") + "\"," +
+                            "\"current\":\"" + att.get("current") + "\"," +
+                            "\"max\":\"" + att.get("max") + "\"}");
                     }
 
                     let ables = findObjs({
