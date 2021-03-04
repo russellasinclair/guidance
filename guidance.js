@@ -1,14 +1,14 @@
 /*
 Starfinder utilities for Roll20
 Requires API, Starfinder (Simple) character sheets - official sheets not supported at this time.
-
 */
+
 var Guidance = Guidance || (function () {
     "use strict";
 
-    let version = "-=> Guidance is online. v2.0 Dogfood <=-";
+    let version = "=> Guidance is online. v2.0 Dogfood <=";
     let debugMode = true;
-    let enableNewNPCParser = false;
+    let enableNewNPCParser = true;
 
     /// Class that represents a NPC/Starship that is being worked on.
     class NPC {
@@ -17,24 +17,32 @@ var Guidance = Guidance || (function () {
             this.npcToken = token;
             this.characterSheet = characterSheet;
         }
-
-        showContents() {
-            debugLog("Character ID = " + this.characterId);
-            debugLog("npcToken = " + this.npcToken);
-        }
     }
 
     class TemplateRow {
-        constructor(sortOrder, sheetAttrib, attribute, value, officialAttribute) {
+        constructor(sortOrder, sheetAttrib, attribute, value) {
+            debugLog(sheetAttrib);
             this.val = value;
             this.order = sortOrder;
             this.sheetAttribute = sheetAttrib;
             this.attribute = attribute;
-            this.official = officialAttribute;
         }
     }
 
     //<editor-fold desc="GENERIC HELPER ROUTINES">
+    let errorScope = (function (e) {
+        if (e instanceof TypeError) {
+            debugLog(e + " Type Error");
+        } else if (e instanceof RangeError) {
+            debugLog(e + "Range Error");
+        } else if (e instanceof EvalError) {
+            debugLog(e + " Eval Error");
+        } else {
+            debugLog(e + " Something else");
+        }
+    });
+
+
     // Borrowed from https://app.roll20.net/users/104025/the-aaron
     let generateUUID = (function () {
             let a = 0, b = [];
@@ -76,8 +84,8 @@ var Guidance = Guidance || (function () {
     };
 
     let speakAsGuidanceToGM = function (text) {
-        text = "/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description=" + text + "}}";
-        sendChat("Guidance", text);
+        text = "/w gm <br><div><table><tr style==\"width:100%\"><div style=\"background-color: rgba(0, 0, 150, 1);color: #ffffff;padding: 4px;border: 2px solid black;border-radius: 5px;line-height: 1.6em;font-size: 1.2em;\">Guidance</div></tr><tr><div style=\"background-color: rgba(225, 225, 225, 1);padding: 4px;border: 2px solid black;border-radius: 5px;line-height: 1.2em;font-size: 1.1em;\">" + text + "</div></tr></table></div>";
+        sendChat("", text);
     };
 
     // For Debugging purposes
@@ -98,18 +106,18 @@ var Guidance = Guidance || (function () {
     //</editor-fold>
 
     //<editor-fold desc="Generic Parsing Routines">
-    let getStringValue = function (textToFind, textToParse, delimiter) {
+    let getSubString = function (textToFind, textToParse, endString) {
         if (!textToParse.includes(textToFind)) {
             return "";
         }
         let start = textToParse.indexOf(textToFind) + textToFind.length;
 
-        if (delimiter === undefined) {
-            delimiter = " ";
+        if (endString === undefined) {
+            endString = " ";
         }
 
         let bucket = textToParse.substring(start);
-        if (delimiter !== ";") {
+        if (endString !== ";") {
             // It appears that ; ALWAYS means end of field. This is a good safety
             if (bucket.includes(";")) {
                 bucket = bucket.substring(0, bucket.indexOf(";"));
@@ -117,27 +125,37 @@ var Guidance = Guidance || (function () {
         }
 
         bucket = bucket.trim();
-        if (bucket.toLowerCase().includes(delimiter.toLowerCase())) {
-            let end = bucket.toLowerCase().indexOf(delimiter.toLowerCase());
+        if (bucket.toLowerCase().includes(endString.toLowerCase())) {
+            let end = bucket.toLowerCase().indexOf(endString.toLowerCase());
             bucket = bucket.substring(0, end).trim();
         }
         return bucket;
     };
 
-    let getValue = function (textToFind, textToParse, delimiter) {
-        let bucket = getStringValue(textToFind, textToParse, delimiter);
+    let getSubStringAsValue = function (textToFind, textToParse, endString) {
+        let bucket = getSubString(textToFind, textToParse, endString);
         let b2 = bucket.split(" ");
-        bucket = b2[0];
-        return bucket.replace(";", "").replace(",", " ").trim(); // replace("+", "")
+        bucket = b2[0].replace(";", "").replace(",", " ").trim();
+        return parseFloat(bucket);
     };
 
     let getSkillValue = function (skillName, attribute, textToParse) {
         if (!textToParse.includes(skillName)) {
             return 0;
         }
-        let skill = parseFloat(getValue(skillName, textToParse));
-        debugLog(skillName + " : " + skill + " - " + attribute + " : " + getValue(attribute, textToParse));
-        return skill - parseFloat(getValue(attribute, textToParse));
+        let skill = getSubStringAsValue(skillName, textToParse);
+        debugLog(skillName + " : " + skill + " - " + attribute + " : " + getSubStringAsValue(attribute, textToParse));
+        return skill - getSubStringAsValue(attribute, textToParse);
+    };
+
+    let newGetSkillValue = function (templateObj, skillName, textToParse) {
+        if (!textToParse.includes(skillName)) {
+            return 0;
+        }
+
+        let skill = getCleanSheetValue(templateObj, skillName, textToParse);
+        debugLog(skillName + " : " + skill + " - " + attribute + " : " + getSubStringAsValue(attribute, textToParse));
+        return skill - getSubStringAsValue(attribute, textToParse);
     };
 
     let cleanText = function (textToClean) {
@@ -188,6 +206,7 @@ var Guidance = Guidance || (function () {
                 nextToken++;
             } while (!statBlockText.includes(statBlockTemplate[nextToken].attribute));
         } catch (e) {
+            errorScope(e);
             // token wasn't found, exception was thrown.
             return statBlockText;
         }
@@ -216,8 +235,16 @@ var Guidance = Guidance || (function () {
                 if (i > 0 && statBlockTemplate[i - 1].attribute !== "") {
                     preParsedText = statBlockText.substring(statBlockText.indexOf(statBlockTemplate[i - 1].attribute));
                 }
-                let val = getSheetValue(statBlockTemplate, statBlockTemplate[i].attribute, preParsedText);
-                statBlockData.push(new TemplateRow(i, statBlockTemplate[i].sheetAttribute, statBlockTemplate[i].attribute, val));
+                let val = getCleanSheetValue(statBlockTemplate, statBlockTemplate[i].attribute, preParsedText);
+                val = val.trim();
+                if (val.startsWith("+")) {
+                    val = val.substring(1);
+                }
+                if (val.endsWith(",")) {
+                    val = val.substring(0, val.length - 1);
+                }
+                let t = new TemplateRow(i, statBlockTemplate[i].sheetAttribute, statBlockTemplate[i].attribute, val.trim());
+                statBlockData.push(t);
                 debugLog(statBlockTemplate[i].attribute + " = " + val);
             }
         }
@@ -409,6 +436,7 @@ var Guidance = Guidance || (function () {
                 foundAttribute.set("max", newValue);
             }
         } catch (err) {
+            errorScope(err);
             debugLog("Error parsing " + attributeName);
         }
     };
@@ -427,7 +455,7 @@ var Guidance = Guidance || (function () {
             speakAsGuidanceToGM("Token setup. For extra settings, check out the API TokenMod");
         } catch (e) {
             debugLog("Token failure");
-            debugLog(e);
+            errorScope(e);
             speakAsGuidanceToGM("Check to make sure the token is linked and the character sheet is populated");
         }
     };
@@ -458,7 +486,7 @@ var Guidance = Guidance || (function () {
     };
 
     let formatSpellAsMacro = function (template) {
-        let spellAsMacro = "?{Hide this roll?|No, |Yes,/w GM} &{template:pf_spell}";
+        let spellAsMacro = "?{Hide this roll?|No, |Yes,/w GM} &{template:default}";
         return formatTemplateAsMacro(spellAsMacro, template);
     };
     //</editor-fold>
@@ -510,7 +538,7 @@ var Guidance = Guidance || (function () {
             pilotingRanks = "Ranks Not Defined";
         }
 
-        let pilotingMacro = "&{template:pf_check} {{name=" + c.characterSheet.get("name") +
+        let pilotingMacro = "&{template:default} {{name=" + c.characterSheet.get("name") +
             "'s Piloting}} {{skill_chk=[[[[d20+" + pilotBonus + "]] + ?{Any other modifiers?|0}]]}}{{notes=" + pilotingRanks + "}}";
 
         createObj("ability", {
@@ -533,7 +561,11 @@ var Guidance = Guidance || (function () {
         filtered.forEach(function (i) {
             i.val = i.val.replace(i.attribute, "").trim();
             let attrib = shipTemplateRowConvert(i);
-            setAttribute(c.characterId, attrib.sheetAttribute, attrib.val);
+            if (Array.isArray(attrib.sheetAttribute)) {
+                attrib.sheetAttribute.forEach(at => setAttribute(c.characterId, at, attrib.val));
+            } else {
+                setAttribute(c.characterId, attrib.sheetAttribute, attrib.val);
+            }
         });
 
         setAttribute(c.characterId, "starship-frame", String(frame));
@@ -580,7 +612,7 @@ var Guidance = Guidance || (function () {
                 debugLog("Damage = " + damage);
                 debugLog("Range = " + range);
 
-                let weaponMacro = "&{template:pf_attack} {{name=" + c.characterSheet.get("name") +
+                let weaponMacro = "&{template:default} {{name=" + c.characterSheet.get("name") +
                     "'s " + weaponName + "}} {{attack=[[ [[d20+" + bonus + "]] + ?{Any other modifiers?|0}]] }}" +
                     " {{damage=[[" + damage + "]] }} {{notes=" + range + " }} }} ";
 
@@ -631,31 +663,28 @@ var Guidance = Guidance || (function () {
         setAttribute(c.characterId, "npc-feats-show", 0);
 
         // reduce chance of error
-        let section = parseBlockIntoSubSectionMap(cleanNotes);
 
-        if (enableNewNPCParser) {
-            let npc = parseStatBlock(getNPCStatBlocks(), cleanNotes);
+        let npc = parseStatBlock(getNPCStatBlocks(), cleanNotes);
 
-            let filtered = npc.filter(element => element.val !== undefined && element.sheetAttribute !== undefined && !element.sheetAttribute.includes("weapon"));
-            filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
-            filtered.forEach(function (i) {
-                i.val = i.val.replace(i.attribute, "").trim();
-                let attrib = npcTemplateRowConvert(i);
-                setAttribute(c.characterId, attrib.sheetAttribute, attrib.val);
-            });
-        } else {
-            populateHeader(c.characterId, section.get("header"));
-            // Setup Character Sheet
-            populateDefense(c.characterId, section.get("defense"));
-            populateOffense(c.characterId, section.get("offense"));
-            populateStatics(c.characterId, section.get("statistics"));
-            populateSkills(c.characterId, section.get("statistics"));
-            populateNPC(c.characterId, cleanNotes);
-        }
+        let filtered = npc.filter(element => element.val !== undefined && element.sheetAttribute !== undefined); // && !element.sheetAttribute.includes("weapon"));
+        //filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
+        filtered.forEach(function (i) {
+            i.val = i.val.replace(i.attribute, "").trim();
+            let attrib = npcTemplateRowConvert(i);
+            if (Array.isArray(i.sheetAttribute)) {
+                i.sheetAttribute.forEach(at => setAttribute(c.characterId, at, attrib.val));
+            } else {
+                debugLog("I didn't detect an array");
+                setAttribute(c.characterId, i.sheetAttribute, attrib.val);
+            }
+        });
+
 
         let featText = getCleanSheetValue(getNPCStatBlocks(), "Feats", cleanNotes);
         populateFeats(c.characterId, featText);
-        populateSpecialAbilities(c.characterId, section.get("special"));
+        if (cleanNotes.includes("SPECIAL ABILITIES")) {
+            populateSpecialAbilities(c.characterId, cleanNotes.substring(cleanNotes.indexOf("SPECIAL ABILITIES")));
+        }
         setAlignment(c.characterId, cleanNotes);
 
         // Set up Token
@@ -664,7 +693,7 @@ var Guidance = Guidance || (function () {
             createObj("ability", {
                 name: "Trick Attack (settings on main sheet)",
                 description: "",
-                action: "&{template:pf_check}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
+                action: "&{template:default}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
                 _characterid: c.characterId,
             });
             speakAsGuidanceToGM("Trick attack added to selected character");
@@ -679,7 +708,7 @@ var Guidance = Guidance || (function () {
     //<editor-fold desc="On-Ready event Code">
     on("ready", function () {
         if (debugMode) {
-            speakAsGuidanceToGM(version);
+            sendChat("", version);
         }
         speakAsGuidanceToGM("Greetings, I am Guidance. I am here to assist you working with your Starfinders to make " +
             "your time in the Pact Worlds more enjoyable. To learn more, I created a welcome guide in the journal section.");
@@ -850,7 +879,7 @@ var Guidance = Guidance || (function () {
                     createObj("ability", {
                         name: "Trick Attack (settings on main sheet)",
                         description: "",
-                        action: "&{template:pf_check}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
+                        action: "&{template:default}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
                         _characterid: character.characterId,
                     });
                     addSpecialAbility(character.characterId, "Trick Attack (Ex) You can trick or startle a foe and then attack when she drops her guard. As a full action, you can move up to your speed. Whether or not you moved, you can then make an attack with a melee weapon with the operative special property or with any small arm. Just before making your attack, attempt a Bluff, Intimidate, or Stealth check (or a check associated with your specialization; see page 94) with a DC equal to 20 + your target’s CR. If you succeed at the check, you deal 1d4 additional damage and the target is flat-footed. This damage increases to 1d8 at 3rd level, to 3d8 at 5th level, and by an additional 1d8 every 2 levels thereafter. You can’t use this ability with a weapon that has the unwieldy special property or that requires a full action to make a single attack.");
@@ -913,7 +942,7 @@ var Guidance = Guidance || (function () {
                     }
                     speakAsGuidanceToGM("Spell has been added to " + c.characterSheet.get("name"));
                 } catch (e) {
-                    debugLog(e);
+                    errorScope(e);
                 }
                 return;
             }
@@ -962,7 +991,7 @@ var Guidance = Guidance || (function () {
 
         } catch (ex) {
             speakAsGuidanceToGM("I have encountered an error. If you can, please report this to the Script Creator.");
-            log(ex);
+            errorScope(ex);
         }
     });
     //</editor-fold>
@@ -1010,7 +1039,7 @@ var Guidance = Guidance || (function () {
             }
 
             spellLikeAbilities = spellLikeAbilities.substring(spellLikeAbilities.indexOf("Spell-Like Abilities")).trim();
-            setAttribute(characterId, "spellclass-0-level", parseFloat(getValue("CL", spellLikeAbilities, ";")));
+            setAttribute(characterId, "spellclass-0-level", getSubStringAsValue("CL", spellLikeAbilities, ";"));
             spellLikeAbilities = spellLikeAbilities.replace(/Spell-Like Abilities/, "").trim();
 
             debugLog("Spell like ability = " + spellLikeAbilities);
@@ -1042,7 +1071,7 @@ var Guidance = Guidance || (function () {
                 textToParse = textToParse.substring(0, textToParse.indexOf("Spell-Like Abilities"));
             }
             guidanceMsg += "This character has spells. Check Out the command sf_addspell to assist in adding Spell Macros <br>";
-            setAttribute(characterId, "spellclass-1-level", getValue("CL", textToParse, ";").replace(/\D/g, ""));
+            setAttribute(characterId, "spellclass-1-level", getSubStringAsValue("CL", textToParse, ";").replace(/\D/g, ""));
 
             attackBonus = textToParse.replace(/\(.*;/, "");
             attackBonus = attackBonus.replace("Spells Known", "");
@@ -1147,140 +1176,6 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-name", textToParse.substring(textToParse.indexOf("—") + 2).trim());
     };
 
-    let populateHeader = function (characterId, textToParse) {
-        setAttribute(characterId, "npc-cr", getValue("CR", textToParse));
-        setAttribute(characterId, "npc-XP", getValue("XP", textToParse).replace(/\s/, "").replace(/,/, ""));
-        setAttribute(characterId, "npc-senses", getCleanSheetValue(getNPCStatBlocks(), "Senses", textToParse));
-        setAttribute(characterId, "npc-aura", getStringValue("Aura", textToParse, "DEFENSE"));
-    };
-
-    let populateDefense = function (characterId, textToParse) {
-        setAttribute(characterId, "EAC-npc", getValue("EAC ", textToParse));
-        setAttribute(characterId, "KAC-npc", getValue("KAC", textToParse));
-        setAttribute(characterId, "Fort-npc", getValue("Fort", textToParse).replace("+", ""));
-        setAttribute(characterId, "Ref-npc", getValue("Ref", textToParse).replace("+", ""));
-        setAttribute(characterId, "Will-npc", getValue("Will", textToParse).replace("+", ""));
-        setAttribute(characterId, "HP-npc", getValue("HP", textToParse));
-        let rp = getValue("RP", textToParse);
-        if (rp !== undefined) {
-            setAttribute(characterId, "RP-npc", rp);
-        }
-        setAttribute(characterId, "npc-SR", getValue("SR", textToParse));
-        if (textToParse.includes("Weaknesses")) {
-            setAttribute(characterId, "npc-resistances", getCleanSheetValue(getNPCStatBlocks(), "Resistances", textToParse, "Weaknesses"));
-            setAttribute(characterId, "npc-weaknesses", getCleanSheetValue(getNPCStatBlocks(), "Weaknesses", textToParse, ";"));
-        } else {
-            setAttribute(characterId, "npc-resistances", getCleanSheetValue(getNPCStatBlocks(), "Resistances", textToParse, ";"));
-        }
-        setAttribute(characterId, "npc-DR", getValue("DR", textToParse, ";"));
-
-        if (textToParse.includes("SR")) {
-            setAttribute(characterId, "npc-immunities", getValue("Immunities", textToParse, "SR"));
-        } else {
-            setAttribute(characterId, "npc-immunities", getValue("Immunities", textToParse, "OFFENSE"));
-        }
-
-        let defensiveAbilities = "";
-        if (textToParse.includes("vs.")) {
-            let extraSaveStart = textToParse.indexOf("Will") + 3;
-            defensiveAbilities = textToParse.substring(extraSaveStart);
-            extraSaveStart = defensiveAbilities.indexOf(";");
-            defensiveAbilities = defensiveAbilities.substring(extraSaveStart + 1);
-            if (defensiveAbilities.includes("Defensive")) {
-                defensiveAbilities = defensiveAbilities.substring(0, defensiveAbilities.indexOf("Defensive"));
-            }
-        }
-        if (textToParse.includes("Defensive")) {
-            let start = textToParse.indexOf("Defensive Abilities") + "Defensive Abilities".length;
-            if (textToParse.includes("Immunities")) {
-                textToParse = textToParse.substring(0, textToParse.indexOf("Immunities"));
-            }
-            defensiveAbilities = textToParse.substring(start) + " " + defensiveAbilities;
-        }
-        setAttribute(characterId, "npc-defensive-abilities", defensiveAbilities);
-    };
-
-    let populateOffense = function (characterId, textToParse) {
-        let specialAbilities = getValue("Offensive Abilities", textToParse, "STATISTICS");
-
-        if (specialAbilities.includes("Spell")) {
-            specialAbilities = specialAbilities.substring(0, specialAbilities.indexOf("Spell"));
-        }
-        if (isNullOrUndefined(specialAbilities)) {
-            setAttribute(characterId, "npc-special-attacks-show", 0);
-        } else {
-            let offensiveAbilities = getCleanSheetValue(getNPCStatBlocks(), "Offensive Abilities", textToParse, "STATISTICS");
-            setAttribute(characterId, "npc-special-attacks", offensiveAbilities);
-        }
-
-        setAttribute(characterId, "speed-base-npc", getMovement("Speed", textToParse));
-        setAttribute(characterId, "speed-fly-npc", getMovement("fly", textToParse));
-        setAttribute(characterId, "speed-burrow-npc", getMovement("burrow", textToParse));
-        setAttribute(characterId, "speed-climb-npc", getMovement("climb", textToParse));
-        setAttribute(characterId, "speed-swim-npc", getMovement("swim", textToParse));
-        setAttribute(characterId, "space", getMovement("Space", textToParse));
-        setAttribute(characterId, "reach", getMovement("Reach", textToParse));
-
-        if (textToParse.toLowerCase().includes("fly")) {
-            if (textToParse.includes("(Ex")) {
-                setAttribute(characterId, "speed-fly-source-npc", 1);
-            } else if (textToParse.includes("(Su")) {
-                setAttribute(characterId, "speed-fly-source-npc", 2);
-            } else {
-                setAttribute(characterId, "speed-fly-source-npc", 3);
-            }
-
-            if (textToParse.includes("lumsy)")) {
-                setAttribute(characterId, "speed-fly-maneuverability-npc", -8);
-            } else if (textToParse.includes("erfect)")) {
-                setAttribute(characterId, "speed-fly-maneuverability-npc", 8);
-            } else {
-                setAttribute(characterId, "speed-fly-maneuverability-npc", 0);
-            }
-        }
-
-        doWeapons(characterId, textToParse);
-        doMagic(characterId, textToParse);
-    };
-
-    let getMovement = function (textToFind, textToParse) {
-        if (textToParse.includes(textToFind)) {
-            return getStringValue(textToFind, textToParse, "ft.").trim();
-        }
-        return "";
-    };
-
-    let populateStatics = function (characterId, textToParse) {
-        let stats = ["Str", "Dex", "Con", "Int", "Wis", "Cha"];
-
-        for (const att of stats) {
-            let stat = parseFloat(getValue(att, textToParse).replace("+", ""));
-            let attUpper = att.toUpperCase();
-            setAttribute(characterId, attUpper + "-bonus", String(stat));
-            setAttribute(characterId, attUpper + "-temp", String(stat * 2));
-        }
-
-        let langs = getCleanSheetValue(getNPCStatBlocks(), "Language", textToParse, "ECOLOGY");
-        if (langs.startsWith("s ")) {
-            langs = langs.substring(2);
-        }
-        setAttribute(characterId, "languages-npc", langs);
-
-        let gear = "";
-        if (textToParse.includes("Gear")) {
-            gear = getCleanSheetValue(getNPCStatBlocks(), "Gear", textToParse, "ECOLOGY");
-            setAttribute(characterId, "npc-gear", gear);
-        } else {
-            setAttribute(characterId, "npc-gear-show", 0);
-        }
-
-        let sq = getCleanSheetValue(getNPCStatBlocks(), "Other Abilities", textToParse, "Gear");
-        if (sq.includes("ECOLOGY")) {
-            sq = sq.substring(0, sq.indexOf("ECOLOGY"));
-        }
-        setAttribute(characterId, "SQ", sq);
-    };
-
     let populateSpecialAbilities = function (characterId, textToParse) {
         debugLog("Parsing Special Abilities");
         if (textToParse !== undefined) {
@@ -1296,12 +1191,12 @@ var Guidance = Guidance || (function () {
     let addSpecialAbility = function (characterId, textToParse) {
         debugLog("Parsing Special Abilities");
         let uuid;
-
+        let abilityName = "";
         setAttribute(characterId, "npc-special-abilities-show", 1);
         if (textToParse.includes("(")) {
             do {
                 uuid = generateRowID();
-                let abilityName = textToParse.substring(0, textToParse.indexOf(")") + 1);
+                abilityName = textToParse.substring(0, textToParse.indexOf(")") + 1);
                 setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", abilityName.trim());
                 textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
                 let nextAbility = textToParse.match(/\.([^\.]*?)\(..\)/);
@@ -1322,50 +1217,11 @@ var Guidance = Guidance || (function () {
         speakAsGuidanceToGM("Added " + abilityName + " to Character");
     };
 
-    let populateSkills = function (characterId, textToParse) {
-        setAttribute(characterId, "Acrobatics-npc-misc", getSkillValue("Acrobatics", "Dex", textToParse));
-        setAttribute(characterId, "Athletics-npc-misc", getSkillValue("Athletics", "Str", textToParse));
-        setAttribute(characterId, "Bluff-npc-misc", getSkillValue("Bluff", "Cha", textToParse));
-        setAttribute(characterId, "Computers-npc-misc", getSkillValue("Computers", "Int", textToParse));
-        setAttribute(characterId, "Culture-npc-misc", getSkillValue("Culture", "Int", textToParse));
-        setAttribute(characterId, "Diplomacy-npc-misc", getSkillValue("Diplomacy", "Cha", textToParse));
-        setAttribute(characterId, "Disguise-npc-misc", getSkillValue("Disguise", "Cha", textToParse));
-        setAttribute(characterId, "Engineering-npc-misc", getSkillValue("Engineering", "Int", textToParse));
-        setAttribute(characterId, "Intimidate-npc-misc", getSkillValue("Intimidate", "Cha", textToParse));
-        setAttribute(characterId, "Life-Science-npc-misc", getSkillValue("Life-Science", "Int", textToParse));
-        setAttribute(characterId, "Medicine-npc-misc", getSkillValue("Medicine", "Int", textToParse));
-        setAttribute(characterId, "Mysticism-npc-misc", getSkillValue("Mysticism", "Wis", textToParse));
-        setAttribute(characterId, "Physical-Science-npc-misc", getSkillValue("Physical-Science", "Int", textToParse));
-        setAttribute(characterId, "Piloting-npc-misc", getSkillValue("Piloting", "Dex", textToParse));
-        setAttribute(characterId, "Sense-Motive-npc-misc", getSkillValue("Sense-Motive", "Wis", textToParse));
-        setAttribute(characterId, "Sleight-of-Hand-npc-misc", getSkillValue("Sleight-of-Hand", "Dex", textToParse));
-        setAttribute(characterId, "Stealth-npc-misc", getSkillValue("Stealth", "Dex", textToParse));
-        setAttribute(characterId, "Survival-npc-misc", getSkillValue("Survival", "Wis", textToParse));
-        setAttribute(characterId, "Acrobatics-ranks", getSkillValue("Acrobatics", "Dex", textToParse));
-        setAttribute(characterId, "Athletics-ranks", getSkillValue("Athletics", "Str", textToParse));
-        setAttribute(characterId, "Bluff-ranks", getSkillValue("Bluff", "Cha", textToParse));
-        setAttribute(characterId, "Computers-ranks", getSkillValue("Computers", "Int", textToParse));
-        setAttribute(characterId, "Culture-ranks", getSkillValue("Culture", "Int", textToParse));
-        setAttribute(characterId, "Diplomacy-ranks", getSkillValue("Diplomacy", "Cha", textToParse));
-        setAttribute(characterId, "Disguise-ranks", getSkillValue("Disguise", "Cha", textToParse));
-        setAttribute(characterId, "Engineering-ranks", getSkillValue("Engineering", "Int", textToParse));
-        setAttribute(characterId, "Intimidate-ranks", getSkillValue("Intimidate", "Cha", textToParse));
-        setAttribute(characterId, "Life-Science-ranks", getSkillValue("Life-Science", "Int", textToParse));
-        setAttribute(characterId, "Medicine-ranks", getSkillValue("Medicine", "Int", textToParse));
-        setAttribute(characterId, "Mysticism-ranks", getSkillValue("Mysticism", "Wis", textToParse));
-        setAttribute(characterId, "Physical-Science-ranks", getSkillValue("Physical-Science", "Int", textToParse));
-        setAttribute(characterId, "Piloting-ranks", getSkillValue("Piloting", "Dex", textToParse));
-        setAttribute(characterId, "Sense-Motive-ranks", getSkillValue("Sense-Motive", "Wis", textToParse));
-        setAttribute(characterId, "Sleight-of-Hand-ranks", getSkillValue("Sleight-of-Hand", "Dex", textToParse));
-        setAttribute(characterId, "Stealth-ranks", getSkillValue("Stealth", "Dex", textToParse));
-        setAttribute(characterId, "Survival-ranks", getSkillValue("Survival", "Wis", textToParse));
-    };
-
     let populateNPC = function (characterId, textToParse) {
         setAttribute(characterId, "Perception-npc-misc", getSkillValue("Perception", "Wis", textToParse));
         setAttribute(characterId, "npc-init-misc", getSkillValue("Init", "Dex", textToParse));
 
-        let section = getStringValue("XP", textToParse, "DEFENSE").trim();
+        let section = getSubString("XP", textToParse, "DEFENSE").trim();
 
         let subtypeStart = 0;
         let dropdown = 0;
@@ -1447,6 +1303,7 @@ var Guidance = Guidance || (function () {
                         armNPC(characterId, attack);
                     } catch (err) {
                         speakAsGuidanceToGM("Could not populate data for weapon " + attack);
+                        errorScope(err);
                     }
                 }
             }
@@ -1613,7 +1470,7 @@ var Guidance = Guidance || (function () {
         t.push(new TemplateRow(t.length, "CHA-bonus", "Cha"));
         t.push(new TemplateRow(t.length, "", "Feats"));
         t.push(new TemplateRow(t.length, "", "Skills"));
-        t.push(new TemplateRow(t.length, "Acrobatics-npc-misc", "Acrobatics"));
+        t.push(new TemplateRow(t.length, ["Acrobatics-npc-misc", "Acrobatics-ranks", "acrobatics_ranks"], "Acrobatics"));
         t.push(new TemplateRow(t.length, "Athletics-npc-misc", "Athletics"));
         t.push(new TemplateRow(t.length, "Bluff-npc-misc", "Bluff"));
         t.push(new TemplateRow(t.length, "Computers-npc-misc", "Computers"));
@@ -1644,5 +1501,12 @@ var Guidance = Guidance || (function () {
         return t;
     };
     //</editor-fold>
+
+    var gmNotes = "Skittermander CR 2 XP 600 Skittermander envoy CN Small humanoid (skittermander) Init +2; Senses low-light vision; Perception +7 DEFENSE HP 23 EAC 14; KAC 15 Fort +1; Ref +3; Will +5 OFFENSE Speed 30 ft. Melee ember flame doshko +6 (1d8+3 F; critical wound) Ranged static arc pistol (1d6+2 E; critical arc 2) Offensive Abilities hyper STATISTICS Str +1; Dex +2; Con +0; Int +0; Wis +1; Cha +4 Skills Acrobatics +7, Bluff +12, Diplomacy +12, Sense Motive +12, Stealth +7 Languages Common, Vesk Other Abilities envoy improvisations (get ’em, inspiring boost [8 SP]) Gear freebooter armor I, ember flame doshko, static arc pistol with 3 batteries (20 charges each) ECOLOGY Environment any (Vesk-3) Organization solitary, pair, or mob (3-12) SPECIAL ABILITIES Hyper (Ex) Once per day, a skittermander can take an extra move action.";
+    var c = new NPC(new somethingWithGet(), new somethingWithGet(), new somethingWithGet());
+
+    populateNPCData(gmNotes, c);
+
+
 }
 ());
