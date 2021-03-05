@@ -1,3 +1,15 @@
+"use strict";
+
+class somethingWithGet {
+    get(var1) {
+        return var1;
+    }
+
+    set(var1) {
+        return var1;
+    }
+}
+
 var findObjs = findObjs || function (text, text2, text3, text4, text5) {
     return new somethingWithGet();
 };
@@ -9,7 +21,7 @@ var randomInteger = randomInteger || function (text, text2, text3, text4, text5)
 
 var createObj = createObj || function (text, text2, text3, text4, text5) {
     console.log(text);
-    return "";
+    return new somethingWithGet();
 };
 
 var log = log || function (text) {
@@ -25,23 +37,11 @@ var playerIsGM = playerIsGM || function (text) {
 };
 
 var Campaign = Campaign || (function () {
-    let get = function (text, text2, text3, text4, text5) {
+    function get(text, text2, text3, text4, text5) {
         return new Array();
     };
 });
 
-
 var sendChat = sendChat || function (text, text2, text3, text4, text5) {
     console.log(text);
 };
-
-class somethingWithGet {
-    get(var1, var2, var3) {
-        return "";
-    }
-
-    set(var1, var2, var3) {
-        return "";
-    }
-
-}

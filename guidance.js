@@ -8,105 +8,9 @@ var Guidance = Guidance || (function () {
 
     let version = "=> Guidance is online. v2.0 Dogfood <=";
     let debugMode = true;
-    let enableNewNPCParser = true;
-
-    /// Class that represents a NPC/Starship that is being worked on.
-    class NPC {
-        constructor(characterId, token, characterSheet) {
-            this.characterId = characterId;
-            this.npcToken = token;
-            this.characterSheet = characterSheet;
-        }
-    }
-
-    class TemplateRow {
-        constructor(sortOrder, sheetAttrib, attribute, value) {
-            debugLog(sheetAttrib);
-            this.val = value;
-            this.order = sortOrder;
-            this.sheetAttribute = sheetAttrib;
-            this.attribute = attribute;
-        }
-    }
-
-    //<editor-fold desc="GENERIC HELPER ROUTINES">
-    let errorScope = (function (e) {
-        if (e instanceof TypeError) {
-            debugLog(e + " Type Error");
-        } else if (e instanceof RangeError) {
-            debugLog(e + "Range Error");
-        } else if (e instanceof EvalError) {
-            debugLog(e + " Eval Error");
-        } else {
-            debugLog(e + " Something else");
-        }
-    });
-
-
-    // Borrowed from https://app.roll20.net/users/104025/the-aaron
-    let generateUUID = (function () {
-            let a = 0, b = [];
-            return function () {
-                let c = (new Date()).getTime(), d = c === a;
-                a = c;
-                for (var e = new Array(8), f = 7; 0 <= f; f--) {
-                    e[f] = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(c % 64);
-                    c = Math.floor(c / 64);
-                }
-                c = e.join("");
-                if (d) {
-                    for (var f = 11; 0 <= f && 63 === b[f]; f--) {
-                        b[f] = 0;
-                    }
-                    b[f]++;
-                } else {
-                    for (var f = 0; 12 > f; f++) {
-                        b[f] = Math.floor(64 * Math.random());
-                    }
-                }
-                for (var f = 0; 12 > f; f++) {
-                    c += "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(b[f]);
-                }
-
-                return c;
-            };
-        }()),
-        generateRowID = function () {
-            return generateUUID().replace(/_/g, "Z");
-        };
-
-    let debugLog = function (text) {
-        if (debugMode) {
-            let d = new Date();
-            let lines = new Error().stack.split("\n");
-            log(d.toUTCString() + " " + lines[2].trim() + " " + text);
-        }
-    };
-
-    let speakAsGuidanceToGM = function (text) {
-        text = "/w gm <br><div><table><tr style==\"width:100%\"><div style=\"background-color: rgba(0, 0, 150, 1);color: #ffffff;padding: 4px;border: 2px solid black;border-radius: 5px;line-height: 1.6em;font-size: 1.2em;\">Guidance</div></tr><tr><div style=\"background-color: rgba(225, 225, 225, 1);padding: 4px;border: 2px solid black;border-radius: 5px;line-height: 1.2em;font-size: 1.1em;\">" + text + "</div></tr></table></div>";
-        sendChat("", text);
-    };
-
-    // For Debugging purposes
-    let isNullOrUndefined = function (v) {
-        var err = new Error();
-        if (v === undefined) {
-            debugLog("undefined");
-            debugLog(err.stack);
-            return true;
-        }
-        if (v === null) {
-            debugLog("null");
-            debugLog(err.stack);
-            return true;
-        }
-        return false;
-    };
-    //</editor-fold>
 
     //<editor-fold desc="Generic Parsing Routines">
-    let getSubString = function (textToFind, textToParse, endString) {
+    let getSubStringAsValue = function (textToFind, textToParse, endString) {
         if (!textToParse.includes(textToFind)) {
             return "";
         }
@@ -129,11 +33,7 @@ var Guidance = Guidance || (function () {
             let end = bucket.toLowerCase().indexOf(endString.toLowerCase());
             bucket = bucket.substring(0, end).trim();
         }
-        return bucket;
-    };
 
-    let getSubStringAsValue = function (textToFind, textToParse, endString) {
-        let bucket = getSubString(textToFind, textToParse, endString);
         let b2 = bucket.split(" ");
         bucket = b2[0].replace(";", "").replace(",", " ").trim();
         return parseFloat(bucket);
@@ -148,15 +48,6 @@ var Guidance = Guidance || (function () {
         return skill - getSubStringAsValue(attribute, textToParse);
     };
 
-    let newGetSkillValue = function (templateObj, skillName, textToParse) {
-        if (!textToParse.includes(skillName)) {
-            return 0;
-        }
-
-        let skill = getCleanSheetValue(templateObj, skillName, textToParse);
-        debugLog(skillName + " : " + skill + " - " + attribute + " : " + getSubStringAsValue(attribute, textToParse));
-        return skill - getSubStringAsValue(attribute, textToParse);
-    };
 
     let cleanText = function (textToClean) {
         return textToClean.replace(/(<([^>]+)>)/gi, " "
@@ -243,6 +134,10 @@ var Guidance = Guidance || (function () {
                 if (val.endsWith(",")) {
                     val = val.substring(0, val.length - 1);
                 }
+                if (val.startsWith("s ")) {
+                    val = val.substring(1);
+                    val = val.trim();
+                }
                 let t = new TemplateRow(i, statBlockTemplate[i].sheetAttribute, statBlockTemplate[i].attribute, val.trim());
                 statBlockData.push(t);
                 debugLog(statBlockTemplate[i].attribute + " = " + val);
@@ -307,7 +202,19 @@ var Guidance = Guidance || (function () {
         return {name: text.substring(0, start), type: text.substring(start, text.indexOf("Speed"))};
     };
 
-    let npcTemplateRowConvert = function (templateRow) {
+    let npcTemplateRowConvert = function (templateRow, statBlockData) {
+        // TODO Check for skills to adjust
+        if (Array.isArray(templateRow.sheetAttribute)) {
+            let attrName = templateRow.sheetAttribute.find(e => e.startsWith("MOD"));
+            if (attrName !== undefined) {
+                attrName = attrName.replace("MOD-", "");
+                let attrRow = statBlockData.find(element => element.attribute.includes(attrName));
+                templateRow.val = templateRow.val - parseFloat(attrRow.val);
+                templateRow.sheetAttribute = templateRow.filter(e => e !== row);
+                return templateRow;
+            }
+        }
+
         return templateRow;
     };
 
@@ -336,25 +243,26 @@ var Guidance = Guidance || (function () {
     };
 
     let setAlignment = function (characterId, section) {
+        let value = "N";
         if (section.includes("LG")) {
-            setAttribute(characterId, "npc-alignment", "LG");
+            value = "LG";
         } else if (section.includes("NG")) {
-            setAttribute(characterId, "npc-alignment", "NG");
+            value = "NG";
         } else if (section.includes("CG")) {
-            setAttribute(characterId, "npc-alignment", "CG");
+            value = "CG";
         } else if (section.includes("LN")) {
-            setAttribute(characterId, "npc-alignment", "LN");
+            value = "LN";
         } else if (section.includes("CN")) {
-            setAttribute(characterId, "npc-alignment", "CN");
+            value = "CN";
         } else if (section.includes("LE")) {
-            setAttribute(characterId, "npc-alignment", "LE");
+            value = "LE";
         } else if (section.includes("NE")) {
-            setAttribute(characterId, "npc-alignment", "NE");
+            value = "NE";
         } else if (section.includes("CE")) {
-            setAttribute(characterId, "npc-alignment", "CE");
-        } else {
-            setAttribute(characterId, "npc-alignment", "N");
+            value = "CE";
         }
+        setAttribute(characterId, "npc-alignment", value);
+        setAttribute(characterId, "alignment", value);
     };
 
     let abbreviateArc = function (arc) {
@@ -657,25 +565,65 @@ var Guidance = Guidance || (function () {
             c.npcToken.set("gmnotes", cleanNotes);
         }
 
+        // Set Static Data
         setAttribute(c.characterId, "tab", 4);
-        setAttribute(c.characterId, "npc-race", c.characterSheet.get("name"));
+        setAttribute(c.characterId, "tab_select", 0);
         setAttribute(c.characterId, "npc-tactics-show", 0);
         setAttribute(c.characterId, "npc-feats-show", 0);
+        setAttribute(c.characterId, "sheet_type", "npc");
+        setAttribute(c.characterId, "tab_select", 0);
+        setAttribute(c.characterId, "npc-race", c.characterSheet.get("name"));
 
         // reduce chance of error
-
         let npc = parseStatBlock(getNPCStatBlocks(), cleanNotes);
+
+        let section = getSubString("XP", textToParse, "DEFENSE").trim();
+
+        let subtypeStart = 0;
+        let dropdown = 0;
+        if (section.toLowerCase().includes("medium")) {
+            dropdown = 0;
+            subtypeStart = section.indexOf("Medium") + "Medium".length;
+        } else if (section.toLowerCase().includes("large")) {
+            dropdown = -1;
+            subtypeStart = section.indexOf("Large") + "Large".length;
+        } else if (section.toLowerCase().includes("small")) {
+            dropdown = 1;
+            subtypeStart = section.indexOf("Small") + "Small".length;
+        } else if (section.toLowerCase().includes("gargantuan")) {
+            dropdown = -4;
+            subtypeStart = section.indexOf("Gargantuan") + "Gargantuan".length;
+        } else if (section.toLowerCase().includes("huge")) {
+            dropdown = -2;
+            subtypeStart = section.indexOf("Huge") + "Huge".length;
+        } else if (section.toLowerCase().includes("tiny")) {
+            dropdown = 2;
+            subtypeStart = section.indexOf("Tiny") + "Tiny".length;
+        } else if (section.toLowerCase().includes("diminutive")) {
+            dropdown = 4;
+            subtypeStart = section.indexOf("Diminutive") + "Diminutive".length;
+        } else if (section.toLowerCase().includes("fine")) {
+            dropdown = 8;
+            subtypeStart = section.indexOf("Fine") + "Fine".length;
+        } else if (section.toLowerCase().includes("colossal")) {
+            dropdown = -8;
+            subtypeStart = section.indexOf("Colossal") + "Colossal".length;
+        }
+
+        setAttribute(c.characterId, "npc-size", dropdown);
+        setAttribute(c.characterId, "npc-subtype", section.substring(subtypeStart, section.indexOf("Init")));
+        setAlignment(c.characterId, cleanNotes);
 
         let filtered = npc.filter(element => element.val !== undefined && element.sheetAttribute !== undefined); // && !element.sheetAttribute.includes("weapon"));
         //filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
         filtered.forEach(function (i) {
             i.val = i.val.replace(i.attribute, "").trim();
-            let attrib = npcTemplateRowConvert(i);
-            if (Array.isArray(i.sheetAttribute)) {
-                i.sheetAttribute.forEach(at => setAttribute(c.characterId, at, attrib.val));
+            let attrib = npcTemplateRowConvert(i, npc);
+            if (Array.isArray(attrib.sheetAttribute)) {
+                attrib.sheetAttribute.forEach(at => setAttribute(c.characterId, at, attrib.val));
             } else {
                 debugLog("I didn't detect an array");
-                setAttribute(c.characterId, i.sheetAttribute, attrib.val);
+                setAttribute(c.characterId, attrib.sheetAttribute, attrib.val);
             }
         });
 
@@ -685,7 +633,6 @@ var Guidance = Guidance || (function () {
         if (cleanNotes.includes("SPECIAL ABILITIES")) {
             populateSpecialAbilities(c.characterId, cleanNotes.substring(cleanNotes.indexOf("SPECIAL ABILITIES")));
         }
-        setAlignment(c.characterId, cleanNotes);
 
         // Set up Token
         setUpToken(c.characterId, c.npcToken);
@@ -765,7 +712,6 @@ var Guidance = Guidance || (function () {
                 speakAsGuidanceToGM("Rolling NPC initiative for all selected tokens");
                 let turnorder = JSON.parse(Campaign().get("turnorder"));
                 npcs.forEach(function (npc) {
-                    npc.showContents();
 
                     let init = getAttribute(npc.characterId, "npc-init-misc");
                     if (init === undefined) {
@@ -834,7 +780,6 @@ var Guidance = Guidance || (function () {
                     speakAsGuidanceToGM("Removed all properties for " + c.characterSheet.get("name"));
                     return;
                 } else if (msg.includes("ABILITIES")) {
-                    c.showContents();
                     for (let prop of findObjs({_characterid: c.characterId, _type: "ability"})) {
                         debugLog("Removing " + prop.get("name"));
                         prop.remove();
@@ -875,7 +820,6 @@ var Guidance = Guidance || (function () {
             if (chatMessage.content.startsWith("!sf_addtrick")) {
                 npcs.forEach(function (character) {
                     debugLog("Adding Trick Attack");
-                    character.showContents();
                     createObj("ability", {
                         name: "Trick Attack (settings on main sheet)",
                         description: "",
@@ -1169,7 +1113,6 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-list", textToParse.substring(textToParse.indexOf("—") + 2).trim());
     };
 
-
     let addSpellLikeAbility = function (characterId, textToParse) {
         let uuid = generateRowID();
         setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-usage", textToParse.substring(0, textToParse.indexOf("—")).trim());
@@ -1215,47 +1158,6 @@ var Guidance = Guidance || (function () {
             setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.trim());
         }
         speakAsGuidanceToGM("Added " + abilityName + " to Character");
-    };
-
-    let populateNPC = function (characterId, textToParse) {
-        setAttribute(characterId, "Perception-npc-misc", getSkillValue("Perception", "Wis", textToParse));
-        setAttribute(characterId, "npc-init-misc", getSkillValue("Init", "Dex", textToParse));
-
-        let section = getSubString("XP", textToParse, "DEFENSE").trim();
-
-        let subtypeStart = 0;
-        let dropdown = 0;
-        if (section.toLowerCase().includes("medium")) {
-            dropdown = 0;
-            subtypeStart = section.indexOf("Medium") + "Medium".length;
-        } else if (section.toLowerCase().includes("large")) {
-            dropdown = -1;
-            subtypeStart = section.indexOf("Large") + "Large".length;
-        } else if (section.toLowerCase().includes("small")) {
-            dropdown = 1;
-            subtypeStart = section.indexOf("Small") + "Small".length;
-        } else if (section.toLowerCase().includes("gargantuan")) {
-            dropdown = -4;
-            subtypeStart = section.indexOf("Gargantuan") + "Gargantuan".length;
-        } else if (section.toLowerCase().includes("huge")) {
-            dropdown = -2;
-            subtypeStart = section.indexOf("Huge") + "Huge".length;
-        } else if (section.toLowerCase().includes("tiny")) {
-            dropdown = 2;
-            subtypeStart = section.indexOf("Tiny") + "Tiny".length;
-        } else if (section.toLowerCase().includes("diminutive")) {
-            dropdown = 4;
-            subtypeStart = section.indexOf("Diminutive") + "Diminutive".length;
-        } else if (section.toLowerCase().includes("fine")) {
-            dropdown = 8;
-            subtypeStart = section.indexOf("Fine") + "Fine".length;
-        } else if (section.toLowerCase().includes("colossal")) {
-            dropdown = -8;
-            subtypeStart = section.indexOf("Colossal") + "Colossal".length;
-        }
-
-        setAttribute(characterId, "npc-size", dropdown);
-        setAttribute(characterId, "npc-subtype", section.substring(subtypeStart, section.indexOf("Init")));
     };
 
     let doWeapons = function (characterId, textToParse) {
@@ -1421,29 +1323,29 @@ var Guidance = Guidance || (function () {
     let getNPCStatBlocks = function () {
         let t = [];
         t.push(new TemplateRow(t.length, "npc-race")); // name
-        t.push(new TemplateRow(0, "npc-cr", "CR"));
-        t.push(new TemplateRow(t.length, "npc-XP", "XP"));
-        t.push(new TemplateRow(t.length, "npc-alignment"));
-        t.push(new TemplateRow(t.length, "npc-size"));
-        t.push(new TemplateRow(t.length, "npc-subtype"));
-        t.push(new TemplateRow(t.length, "npc-init-misc", "Init"));
-        t.push(new TemplateRow(t.length, "npc-senses", "Senses"));
-        t.push(new TemplateRow(t.length, "Perception-npc-misc", "Perception"));
-        t.push(new TemplateRow(t.length, "npc-aura", "Aura"));
+        t.push(new TemplateRow(0, ["npc-cr", "character_level"], "CR"));
+        t.push(new TemplateRow(t.length, ["npc-XP", "xp"], "XP"));
+        t.push(new TemplateRow(t.length, ["npc-alignment", "alignment"]));
+        t.push(new TemplateRow(t.length, ["npc-size", "size"]));
+        t.push(new TemplateRow(t.length, ["npc-subtype", "type_subtype"]));
+        t.push(new TemplateRow(t.length, ["MOD-Dex", "npc-init-misc", "initiative"], "Init"));
+        t.push(new TemplateRow(t.length, ["npc-senses", "senses"], "Senses"));
+        t.push(new TemplateRow(t.length, ["MOD-Wis", "Perception-npc-misc", "Perception-ranks", "perception_ranks", "perception_base", "perception"], "Perception"));
+        t.push(new TemplateRow(t.length, ["npc-aura", "aura"], "Aura"));
         t.push(new TemplateRow(t.length, "", "DEFENSE"));
-        t.push(new TemplateRow(t.length, "HP-npc", "HP"));
-        t.push(new TemplateRow(t.length, "RP-npc", "RP"));
+        t.push(new TemplateRow(t.length, ["HP-npc", "hp"], "HP"));
+        t.push(new TemplateRow(t.length, ["RP-npc", "rp"], "RP"));
         t.push(new TemplateRow(t.length, "EAC-npc", "EAC"));
         t.push(new TemplateRow(t.length, "KAC-npc", "KAC"));
-        t.push(new TemplateRow(t.length, "Fort-npc", "Fort"));
-        t.push(new TemplateRow(t.length, "Ref-npc", "Ref"));
-        t.push(new TemplateRow(t.length, "Will-npc", "Will"));
-        t.push(new TemplateRow(t.length, "npc-defensive-abilities", "Defensive Abilities"));
-        t.push(new TemplateRow(t.length, "npc-DR", "DR"));
-        t.push(new TemplateRow(t.length, "npc-immunities", "Immunities"));
-        t.push(new TemplateRow(t.length, "npc-resistances", "Resistances"));
-        t.push(new TemplateRow(t.length, "npc-SR", "SR"));
-        t.push(new TemplateRow(t.length, "npc-weaknesses", "Weaknesses"));
+        t.push(new TemplateRow(t.length, ["MOD-Con", "Fort-npc"], "Fort"));
+        t.push(new TemplateRow(t.length, ["MOD-Dex", "Ref-npc"], "Ref"));
+        t.push(new TemplateRow(t.length, ["MOD-Will", "Will-npc"], "Will"));
+        t.push(new TemplateRow(t.length, ["npc-defensive-abilities", "defensive_abilities"], "Defensive Abilities"));
+        t.push(new TemplateRow(t.length, ["npc-DR", "dr"], "DR"));
+        t.push(new TemplateRow(t.length, ["npc-immunities", "immunities"], "Immunities"));
+        t.push(new TemplateRow(t.length, ["npc-resistances", "resistances"], "Resistances"));
+        t.push(new TemplateRow(t.length, ["npc-SR", "sr"], "SR"));
+        t.push(new TemplateRow(t.length, ["npc-weaknesses", "weaknesses"], "Weaknesses"));
         t.push(new TemplateRow(t.length, "", "OFFENSE"));
         t.push(new TemplateRow(t.length, "speed-base-npc", "Speed"));
         t.push(new TemplateRow(t.length, "speed-burrow-npc", "burrow"));
@@ -1456,41 +1358,41 @@ var Guidance = Guidance || (function () {
         t.push(new TemplateRow(t.length, "SPECIAL", "Multiattack"));
         t.push(new TemplateRow(t.length, "space", "Space"));
         t.push(new TemplateRow(t.length, "reach", "Reach"));
-        t.push(new TemplateRow(t.length, "npc-special-attacks", "Offensive Abilities"));
+        t.push(new TemplateRow(t.length, ["npc-special-attacks", "offensive_abilities"], "Offensive Abilities"));
         t.push(new TemplateRow(t.length, "SPECIAL", "Spell-Like Abilities"));  // (CL )
         t.push(new TemplateRow(t.length, "SPECIAL", "Spells Known")); // (CL )
         t.push(new TemplateRow(t.length, "SPECIAL", "Connection")); //   (if Mystic)
         t.push(new TemplateRow(t.length, "", "TACTICS"));
         t.push(new TemplateRow(t.length, "", "STATISTICS"));
-        t.push(new TemplateRow(t.length, "STR-bonus", "Str"));
-        t.push(new TemplateRow(t.length, "DEX-bonus", "Dex"));
-        t.push(new TemplateRow(t.length, "CON-bonus", "Con"));
-        t.push(new TemplateRow(t.length, "INT-bonus", "Int"));
-        t.push(new TemplateRow(t.length, "WIS-bonus", "Wis"));
-        t.push(new TemplateRow(t.length, "CHA-bonus", "Cha"));
+        t.push(new TemplateRow(t.length, ["STR-bonus", "strength_mod", "strength_base"], "Str"));
+        t.push(new TemplateRow(t.length, ["DEX-bonus", "dexterity_mod", "dexterity_base"], "Dex"));
+        t.push(new TemplateRow(t.length, ["CON-bonus", "constitution_mod", "constitution_base"], "Con"));
+        t.push(new TemplateRow(t.length, ["INT-bonus", "intelligence_mod", "intelligence_base"], "Int"));
+        t.push(new TemplateRow(t.length, ["WIS-bonus", "wisdom_mod", "wisdom_base"], "Wis"));
+        t.push(new TemplateRow(t.length, ["CHA-bonus", "charisma_mod", "charisma_base"], "Cha"));
         t.push(new TemplateRow(t.length, "", "Feats"));
         t.push(new TemplateRow(t.length, "", "Skills"));
-        t.push(new TemplateRow(t.length, ["Acrobatics-npc-misc", "Acrobatics-ranks", "acrobatics_ranks"], "Acrobatics"));
-        t.push(new TemplateRow(t.length, "Athletics-npc-misc", "Athletics"));
-        t.push(new TemplateRow(t.length, "Bluff-npc-misc", "Bluff"));
-        t.push(new TemplateRow(t.length, "Computers-npc-misc", "Computers"));
-        t.push(new TemplateRow(t.length, "Culture-npc-misc", "Culture"));
-        t.push(new TemplateRow(t.length, "Diplomacy-npc-misc", "Diplomacy"));
-        t.push(new TemplateRow(t.length, "Disguise-npc-misc", "Disguise"));
-        t.push(new TemplateRow(t.length, "Engineering-npc-misc", "Engineering"));
-        t.push(new TemplateRow(t.length, "Intimidate-npc-misc", "Intimidate"));
-        t.push(new TemplateRow(t.length, "Life-Science-npc-misc", "Life Science"));
-        t.push(new TemplateRow(t.length, "Medicine-npc-misc", "Medicine"));
-        t.push(new TemplateRow(t.length, "Mysticism-npc-misc", "Mysticism"));
-        t.push(new TemplateRow(t.length, "Physical-Science-npc-misc", "Physical Science"));
-        t.push(new TemplateRow(t.length, "Piloting-npc-misc", "Piloting"));
-        t.push(new TemplateRow(t.length, "Sense-Motive-npc-misc", "Sense Motive"));
-        t.push(new TemplateRow(t.length, "Sleight-of-Hand-npc-misc", "Sleight of Hand"));
-        t.push(new TemplateRow(t.length, "Stealth-npc-misc", "Stealth"));
-        t.push(new TemplateRow(t.length, "Survival-npc-misc", "Survival"));
-        t.push(new TemplateRow(t.length, "languages-npc", "Language"));
-        t.push(new TemplateRow(t.length, "SQ", "Other Abilities"));
-        t.push(new TemplateRow(t.length, "npc-gear", "Gear"));
+        t.push(new TemplateRow(t.length, ["MOD-Dex", "Acrobatics-npc-misc", "Acrobatics-ranks", "acrobatics_ranks", "acrobatics_base", "acrobatics"], "Acrobatics"));
+        t.push(new TemplateRow(t.length, ["MOD-Str", "Athletics-npc-misc", "Athletics-ranks", "athletics_ranks", "athletics_base", "athletics"], "Athletics"));
+        t.push(new TemplateRow(t.length, ["MOD-Cha", "Bluff-npc-misc", "Bluff-ranks", "bluff_ranks", "bluff_base", "bluff"], "Bluff"));
+        t.push(new TemplateRow(t.length, ["MOD-Int", "Computers-npc-misc", "Computers-ranks", "computers_ranks", "computers_base", "computers"], "Computers"));
+        t.push(new TemplateRow(t.length, ["MOD-Int", "Culture-npc-misc", "Culture-ranks", "culture_ranks", "culture_base", "culture"], "Culture"));
+        t.push(new TemplateRow(t.length, ["MOD-Cha", "Diplomacy-npc-misc", "Diplomacy-ranks", "diplomacy_ranks", "diplomacy_base", "diplomacy"], "Diplomacy"));
+        t.push(new TemplateRow(t.length, ["MOD-Cha", "Disguise-npc-misc", "Disguise-ranks", "disguise_ranks", "disguise_base", "disguise"], "Disguise"));
+        t.push(new TemplateRow(t.length, ["MOD-Int", "Engineering-npc-misc", "Engineering-ranks", "engineering_ranks", "engineering_base", "engineering"], "Engineering"));
+        t.push(new TemplateRow(t.length, ["MOD-Cha", "Intimidate-npc-misc", "Intimidate-ranks", "intimidate_ranks", "intimidate_base", "intimidate"], "Intimidate"));
+        t.push(new TemplateRow(t.length, ["MOD-Int", "Life-Science-npc-misc", "Life-Science-ranks", "life_science_ranks", "life_science_base", "life_science"], "Life Science"));
+        t.push(new TemplateRow(t.length, ["MOD-Int", "Medicine-npc-misc", "Medicine-ranks", "medicine_ranks", "medicine_base", "medicine"], "Medicine"));
+        t.push(new TemplateRow(t.length, ["MOD-Wis", "Mysticism-npc-misc", "Mysticism-ranks", "mysticism_ranks", "mysticism_base", "mysticism"], "Mysticism"));
+        t.push(new TemplateRow(t.length, ["MOD-Int", "Physical-Science-npc-misc", "Physical-Science-ranks", "physical_science_ranks", "physical_science_base", "physical_science"], "Physical Science"));
+        t.push(new TemplateRow(t.length, ["MOD-Dex", "Piloting-npc-misc", "Piloting-ranks", "piloting_ranks", "piloting_base", "piloting"], "Piloting"));
+        t.push(new TemplateRow(t.length, ["MOD-Wis", "Sense-Motive-npc-misc", "Sense-Motive-ranks", "sense_motive_ranks", "sense_motive_base", "sense_motive"], "Sense Motive"));
+        t.push(new TemplateRow(t.length, ["MOD-Dex", "Sleight-of-Hand-npc-misc", "Sleight-of-Hand-ranks", "sleight_of_hand_ranks", "sleight_of_hand_base", "sleight_of_hand"], "Sleight of Hand"));
+        t.push(new TemplateRow(t.length, ["MOD-Dex", "Stealth-npc-misc", "Stealth-ranks", "stealth_ranks", "stealth_base", "stealth"], "Stealth"));
+        t.push(new TemplateRow(t.length, ["MOD-Wis", "Survival-npc-misc", "Survival-ranks", "survival_ranks", "survival_base", "survival"], "Survival"));
+        t.push(new TemplateRow(t.length, ["languages-npc", "languages"], "Language"));
+        t.push(new TemplateRow(t.length, ["SQ", "other_abilities"], "Other Abilities"));
+        t.push(new TemplateRow(t.length, ["npc-gear", "gear"], "Gear"));
         t.push(new TemplateRow(t.length, "", "ECOLOGY"));
         t.push(new TemplateRow(t.length, "", "Environment"));
         t.push(new TemplateRow(t.length, "", "Organization"));
@@ -1498,9 +1400,105 @@ var Guidance = Guidance || (function () {
         t.sort(function (a, b) {
             return a.order - b.order;
         });
+
         return t;
     };
     //</editor-fold>
+
+    /// Class that represents a NPC/Starship that is being worked on.
+    class NPC {
+        constructor(characterId, token, characterSheet) {
+            this.characterId = characterId;
+            this.npcToken = token;
+            this.characterSheet = characterSheet;
+        }
+    }
+
+    class TemplateRow {
+        constructor(sortOrder, sheetAttrib, attribute, value) {
+            debugLog(sheetAttrib);
+            this.val = value;
+            this.order = sortOrder;
+            this.sheetAttribute = sheetAttrib;
+            this.attribute = attribute;
+        }
+    }
+
+    //<editor-fold desc="GENERIC HELPER ROUTINES">
+    let errorScope = (function (e) {
+        if (e instanceof TypeError) {
+            debugLog(e + " Type Error");
+        } else if (e instanceof RangeError) {
+            debugLog(e + "Range Error");
+        } else if (e instanceof EvalError) {
+            debugLog(e + " Eval Error");
+        } else {
+            debugLog(e + " Something else");
+        }
+    });
+
+    // Borrowed from https://app.roll20.net/users/104025/the-aaron
+    let generateUUID = (function () {
+            let a = 0, b = [];
+            return function () {
+                let c = (new Date()).getTime(), d = c === a;
+                a = c;
+                for (var e = new Array(8), f = 7; 0 <= f; f--) {
+                    e[f] = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(c % 64);
+                    c = Math.floor(c / 64);
+                }
+                c = e.join("");
+                if (d) {
+                    for (var f = 11; 0 <= f && 63 === b[f]; f--) {
+                        b[f] = 0;
+                    }
+                    b[f]++;
+                } else {
+                    for (var f = 0; 12 > f; f++) {
+                        b[f] = Math.floor(64 * Math.random());
+                    }
+                }
+                for (var f = 0; 12 > f; f++) {
+                    c += "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(b[f]);
+                }
+
+                return c;
+            };
+        }()),
+        generateRowID = function () {
+            return generateUUID().replace(/_/g, "Z");
+        };
+
+    let debugLog = function (text) {
+        if (debugMode) {
+            let d = new Date();
+            let lines = new Error().stack.split("\n");
+            log(d.toUTCString() + " " + lines[2].trim() + " " + text);
+        }
+    };
+
+    let speakAsGuidanceToGM = function (text) {
+        text = "/w gm <br><div><table><tr style==\"width:100%\"><div style=\"background-color: rgba(0, 0, 150, 1);color: #ffffff;padding: 4px;border: 2px solid black;border-radius: 5px;line-height: 1.6em;font-size: 1.2em;\">Guidance</div></tr><tr><div style=\"background-color: rgb(225,225,225);padding: 4px;border: 2px solid black;border-radius: 5px;line-height: 1.2em;font-size: 1.1em;\">" + text + "</div></tr></table></div>";
+        sendChat("", text);
+    };
+
+    // For Debugging purposes
+    let isNullOrUndefined = function (v) {
+        var err = new Error();
+        if (v === undefined) {
+            debugLog("undefined");
+            debugLog(err.stack);
+            return true;
+        }
+        if (v === null) {
+            debugLog("null");
+            debugLog(err.stack);
+            return true;
+        }
+        return false;
+    };
+    //</editor-fold>
+
 
     var gmNotes = "Skittermander CR 2 XP 600 Skittermander envoy CN Small humanoid (skittermander) Init +2; Senses low-light vision; Perception +7 DEFENSE HP 23 EAC 14; KAC 15 Fort +1; Ref +3; Will +5 OFFENSE Speed 30 ft. Melee ember flame doshko +6 (1d8+3 F; critical wound) Ranged static arc pistol (1d6+2 E; critical arc 2) Offensive Abilities hyper STATISTICS Str +1; Dex +2; Con +0; Int +0; Wis +1; Cha +4 Skills Acrobatics +7, Bluff +12, Diplomacy +12, Sense Motive +12, Stealth +7 Languages Common, Vesk Other Abilities envoy improvisations (get ’em, inspiring boost [8 SP]) Gear freebooter armor I, ember flame doshko, static arc pistol with 3 batteries (20 charges each) ECOLOGY Environment any (Vesk-3) Organization solitary, pair, or mob (3-12) SPECIAL ABILITIES Hyper (Ex) Once per day, a skittermander can take an extra move action.";
     var c = new NPC(new somethingWithGet(), new somethingWithGet(), new somethingWithGet());
