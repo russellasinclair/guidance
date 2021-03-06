@@ -209,8 +209,10 @@ var Guidance = Guidance || (function () {
             if (attrName !== undefined) {
                 attrName = attrName.replace("MOD-", "");
                 let attrRow = statBlockData.find(element => element.attribute.includes(attrName));
-                templateRow.val = templateRow.val - parseFloat(attrRow.val);
-                templateRow.sheetAttribute = templateRow.filter(e => e !== row);
+                if (templateRow.val > 0) {
+                    templateRow.val = templateRow.val - parseFloat(attrRow.val);
+                }
+                templateRow.sheetAttribute = templateRow.sheetAttribute.filter(e => e !== "MOD-" + attrName);
                 return templateRow;
             }
         }
@@ -577,7 +579,8 @@ var Guidance = Guidance || (function () {
         // reduce chance of error
         let npc = parseStatBlock(getNPCStatBlocks(), cleanNotes);
 
-        let section = getSubString("XP", textToParse, "DEFENSE").trim();
+        let sections = parseBlockIntoSubSectionMap(cleanNotes);
+        let section = sections.get("header").trim();
 
         let subtypeStart = 0;
         let dropdown = 0;
