@@ -424,6 +424,11 @@ var Guidance = Guidance || (function () {
             npcToken.set("bar3_value", "KAC " + armorClass.get("current"));
             npcToken.set("bar3_max", armorClass.get("current"));
             npcToken.set("showname", true);
+
+            //Create token macros for NPC saves and initiative rolls
+            createAbility("0-Init", "%{selected|NPC-Initiative-Roll}", characterId);
+            createAbility("1-Saves", "&{template:pf_check}{{name=@{Selected|character_name} Saves}}{{check=[[1d20+@{Fort-npc}]] Fort [[1d20+@{Ref-npc}]] Ref [[1d20+@{Will-npc}]] Will }}", characterId);
+
             speakAsGuidanceToGM("Token setup. For extra settings, check out the API TokenMod");
         } catch (e) {
             debugLog("Token failure");
@@ -431,6 +436,16 @@ var Guidance = Guidance || (function () {
             speakAsGuidanceToGM("Check to make sure the token is linked and the character sheet is populated");
         }
     };
+
+    //Get or replace ability with specified ID
+    let createAbility = function(name, pattern, id) {
+        var checkAbility = findObjs({_type: 'ability', _characterid: id, name: name});        
+        if (checkAbility[0]) {
+            checkAbility[0].set({action: pattern});
+        } else {
+            createObj('ability', {name: name, action: pattern, characterid: id, istokenaction: true});
+        }
+    }
 
     let populateFeats = function (characterId, text) {
         let match = text.split(",");
@@ -1485,6 +1500,22 @@ var Guidance = Guidance || (function () {
         if (dnd[1] !== undefined) {
             setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-damage", dnd[1]);
         }
+
+        //Add token macro for parsed weapon attack
+        debugLog("Creating weapon ability " + uuid);
+        try {
+            createObj("ability", {
+                name: "2-" + weapon,
+                description: details,
+                action: "%{selected|repeating_npc-weapon_"+ uuid + "_roll}",
+                _characterid: characterId,
+                istokenaction: true
+            });
+        } catch(ex) {
+            debugLog("Creating weapon ability error occurred.");
+            debugLog(ex);
+        }
+        debugLog("Creating weapon ability " + uuid + " completed");
     };
     //</editor-fold>
 
