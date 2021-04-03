@@ -427,7 +427,7 @@ var Guidance = Guidance || (function () {
 
             //Create token macros for NPC saves and initiative rolls
             createAbility("0-Init", "%{selected|NPC-Initiative-Roll}", characterId);
-            createAbility("1-Saves", "&{template:pf_check}{{name=@{Selected|character_name} Saves}}{{check=[[1d20+@{Fort-npc}]] Fort [[1d20+@{Ref-npc}]] Ref [[1d20+@{Will-npc}]] Will }}", characterId);
+            createAbility("1-Saves", "&{template:pf_check}{{name=@{Selected|character_name} Saves}}{{check=Fort: [[1d20+@{Fort-npc}]]\nRef: [[1d20+@{Ref-npc}]]\nWill: [[1d20+@{Will-npc}]] }}", characterId);
 
             speakAsGuidanceToGM("Token setup. For extra settings, check out the API TokenMod");
         } catch (e) {
@@ -490,6 +490,8 @@ var Guidance = Guidance || (function () {
 
         let ship = parseStatBlock(getShipStatBlocks(), cleanNotes);
         setAttribute(c.characterId, "tab", 3);
+
+        setDefaultTokenForCharacter(c.characterSheet, c.npcToken);
 
         let basics = getShipBasics(cleanNotes);
         debugLog("Basics = " + basics);
@@ -851,6 +853,7 @@ var Guidance = Guidance || (function () {
                             return;
                         }
                         populateNPCData(gmNotes, c);
+                        setDefaultTokenForCharacter(c.characterSheet, c.npcToken);
                     });
                 });
                 return;
@@ -1298,13 +1301,17 @@ var Guidance = Guidance || (function () {
 
     let populateSpecialAbilities = function (characterId, textToParse) {
         debugLog("Parsing Special Abilities");
-        if (textToParse !== undefined) {
-            if (textToParse.includes("SPECIAL ABILITIES")) {
-                textToParse = textToParse.replace("SPECIAL ABILITIES", "").trim();
-                addSpecialAbility(characterId, textToParse);
+        try {
+            if (textToParse !== undefined) {
+                if (textToParse.includes("SPECIAL ABILITIES")) {
+                    textToParse = textToParse.replace("SPECIAL ABILITIES", "").trim();
+                    addSpecialAbility(characterId, textToParse);
+                }
+            } else {
+                setAttribute(characterId, "npc-special-abilities-show", 0);
             }
-        } else {
-            setAttribute(characterId, "npc-special-abilities-show", 0);
+        } catch (e) {
+            debugLog("Special ability - " + textToParse);
         }
     };
 
@@ -1316,6 +1323,7 @@ var Guidance = Guidance || (function () {
         if (textToParse.includes("(")) {
             do {
                 uuid = generateRowID();
+                debugLog("Sniliyu " + textToParse);
                 let abilityName = textToParse.substring(0, textToParse.indexOf(")") + 1);
                 setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-name", abilityName.trim());
                 textToParse = textToParse.substring(textToParse.indexOf(")") + 1);
