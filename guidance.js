@@ -1486,7 +1486,7 @@ var Guidance = Guidance || (function () {
         let weapon = "";
         while (isNaN(details[i]) && i < details.length) {
             weapon = weapon + details[i] + " ";
-            i++;
+            i++; 
         }
 
         if (i === details.length) {
@@ -1508,6 +1508,45 @@ var Guidance = Guidance || (function () {
         if (dnd[1] !== undefined) {
             setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-damage", dnd[1]);
         }
+        
+        i++;
+        //createWeaponDamageType(characterId, uuid, details, i);
+        try{
+            if(i <= details.length){
+                debugLog("Weapon type: " + details[i]);
+                let damageType = details[i];
+                //Test for 2 damage types aka plasma E & F
+                if(details[i+1] == "&"){
+                    damageType += details[++i] + " " + details[++i];
+                }
+                damageType = details[i].replace(/;/, "").replace(/\)/, "");
+                setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-type", damageType);
+            }
+        }catch(ex){
+            debugLog("Error parsing damage type for: " + uuid);
+            debugLog(ex);    
+        }
+        i++;
+        //createWeaponCriticals(characterId, uuid, details, i);
+        try{
+            if(i <= details.length && details[i] != ")"){
+                if(details[i] == "critical"){
+                    i++;
+                    //Probably need a foreach in here to go through the rest
+                    let critical = "";
+                    while(i < details.length){
+                        critical = critical + " " + details[i];
+                        i++;
+                    }
+                    critical = critical.replace(/\)/, "")
+                    debugLog("Weapon Critical: " + critical);
+                    setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-critical", critical);
+                }
+            }   
+        }catch(ex){
+            debugLog("Error parsing damage critical for: " + uuid);
+            debugLog(ex);    
+        }
 
         //Add token macro for parsed weapon attack
         debugLog("Creating weapon ability " + uuid);
@@ -1525,7 +1564,52 @@ var Guidance = Guidance || (function () {
         }
         debugLog("Creating weapon ability " + uuid + " completed");
     };
+    
+    let createWeaponDamageType = function(characterId, weaponUuid, details, position)
+    {
+        try{
+            if(position <= details.length){
+                debugLog("Weapon type: " + details[position]);
+                let damageType = details[i];
+                //Test for 2 damage types aka plasma E & F
+                if(details[position+1] == "&"){
+                    damageType += details[++position] + " " + details[++position];
+                }
+                damageType = details[position].replace(/;/, "").replace(/\)/, "");
+                setAttribute(characterId, "repeating_npc-weapon_" + weaponUuid + "_npc-weapon-type", damageType);
+            }
+        }catch(ex){
+            debugLog("Error parsing damage type for: " + uuid);
+            debugLog(ex);    
+        }
+    };
+
+    let createWeaponCriticals = function(characterId, weaponUuid, details, position)
+    {
+        try{
+            if(position <= details.length && details[position] != ")"){
+                if(details[position] == "critical"){
+                    position++;
+                    //Probably need a foreach in here to go through the rest
+                    let critical = "";
+                    while(position < details.length){
+                        critical = critical + " " + details[position];
+                        position++;
+                    }
+                    critical = critical.replace(/\)/, "")
+                    debugLog("Weapon Critical: " + critical);
+                    setAttribute(characterId, "repeating_npc-weapon_" + weaponUuid + "_npc-weapon-critical", critical);
+                }
+            }   
+        }catch(ex){
+            debugLog("Error parsing damage critical for: " + uuid);
+            debugLog(ex);    
+        }
+    };
+    
     //</editor-fold>
+
+    
 
     //<editor-fold desc="Stat block formatter templates">
     let getShipStatBlocks = function () {
