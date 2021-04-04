@@ -796,7 +796,7 @@ var Guidance = Guidance || (function () {
             //<editor-fold desc="Wipe out all Character Data">
             if (chatMessage.content.startsWith("!sf_clean")) {
                 let msg = chatMessage.content.replace("!sf_clean ", "");
-                if (npcs.length > 1) {
+                if (npcs.length > 1 && !debugMode) {
                     speakAsGuidanceToGM("Please do not select more than 1 NPC at a time. This command is potentially dangerous.");
                     return;
                 }
