@@ -25,55 +25,64 @@ var Guidance = Guidance || (function () {
     }
 
     class TemplateRow {
-        constructor(sortOrder, sheetAttrib, attribute, value, officialAttribute) {
+        constructor(sortOrder, sheetAttrib, attribute, value) {
             this.val = value;
             this.order = sortOrder;
             this.sheetAttribute = sheetAttrib;
             this.attribute = attribute;
-            this.official = officialAttribute;
         }
     }
 
     //<editor-fold desc="GENERIC HELPER ROUTINES">
-    // Borrowed from https://app.roll20.net/users/104025/the-aaron
+    // Based on code from https://app.roll20.net/users/104025/the-aaron
     let generateUUID = (function () {
-            let a = 0, b = [];
-            return function () {
-                let c = (new Date()).getTime(), d = c === a;
-                a = c;
-                for (var e = new Array(8), f = 7; 0 <= f; f--) {
-                    e[f] = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(c % 64);
-                    c = Math.floor(c / 64);
-                }
-                c = e.join("");
-                if (d) {
-                    for (var f = 11; 0 <= f && 63 === b[f]; f--) {
-                        b[f] = 0;
-                    }
-                    b[f]++;
-                } else {
-                    for (var f = 0; 12 > f; f++) {
-                        b[f] = Math.floor(64 * Math.random());
-                    }
-                }
-                for (var f = 0; 12 > f; f++) {
-                    c += "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(b[f]);
-                }
+        let lastTimestamp = 0;
+        let randomValues = [];
 
-                return c;
-            };
-        }()),
-        generateRowID = function () {
-            return generateUUID().replace(/_/g, "Z");
+        return function () {
+            let currentTimestamp = (new Date()).getTime();
+            let duplicateTimestamp = currentTimestamp === lastTimestamp;
+            lastTimestamp = currentTimestamp;
+
+            let uuidArray = new Array(8);
+            for (let i = 7; i >= 0; i--) {
+                uuidArray[i] = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(currentTimestamp % 64);
+                currentTimestamp = Math.floor(currentTimestamp / 64);
+            }
+
+            let uuid = uuidArray.join("");
+
+            if (duplicateTimestamp) {
+                for (let i = 11; i >= 0 && randomValues[i] === 63; i--) {
+                    randomValues[i] = 0;
+                }
+                randomValues[i]++;
+            } else {
+                for (let i = 0; i < 12; i++) {
+                    randomValues[i] = Math.floor(64 * Math.random());
+                }
+            }
+
+            for (let i = 0; i < 12; i++) {
+                uuid += "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(randomValues[i]);
+            }
+
+            return uuid;
         };
+    })();
+
+    let generateRowID = function () {
+        return generateUUID().replace(/_/g, "Z");
+    };
 
     let debugLog = function (text) {
         if (debugMode) {
-            let d = new Date();
-            let lines = new Error().stack.split("\n");
-            log(d.toUTCString() + " " + lines[2].trim() + " " + text);
+            let timestamp = new Date().toUTCString();
+            let stackTrace = new Error().stack.split("\n");
+            log(`${timestamp} ${stackTrace[2].trim()} ${text}`);
         }
     };
+
 
     let speakAsGuidanceToGM = function (text) {
         text = "/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description=" + text + "}}";
@@ -82,15 +91,9 @@ var Guidance = Guidance || (function () {
 
     // For Debugging purposes
     let isNullOrUndefined = function (v) {
-        var err = new Error();
-        if (v === undefined) {
-            debugLog("undefined");
-            debugLog(err.stack);
-            return true;
-        }
-        if (v === null) {
-            debugLog("null");
-            debugLog(err.stack);
+        if (v == null) { // null or undefined
+            debugLog(v === null ? "null" : "undefined");
+            debugLog(new Error().stack);
             return true;
         }
         return false;
@@ -98,28 +101,25 @@ var Guidance = Guidance || (function () {
     //</editor-fold>
 
     //<editor-fold desc="Generic Parsing Routines">
-    let getStringValue = function (textToFind, textToParse, delimiter) {
-        if (!textToParse.includes(textToFind)) {
+    let getStringValue = function (textToFind, textToParse, delimiter = " ") {
+        let start = textToParse.indexOf(textToFind);
+        if (start === -1) {
             return "";
         }
-        let start = textToParse.indexOf(textToFind) + textToFind.length;
-
-        if (delimiter === undefined) {
-            delimiter = " ";
-        }
+        start += textToFind.length;
 
         let bucket = textToParse.substring(start);
         if (delimiter !== ";") {
-            // It appears that ; ALWAYS means end of field. This is a good safety
-            if (bucket.includes(";")) {
-                bucket = bucket.substring(0, bucket.indexOf(";"));
+            let end = bucket.indexOf(";");
+            if (end !== -1) {
+                bucket = bucket.substring(0, end);
             }
         }
 
         bucket = bucket.trim();
-        if (bucket.toLowerCase().includes(delimiter.toLowerCase())) {
-            let end = bucket.toLowerCase().indexOf(delimiter.toLowerCase());
-            bucket = bucket.substring(0, end).trim();
+        let delimiterIndex = bucket.toLowerCase().indexOf(delimiter.toLowerCase());
+        if (delimiterIndex !== -1) {
+            bucket = bucket.substring(0, delimiterIndex).trim();
         }
         return bucket;
     };
@@ -141,33 +141,24 @@ var Guidance = Guidance || (function () {
     };
 
     let cleanText = function (textToClean) {
-        return textToClean.replace(/(<([^>]+)>)/gi, " "
-        ).replace(/&nbsp;/gi, " "
-        ).replace(/&amp;/gi, "&"
-        ).replace(/&amp/gi, "&"
-        ).replace(/\s+/g, " "
-        ).replace(/Offense/i, " OFFENSE "
-        ).replace(/Defense/i, " DEFENSE "
-        ).replace(/Statistics/i, " STATISTICS "
-        ).replace(/Ecology/i, "ECOLOGY "
-        ).replace(/Special Abilities/i, " SPECIAL ABILITIES "
-        ).replace(/Tactics/i, " TACTICS "
-        ).replace(/ Str /i, " Str "
-        ).replace(/ Dex /i, " Dex "
-        ).replace(/ Con /i, " Con "
-        ).replace(/ Int /i, " Int "
-        ).replace(/ Wis /i, " Wis "
-        ).replace(/ Cha /i, " Cha "
-        );
+        return textToClean
+            .replace(/(<([^>]+)>)/gi, " ")
+            .replace(/&nbsp;|&amp;/gi, " ")
+            .replace(/\s+/g, " ")
+            .replace(/Offense|Defense|Statistics/i, function (match) {
+                return match.toUpperCase() + " ";
+            })
+            .replace(/Ecology|Special Abilities|Tactics/i, function (match) {
+                return match.toUpperCase() + " ";
+            })
+            .replace(/\b(Str|Dex|Con|Int|Wis|Cha)\b/gi, function (match) {
+                return match.toUpperCase() + " ";
+            });
     };
 
     let getCleanSheetValue = function (statBlockTemplate, statToFind, statBlockText, delimiter) {
         let x = getSheetValue(statBlockTemplate, statToFind, statBlockText, delimiter);
-        if (x !== undefined) {
-            return x.replace(statToFind, "");
-        } else {
-            return "";
-        }
+        return (x !== undefined) ? x.replace(statToFind, "") : "";
     };
 
     // new parsing logic
@@ -226,39 +217,26 @@ var Guidance = Guidance || (function () {
     //</editor-fold>
 
     //<editor-fold desc="Data Transformation Routines">
-    let getShipFrame = function (basics) {
-        //starship-frame
-        basics = basics.toLowerCase();
-        if (basics.includes("racer")) {
-            return 1;
-        } else if (basics.includes("interceptor")) {
-            return 2;
-        } else if (basics.includes("fighter")) {
-            return 3;
-        } else if (basics.includes("shuttle")) {
-            return 4;
-        } else if (basics.includes("light freighter")) {
-            return 5;
-        } else if (basics.includes("explorer")) {
-            return 6;
-        } else if (basics.includes("transport")) {
-            return 7;
-        } else if (basics.includes("destroyer")) {
-            return 8;
-        } else if (basics.includes("heavy freighter")) {
-            return 9;
-        } else if (basics.includes("bulk freighter")) {
-            return 10;
-        } else if (basics.includes("cruiser")) {
-            return 11;
-        } else if (basics.includes("carrier")) {
-            return 13;
-        } else if (basics.includes("battleship")) {
-            return 14;
-        }
-
-        return 15;
+    const frameLookup = {
+        "racer": 1,
+        "interceptor": 2,
+        "fighter": 3,
+        "shuttle": 4,
+        "light freighter": 5,
+        "explorer": 6,
+        "transport": 7,
+        "destroyer": 8,
+        "heavy freighter": 9,
+        "bulk freighter": 10,
+        "cruiser": 11,
+        "carrier": 13,
+        "battleship": 14
     };
+
+    function getShipFrame(basics) {
+        basics = basics.toLowerCase();
+        return frameLookup[basics] || 15;
+    }
 
     let getShipBasics = function (text) {
         let start = 0;
@@ -309,35 +287,19 @@ var Guidance = Guidance || (function () {
     };
 
     let setAlignment = function (characterId, section) {
-        if (section.includes("LG")) {
-            setAttribute(characterId, "npc-alignment", "LG");
-        } else if (section.includes("NG")) {
-            setAttribute(characterId, "npc-alignment", "NG");
-        } else if (section.includes("CG")) {
-            setAttribute(characterId, "npc-alignment", "CG");
-        } else if (section.includes("LN")) {
-            setAttribute(characterId, "npc-alignment", "LN");
-        } else if (section.includes("CN")) {
-            setAttribute(characterId, "npc-alignment", "CN");
-        } else if (section.includes("LE")) {
-            setAttribute(characterId, "npc-alignment", "LE");
-        } else if (section.includes("NE")) {
-            setAttribute(characterId, "npc-alignment", "NE");
-        } else if (section.includes("CE")) {
-            setAttribute(characterId, "npc-alignment", "CE");
-        } else {
-            setAttribute(characterId, "npc-alignment", "N");
-        }
+        const alignments = ["LG", "NG", "CG", "LN", "CN", "LE", "NE", "CE"];
+        const alignment = alignments.find(a => section.includes(a)) || "N";
+        setAttribute(characterId, "npc-alignment", alignment);
     };
 
     let abbreviateArc = function (arc) {
         if (arc.includes("orward")) {
             return "fwd";
-        }
-        if (arc.includes("arboard")) {
+        } else if (arc.includes("arboard")) {
             return "stbd";
+        } else {
+            return arc.match(/\((.*?)\)/)[1].toLowerCase();
         }
-        return arc.substring(arc.indexOf("(") + 1).substring(0, arc.indexOf(")") - 1).toLowerCase();
     };
     //</editor-fold>
 
@@ -365,48 +327,45 @@ var Guidance = Guidance || (function () {
 
     // borrowed from https://app.roll20.net/users/901082/invincible-spleen in the forums
     let setAttribute = function (characterId, attributeName, newValue, operator) {
+        if (!attributeName || !newValue) {
+            return;
+        }
+
+        let foundAttribute = getAttribute(characterId, attributeName);
         let mod_newValue = {
-                "+": function (num) {
-                    return num;
-                },
-                "-": function (num) {
-                    return -num;
-                }
-            },
-
-            foundAttribute = getAttribute(characterId, attributeName);
-
-        isNullOrUndefined(attributeName);
-        isNullOrUndefined(newValue);
+            "+": function (num) { return num; },
+            "-": function (num) { return -num; }
+        };
 
         try {
             if (!foundAttribute) {
                 if (typeof operator !== "undefined" && !isNaN(newValue)) {
-                    debugLog(newValue + " is a number.");
                     newValue = mod_newValue[operator](newValue);
                 }
 
-                // We don't need to create "Blank Values"
-                if (!attributeName.includes("show")) {
-                    if (newValue === undefined || newValue === "" || newValue === 0) {
-                        return;
-                    }
+                if (attributeName.includes("show")) {
+                    return;
                 }
 
-                debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
+                if (newValue === undefined || newValue === "" || newValue === 0) {
+                    return;
+                }
+
                 createObj("attribute", {
                     name: attributeName,
                     current: newValue,
                     max: newValue,
                     _characterid: characterId
                 });
+                debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
             } else {
                 if (typeof operator !== "undefined" && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
                     newValue = parseFloat(foundAttribute.get("current")) + parseFloat(mod_newValue[operator](newValue));
                 }
-                debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
+
                 foundAttribute.set("current", newValue);
                 foundAttribute.set("max", newValue);
+                debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
             }
         } catch (err) {
             debugLog("Error parsing " + attributeName);
@@ -487,10 +446,10 @@ var Guidance = Guidance || (function () {
             isNullOrUndefined(cleanNotes);
             c.npcToken.set("gmnotes", cleanNotes);
         }
+        const attributes = {};
 
         let ship = parseStatBlock(getShipStatBlocks(), cleanNotes);
         setAttribute(c.characterId, "tab", 3);
-
         setDefaultTokenForCharacter(c.characterSheet, c.npcToken);
 
         let basics = getShipBasics(cleanNotes);
@@ -509,26 +468,11 @@ var Guidance = Guidance || (function () {
         setAttribute(c.characterId, "starship-weapon-stbd-weapon1-show", 0);
 
         // get piloting stat and make macro
-        let pilotBonus = "";
-        let pilotingRanks = "";
-        if (cleanNotes.includes("iloting")) {
-            let piloting = cleanNotes.substring(cleanNotes.indexOf("iloting")).substring(0, cleanNotes.indexOf(")"));
-            piloting = piloting.trim();
-            debugLog("Piloting candidate = " + piloting);
-            pilotBonus = piloting.substring(piloting.indexOf("+") + 1).trim();
-            if (pilotBonus.includes("(")) {
-                pilotBonus = pilotBonus.substring(0, pilotBonus.indexOf("("));
-            }
-            debugLog("Piloting cleaned = " + pilotBonus);
-            pilotingRanks = piloting.substring(piloting.indexOf("(") + 1, piloting.indexOf(")"));
-        }
-        if (pilotBonus === undefined || String(pilotBonus).trim() === "" || isNaN(pilotBonus)) {
-            pilotBonus = "?{Piloting Bonus?|0}";
-            pilotingRanks = "Ranks Not Defined";
-        }
+        let piloting = cleanNotes.match(/iloting\s*(?:\+\s*(\d+))?/);
+        let pilotBonus = piloting?.[1] ?? "?{Piloting Bonus?|0}";
+        let pilotingRanks = piloting ? piloting[0].match(/\((.*?)\)/)?.[1] : "Ranks Not Defined";
 
-        let pilotingMacro = "&{template:pf_check} {{name=" + c.characterSheet.get("name") +
-            "'s Piloting}} {{skill_chk=[[[[d20+" + pilotBonus + "]] + ?{Any other modifiers?|0}]]}}{{notes=" + pilotingRanks + "}}";
+        let pilotingMacro = `&{template:pf_check} {{name=${c.characterSheet.get("name")}'s Piloting}} {{skill_chk=[[[[d20+${pilotBonus}]] + ?{Any other modifiers?|0}]]}}{{notes=${pilotingRanks}}}`;
 
         createObj("ability", {
             name: "Piloting Check",
@@ -537,20 +481,13 @@ var Guidance = Guidance || (function () {
             _characterid: c.characterId,
         });
 
-        // get gunnery stat for macros
-        let gunnery = "";
-        if (cleanNotes.includes("unnery ")) {
-            gunnery = cleanNotes.substring(cleanNotes.indexOf("unnery")).substring(0, cleanNotes.indexOf("("));
-        } else {
-            gunnery = "";
-        }
+        let gunnery = cleanNotes.match(/unnery\s*(.*?)(?:\s|$)/)?.[1];
 
         let filtered = ship.filter(element => element.val !== undefined && element.sheetAttribute !== undefined && !element.sheetAttribute.includes("weapon"));
-        filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
-        filtered.forEach(function (i) {
+        filtered.forEach(function(i) {
             i.val = i.val.replace(i.attribute, "").trim();
             let attrib = shipTemplateRowConvert(i);
-            setAttribute(c.characterId, attrib.sheetAttribute, attrib.val);
+            attributes[attrib.sheetAttribute] = attrib.val;
         });
 
         setAttribute(c.characterId, "starship-frame", String(frame));
