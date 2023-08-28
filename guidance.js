@@ -1,13 +1,13 @@
 /*
 Starfinder utilities for Roll20
-Requires API, Starfinder (Simple) character sheets - official sheets not supported at this time.
-
+Requires API
 */
 var Guidance = Guidance || (function () {
     "use strict";
 
-    let version = "-=> Guidance is online. v2.x.x <=-";
+    let version = "-=> Guidance is online. v3.0.0.beta <=-";
     let debugMode = true;
+    let simpleSheetUsed = true;
 
     /// Class that represents a NPC/Starship that is being worked on.
     class NPC {
@@ -24,10 +24,9 @@ var Guidance = Guidance || (function () {
     }
 
     class TemplateRow {
-        constructor(sortOrder, sheetAttrib, attribute, value) {
+        constructor(sortOrder, attribute, value) {
             this.val = value;
             this.order = sortOrder;
-            this.sheetAttribute = sheetAttrib;
             this.attribute = attribute;
         }
     }
@@ -83,7 +82,7 @@ var Guidance = Guidance || (function () {
     };
 
     let speakAsGuidanceToGM = function (text) {
-        text = "/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description=" + text + "}}";
+        text = "/w gm  &{template:default} {{name=Guidance}} {{spell_description=" + text + "}}";
         sendChat("Guidance", text);
     };
 
@@ -135,6 +134,9 @@ var Guidance = Guidance || (function () {
         }
         let skill = parseFloat(getValue(skillName, textToParse));
         debugLog(skillName + " : " + skill + " - " + attribute + " : " + getValue(attribute, textToParse));
+        if (attribute === null) {
+            return skill;
+        }
         return skill - parseFloat(getValue(attribute, textToParse));
     };
 
@@ -206,7 +208,7 @@ var Guidance = Guidance || (function () {
                     preParsedText = statBlockText.substring(statBlockText.indexOf(statBlockTemplate[i - 1].attribute));
                 }
                 let val = getSheetValue(statBlockTemplate, statBlockTemplate[i].attribute, preParsedText);
-                statBlockData.push(new TemplateRow(i, statBlockTemplate[i].sheetAttribute, statBlockTemplate[i].attribute, val));
+                statBlockData.push(new TemplateRow(i, statBlockTemplate[i].attribute, val));
                 debugLog(statBlockTemplate[i].attribute + " = " + val);
             }
         }
@@ -274,7 +276,7 @@ var Guidance = Guidance || (function () {
                 templateRow.val = String(2);
             }
             debugLog("Maneuvered");
-        } else if (templateRow.sheetAttribute.includes("shield")) {
+        } else if (templateRow.attribute.includes("shield")) {
             templateRow.val = templateRow.val.replace(/\D/g, "");
         }
         return templateRow;
@@ -326,8 +328,12 @@ var Guidance = Guidance || (function () {
 
         let foundAttribute = getAttribute(characterId, attributeName);
         let mod_newValue = {
-            "+": function (num) { return num; },
-            "-": function (num) { return -num; }
+            "+": function (num) {
+                return num;
+            },
+            "-": function (num) {
+                return -num;
+            }
         };
 
         try {
@@ -347,7 +353,7 @@ var Guidance = Guidance || (function () {
                 createObj("attribute", {
                     name: attributeName,
                     current: newValue,
-                    max: newValue,
+                    max: "",
                     _characterid: characterId
                 });
                 debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
@@ -379,7 +385,7 @@ var Guidance = Guidance || (function () {
 
             //Create token macros for NPC saves and initiative rolls
             createAbility("0-Init", "%{selected|NPC-Initiative-Roll}", characterId);
-            createAbility("1-Saves", "&{template:pf_check}{{name=@{Selected|character_name} Saves}}{{check=Fort: [[1d20+@{Fort-npc}]]\nRef: [[1d20+@{Ref-npc}]]\nWill: [[1d20+@{Will-npc}]] }}", characterId);
+            createAbility("1-Saves", "&{template:default}{{name=@{Selected|character_name} Saves}}{{check=Fort: [[1d20+@{Fort-npc}]]\nRef: [[1d20+@{Ref-npc}]]\nWill: [[1d20+@{Will-npc}]] }}", characterId);
 
             speakAsGuidanceToGM("Token setup. For extra settings, check out the API TokenMod");
         } catch (e) {
@@ -390,8 +396,8 @@ var Guidance = Guidance || (function () {
     };
 
     //Get or replace ability with specified ID
-    let createAbility = function(name, pattern, id) {
-        var checkAbility = findObjs({_type: 'ability', _characterid: id, name: name});        
+    let createAbility = function (name, pattern, id) {
+        var checkAbility = findObjs({_type: 'ability', _characterid: id, name: name});
         if (checkAbility[0]) {
             checkAbility[0].set({action: pattern});
         } else {
@@ -425,7 +431,7 @@ var Guidance = Guidance || (function () {
     };
 
     let formatSpellAsMacro = function (template) {
-        let spellAsMacro = "?{Hide this roll?|No, |Yes,/w GM} &{template:pf_spell}";
+        let spellAsMacro = "?{Hide this roll?|No, |Yes,/w GM} &{template:default}";
         return formatTemplateAsMacro(spellAsMacro, template);
     };
     //</editor-fold>
@@ -443,7 +449,7 @@ var Guidance = Guidance || (function () {
 
         let ship = parseStatBlock(getShipStatBlocks(), cleanNotes);
         setAttribute(c.characterId, "tab", 3);
-        setDefaultTokenForCharacter(c.characterSheet, c.npcToken);
+        setToken(c.characterSheet, c.npcToken);
 
         let basics = getShipBasics(cleanNotes);
         debugLog("Basics = " + basics);
@@ -465,7 +471,7 @@ var Guidance = Guidance || (function () {
         let pilotBonus = piloting?.[1] ?? "?{Piloting Bonus?|0}";
         let pilotingRanks = piloting ? piloting[0].match(/\((.*?)\)/)?.[1] : "Ranks Not Defined";
 
-        let pilotingMacro = `&{template:pf_check} {{name=${c.characterSheet.get("name")}'s Piloting}} {{skill_chk=[[[[d20+${pilotBonus}]] + ?{Any other modifiers?|0}]]}}{{notes=${pilotingRanks}}}`;
+        let pilotingMacro = `&{template:default} {{name=${c.characterSheet.get("name")}'s Piloting}} {{skill_chk=[[[[d20+${pilotBonus}]] + ?{Any other modifiers?|0}]]}}{{notes=${pilotingRanks}}}`;
 
         createObj("ability", {
             name: "Piloting Check",
@@ -477,7 +483,7 @@ var Guidance = Guidance || (function () {
         let gunnery = cleanNotes.match(/unnery\s*(.*?)(?:\s|$)/)?.[1];
 
         let filtered = ship.filter(element => element.val !== undefined && element.sheetAttribute !== undefined && !element.sheetAttribute.includes("weapon"));
-        filtered.forEach(function(i) {
+        filtered.forEach(function (i) {
             i.val = i.val.replace(i.attribute, "").trim();
             let attrib = shipTemplateRowConvert(i);
             attributes[attrib.sheetAttribute] = attrib.val;
@@ -527,7 +533,7 @@ var Guidance = Guidance || (function () {
                 debugLog("Damage = " + damage);
                 debugLog("Range = " + range);
 
-                let weaponMacro = "&{template:pf_attack} {{name=" + c.characterSheet.get("name") +
+                let weaponMacro = "&{template:default} {{name=" + c.characterSheet.get("name") +
                     "'s " + weaponName + "}} {{attack=[[ [[d20+" + bonus + "]] + ?{Any other modifiers?|0}]] }}" +
                     " {{damage=[[" + damage + "]] }} {{notes=" + range + " }} }} ";
 
@@ -572,35 +578,35 @@ var Guidance = Guidance || (function () {
             c.npcToken.set("gmnotes", cleanNotes);
         }
 
-        setAttribute(c.characterId, "tab", 4);
-        setAttribute(c.characterId, "npc-race", c.characterSheet.get("name"));
-        setAttribute(c.characterId, "npc-tactics-show", 0);
-        setAttribute(c.characterId, "npc-feats-show", 0);
-
-        // reduce chance of error
         let section = parseBlockIntoSubSectionMap(cleanNotes);
 
-            populateHeader(c.characterId, section.get("header"));
-            // Setup Character Sheet
-            populateDefense(c.characterId, section.get("defense"));
-            populateOffense(c.characterId, section.get("offense"));
-            populateStatics(c.characterId, section.get("statistics"));
-            populateSkills(c.characterId, section.get("statistics"));
-            populateNPC(c.characterId, cleanNotes);
+        if (simpleSheetUsed) {
+            setAttribute(c.characterId, "tab", 4);
+            setAttribute(c.characterId, "npc-race", c.characterSheet.get("name"));
+            setAttribute(c.characterId, "npc-tactics-show", 0);
+            setAttribute(c.characterId, "npc-feats-show", 0);
+        } else {
+            setAttribute(c.characterId, "sheet_type", "npc");
+            setAttribute(c.characterId, "name", c.characterSheet.get("name"));
+        }
 
+        populateHeader(c.characterId, section.get("header"));
+        populateDefense(c.characterId, section.get("defense"));
+        populateOffense(c.characterId, section.get("offense"));
+        populateStatics(c.characterId, section.get("statistics"));
+        populateSkills(c.characterId, section.get("statistics"));
 
         let featText = getCleanSheetValue(getNPCStatBlocks(), "Feats", cleanNotes);
         populateFeats(c.characterId, featText);
         populateSpecialAbilities(c.characterId, section.get("special"));
         setAlignment(c.characterId, cleanNotes);
 
-        // Set up Token
         setUpToken(c.characterId, c.npcToken);
         if (cleanNotes.toLowerCase().includes("trick attack")) {
             createObj("ability", {
                 name: "Trick Attack (settings on main sheet)",
                 description: "",
-                action: "&{template:pf_check}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
+                action: "&{template:default}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
                 _characterid: c.characterId,
             });
             speakAsGuidanceToGM("Trick attack added to selected character");
@@ -626,6 +632,8 @@ var Guidance = Guidance || (function () {
                 name: handoutName
             });
             userGuide.set("notes", welcomeHandout());
+        } else {
+
         }
 
         log(version);
@@ -771,7 +779,7 @@ var Guidance = Guidance || (function () {
                             return;
                         }
                         populateNPCData(gmNotes, c);
-                        setDefaultTokenForCharacter(c.characterSheet, c.npcToken);
+                        setToken(c.characterSheet, c.npcToken);
                     });
                 });
                 return;
@@ -786,7 +794,7 @@ var Guidance = Guidance || (function () {
                     createObj("ability", {
                         name: "Trick Attack (settings on main sheet)",
                         description: "",
-                        action: "&{template:pf_check}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
+                        action: "&{template:default}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
                         _characterid: character.characterId,
                     });
                     addSpecialAbility(character.characterId, "Trick Attack (Ex) You can trick or startle a foe and then attack when she drops her guard. As a full action, you can move up to your speed. Whether or not you moved, you can then make an attack with a melee weapon with the operative special property or with any small arm. Just before making your attack, attempt a Bluff, Intimidate, or Stealth check (or a check associated with your specialization; see page 94) with a DC equal to 20 + your target’s CR. If you succeed at the check, you deal 1d4 additional damage and the target is flat-footed. This damage increases to 1d8 at 3rd level, to 3d8 at 5th level, and by an additional 1d8 every 2 levels thereafter. You can’t use this ability with a weapon that has the unwieldy special property or that requires a full action to make a single attack.");
@@ -833,7 +841,7 @@ var Guidance = Guidance || (function () {
                     let spellName = cleanNotes.substring(0, cleanNotes.indexOf("Source"));
                     let spell = parseStatBlock(getSpellStatBlocks(), cleanNotes);
 
-                    spell.push(new TemplateRow(0, "name", "name", spellName));
+                    spell.push(new TemplateRow(0, "name", spellName));
 
                     let spellText = formatSpellAsMacro(spell);
                     debugLog(spellText);
@@ -905,6 +913,23 @@ var Guidance = Guidance || (function () {
     //////////////////////////////////////////////////////////////////
 
     //<editor-fold desc="Old Population Helpers - try to move to new helper">
+    let setToken = function (characterId, tokenLinkedToNpcCharacterSheet) {
+        try {
+            let hitPoints = getAttribute(characterId, "HP-npc");
+            tokenLinkedToNpcCharacterSheet.set("bar1_link", hitPoints.id);
+            let armorClass = getAttribute(characterId, "EAC-npc");
+            tokenLinkedToNpcCharacterSheet.set("bar2_value", "EAC " + armorClass.get("current"));
+            tokenLinkedToNpcCharacterSheet.set("bar2_max", armorClass.get("current"));
+            armorClass = getAttribute(characterId, "KAC-npc");
+            tokenLinkedToNpcCharacterSheet.set("bar3_value", "KAC " + armorClass.get("current"));
+            tokenLinkedToNpcCharacterSheet.set("bar3_max", armorClass.get("current"));
+            tokenLinkedToNpcCharacterSheet.set("showname", true);
+            speakAsGuidanceToGM("Token setup. For extra settings, check out the API TokenMod");
+        } catch (e) {
+            speakAsGuidanceToGM("Check to make sure the token is linked and the character sheet is populated");
+        }
+    };
+
     let parseBlockIntoSubSectionMap = function (textToParse) {
         let sections = new Map();
         let parsedText = textToParse;
@@ -1083,39 +1108,115 @@ var Guidance = Guidance || (function () {
     };
 
     let populateHeader = function (characterId, textToParse) {
-        setAttribute(characterId, "npc-cr", getValue("CR", textToParse));
-        setAttribute(characterId, "npc-XP", getValue("XP", textToParse).replace(/\s/, "").replace(/,/, ""));
-        setAttribute(characterId, "npc-senses", getCleanSheetValue(getNPCStatBlocks(), "Senses", textToParse));
-        setAttribute(characterId, "npc-aura", getStringValue("Aura", textToParse, "DEFENSE"));
+        let {cr, xp, senses, aura, subtypeStart, simpleSheetSize, roll20Size} = {
+            cr: getValue("CR", textToParse),
+            xp: getValue("XP", textToParse).replace(/\s/, "").replace(/,/, ""),
+            senses: getCleanSheetValue(getNPCStatBlocks(), "Senses", textToParse),
+            aura: getStringValue("Aura", textToParse, "DEFENSE"),
+            subtypeStart: 0,
+            simpleSheetSize: 0,
+            roll20Size: 0
+        };
+        if (textToParse.toLowerCase().includes("medium")) {
+            subtypeStart = textToParse.indexOf("Medium") + "Medium".length;
+        } else if (textToParse.toLowerCase().includes("large")) {
+            simpleSheetSize = -1;
+            roll20Size = 1
+            subtypeStart = textToParse.indexOf("Large") + "Large".length;
+        } else if (textToParse.toLowerCase().includes("small")) {
+            simpleSheetSize = 1;
+            roll20Size = -1;
+            subtypeStart = textToParse.indexOf("Small") + "Small".length;
+        } else if (textToParse.toLowerCase().includes("gargantuan")) {
+            simpleSheetSize = -4;
+            roll20Size = 3;
+            subtypeStart = textToParse.indexOf("Gargantuan") + "Gargantuan".length;
+        } else if (textToParse.toLowerCase().includes("huge")) {
+            simpleSheetSize = -2;
+            roll20Size = 2;
+            subtypeStart = textToParse.indexOf("Huge") + "Huge".length;
+        } else if (textToParse.toLowerCase().includes("tiny")) {
+            simpleSheetSize = 2;
+            roll20Size = -2;
+            subtypeStart = textToParse.indexOf("Tiny") + "Tiny".length;
+        } else if (textToParse.toLowerCase().includes("diminutive")) {
+            simpleSheetSize = 4;
+            roll20Size = -3;
+            subtypeStart = textToParse.indexOf("Diminutive") + "Diminutive".length;
+        } else if (textToParse.toLowerCase().includes("fine")) {
+            simpleSheetSize = 8;
+            roll20Size = -4;
+            subtypeStart = textToParse.indexOf("Fine") + "Fine".length;
+        } else if (textToParse.toLowerCase().includes("colossal")) {
+            simpleSheetSize = -8;
+            roll20Size = 4;
+            subtypeStart = textToParse.indexOf("Colossal") + "Colossal".length;
+        } else {
+            throw new Error("Alien Size not recognized");
+        }
+
+        let subType = textToParse.substring(subtypeStart, textToParse.indexOf("Init"));
+
+        if (simpleSheetUsed) {
+            let perception = getSkillValue("Perception", "Wis", textToParse);
+            let initiative = getSkillValue("Init", "Dex", textToParse);
+
+            setAttribute(characterId, "npc-cr", cr);
+            setAttribute(characterId, "npc-XP", xp);
+            setAttribute(characterId, "npc-senses", senses);
+            setAttribute(characterId, "npc-aura", aura);
+            setAttribute(characterId, "Perception-npc-misc", perception);
+            setAttribute(characterId, "npc-init-misc", initiative);
+            setAttribute(characterId, "Perception-npc-ranks", perception);
+            setAttribute(characterId, "npc-init-ranks", initiative);
+            setAttribute(characterId, "npc-size", simpleSheetSize);
+            setAttribute(characterId, "npc-subtype", subType);
+        } else {
+            let perception = getSkillValue("Perception", null, textToParse);
+            let initiative = getSkillValue("Init", null, textToParse);
+
+            setAttribute(characterId, "character_level", cr);
+            setAttribute(characterId, "xp", xp);
+            setAttribute(characterId, "senses", senses);
+            setAttribute(characterId, "aura", aura);
+            setAttribute(characterId, "perception", perception);
+            setAttribute(characterId, "perception_base", perception);
+            setAttribute(characterId, "initiative", initiative);
+            setAttribute(characterId, "initiative_base", initiative);
+            setAttribute(characterId, "size", roll20Size);
+            setAttribute(characterId, "type_subtype", subType);
+        }
     };
 
     let populateDefense = function (characterId, textToParse) {
-        setAttribute(characterId, "EAC-npc", getValue("EAC ", textToParse));
-        setAttribute(characterId, "KAC-npc", getValue("KAC", textToParse));
-        setAttribute(characterId, "Fort-npc", getValue("Fort", textToParse).replace("+", ""));
-        setAttribute(characterId, "Ref-npc", getValue("Ref", textToParse).replace("+", ""));
-        setAttribute(characterId, "Will-npc", getValue("Will", textToParse).replace("+", ""));
-        setAttribute(characterId, "HP-npc", getValue("HP", textToParse));
-        let rp = getValue("RP", textToParse);
-        if (rp !== undefined) {
-            setAttribute(characterId, "RP-npc", rp);
-        }
-        setAttribute(characterId, "npc-SR", getValue("SR", textToParse));
+        let {eac, kac, fort, ref, will, hp, rp, sr, dr, resistances, weaknesses, immunities, defensiveAbilities} = {
+            eac: getValue("EAC", textToParse),
+            kac: getValue("KAC", textToParse),
+            fort: getValue("Fort", textToParse).replace("+", ""),
+            ref: getValue("Ref", textToParse).replace("+", ""),
+            will: getValue("Will", textToParse).replace("+", ""),
+            hp: getValue("HP", textToParse),
+            rp: getValue("RP", textToParse),
+            sr: getValue("SR", textToParse),
+            dr: getValue("DR", textToParse, ";"),
+            resistances: getCleanSheetValue(getNPCStatBlocks(), "Resistances", textToParse, ";"),
+            weaknesses: "",
+            immunities: getValue("Immunities", textToParse, "OFFENSE"),
+            defensiveAbilities: ""
+        };
+
+        rp = rp || 0;
+        sr = sr || 0;
+
         if (textToParse.includes("Weaknesses")) {
-            setAttribute(characterId, "npc-resistances", getCleanSheetValue(getNPCStatBlocks(), "Resistances", textToParse, "Weaknesses"));
-            setAttribute(characterId, "npc-weaknesses", getCleanSheetValue(getNPCStatBlocks(), "Weaknesses", textToParse, ";"));
-        } else {
-            setAttribute(characterId, "npc-resistances", getCleanSheetValue(getNPCStatBlocks(), "Resistances", textToParse, ";"));
+            resistances = getCleanSheetValue(getNPCStatBlocks(), "Resistances", textToParse, "Weaknesses");
+            weaknesses = getCleanSheetValue(getNPCStatBlocks(), "Weaknesses", textToParse, ";");
         }
-        setAttribute(characterId, "npc-DR", getValue("DR", textToParse, ";"));
 
         if (textToParse.includes("SR")) {
-            setAttribute(characterId, "npc-immunities", getValue("Immunities", textToParse, "SR"));
-        } else {
-            setAttribute(characterId, "npc-immunities", getValue("Immunities", textToParse, "OFFENSE"));
+            immunities = getValue("Immunities", textToParse, "SR");
         }
 
-        let defensiveAbilities = "";
         if (textToParse.includes("vs.")) {
             let extraSaveStart = textToParse.indexOf("Will") + 3;
             defensiveAbilities = textToParse.substring(extraSaveStart);
@@ -1132,7 +1233,41 @@ var Guidance = Guidance || (function () {
             }
             defensiveAbilities = textToParse.substring(start) + " " + defensiveAbilities;
         }
-        setAttribute(characterId, "npc-defensive-abilities", defensiveAbilities);
+
+        if (simpleSheetUsed) {
+            setAttribute(characterId, "EAC-npc", eac);
+            setAttribute(characterId, "KAC-npc", kac);
+            setAttribute(characterId, "Fort-npc", fort);
+            setAttribute(characterId, "Ref-npc", ref);
+            setAttribute(characterId, "Will-npc", will);
+            setAttribute(characterId, "HP-npc", hp);
+            setAttribute(characterId, "RP-npc", rp);
+            setAttribute(characterId, "npc-SR", sr);
+            setAttribute(characterId, "npc-DR", dr);
+            setAttribute(characterId, "npc-resistances", resistances);
+            setAttribute(characterId, "npc-weaknesses", weaknesses);
+            setAttribute(characterId, "npc-immunities", immunities);
+            setAttribute(characterId, "npc-defensive-abilities", defensiveAbilities);
+        } else {
+            setAttribute(characterId, "eac_base", eac);
+            setAttribute(characterId, "kac_base", kac);
+            setAttribute(characterId, "eac", eac);
+            setAttribute(characterId, "kac", kac);
+            setAttribute(characterId, "fort_base", fort);
+            setAttribute(characterId, "ref_base", ref);
+            setAttribute(characterId, "will_base", will);
+            setAttribute(characterId, "fort", fort);
+            setAttribute(characterId, "ref", ref);
+            setAttribute(characterId, "will", will);
+            setAttribute(characterId, "hp", hp);
+            setAttribute(characterId, "rp", rp);
+            setAttribute(characterId, "sr", sr);
+            setAttribute(characterId, "dr", dr);
+            setAttribute(characterId, "resistances", resistances);
+            setAttribute(characterId, "weaknesses", weaknesses);
+            setAttribute(characterId, "immunities", immunities);
+            setAttribute(characterId, "defensive_abilities", defensiveAbilities);
+        }
     };
 
     let populateOffense = function (characterId, textToParse) {
@@ -1263,83 +1398,39 @@ var Guidance = Guidance || (function () {
     };
 
     let populateSkills = function (characterId, textToParse) {
-        setAttribute(characterId, "Acrobatics-npc-misc", getSkillValue("Acrobatics", "Dex", textToParse));
-        setAttribute(characterId, "Athletics-npc-misc", getSkillValue("Athletics", "Str", textToParse));
-        setAttribute(characterId, "Bluff-npc-misc", getSkillValue("Bluff", "Cha", textToParse));
-        setAttribute(characterId, "Computers-npc-misc", getSkillValue("Computers", "Int", textToParse));
-        setAttribute(characterId, "Culture-npc-misc", getSkillValue("Culture", "Int", textToParse));
-        setAttribute(characterId, "Diplomacy-npc-misc", getSkillValue("Diplomacy", "Cha", textToParse));
-        setAttribute(characterId, "Disguise-npc-misc", getSkillValue("Disguise", "Cha", textToParse));
-        setAttribute(characterId, "Engineering-npc-misc", getSkillValue("Engineering", "Int", textToParse));
-        setAttribute(characterId, "Intimidate-npc-misc", getSkillValue("Intimidate", "Cha", textToParse));
-        setAttribute(characterId, "Life-Science-npc-misc", getSkillValue("Life-Science", "Int", textToParse));
-        setAttribute(characterId, "Medicine-npc-misc", getSkillValue("Medicine", "Int", textToParse));
-        setAttribute(characterId, "Mysticism-npc-misc", getSkillValue("Mysticism", "Wis", textToParse));
-        setAttribute(characterId, "Physical-Science-npc-misc", getSkillValue("Physical-Science", "Int", textToParse));
-        setAttribute(characterId, "Piloting-npc-misc", getSkillValue("Piloting", "Dex", textToParse));
-        setAttribute(characterId, "Sense-Motive-npc-misc", getSkillValue("Sense-Motive", "Wis", textToParse));
-        setAttribute(characterId, "Sleight-of-Hand-npc-misc", getSkillValue("Sleight-of-Hand", "Dex", textToParse));
-        setAttribute(characterId, "Stealth-npc-misc", getSkillValue("Stealth", "Dex", textToParse));
-        setAttribute(characterId, "Survival-npc-misc", getSkillValue("Survival", "Wis", textToParse));
-        setAttribute(characterId, "Acrobatics-ranks", getSkillValue("Acrobatics", "Dex", textToParse));
-        setAttribute(characterId, "Athletics-ranks", getSkillValue("Athletics", "Str", textToParse));
-        setAttribute(characterId, "Bluff-ranks", getSkillValue("Bluff", "Cha", textToParse));
-        setAttribute(characterId, "Computers-ranks", getSkillValue("Computers", "Int", textToParse));
-        setAttribute(characterId, "Culture-ranks", getSkillValue("Culture", "Int", textToParse));
-        setAttribute(characterId, "Diplomacy-ranks", getSkillValue("Diplomacy", "Cha", textToParse));
-        setAttribute(characterId, "Disguise-ranks", getSkillValue("Disguise", "Cha", textToParse));
-        setAttribute(characterId, "Engineering-ranks", getSkillValue("Engineering", "Int", textToParse));
-        setAttribute(characterId, "Intimidate-ranks", getSkillValue("Intimidate", "Cha", textToParse));
-        setAttribute(characterId, "Life-Science-ranks", getSkillValue("Life-Science", "Int", textToParse));
-        setAttribute(characterId, "Medicine-ranks", getSkillValue("Medicine", "Int", textToParse));
-        setAttribute(characterId, "Mysticism-ranks", getSkillValue("Mysticism", "Wis", textToParse));
-        setAttribute(characterId, "Physical-Science-ranks", getSkillValue("Physical-Science", "Int", textToParse));
-        setAttribute(characterId, "Piloting-ranks", getSkillValue("Piloting", "Dex", textToParse));
-        setAttribute(characterId, "Sense-Motive-ranks", getSkillValue("Sense-Motive", "Wis", textToParse));
-        setAttribute(characterId, "Sleight-of-Hand-ranks", getSkillValue("Sleight-of-Hand", "Dex", textToParse));
-        setAttribute(characterId, "Stealth-ranks", getSkillValue("Stealth", "Dex", textToParse));
-        setAttribute(characterId, "Survival-ranks", getSkillValue("Survival", "Wis", textToParse));
-    };
+        let skills = [
+            {name: "Acrobatics", attribute: "Dex"},
+            {name: "Athletics", attribute: "Str"},
+            {name: "Bluff", attribute: "Cha"},
+            {name: "Computers", attribute: "Int"},
+            {name: "Culture", attribute: "Int"},
+            {name: "Diplomacy", attribute: "Cha"},
+            {name: "Disguise", attribute: "Cha"},
+            {name: "Engineering", attribute: "Int"},
+            {name: "Intimidate", attribute: "Cha"},
+            {name: "Life-Science", attribute: "Int"},
+            {name: "Medicine", attribute: "Int"},
+            {name: "Mysticism", attribute: "Wis"},
+            {name: "Physical-Science", attribute: "Int"},
+            {name: "Piloting", attribute: "Dex"},
+            {name: "Sense-Motive", attribute: "Wis"},
+            {name: "Sleight-of-Hand", attribute: "Dex"},
+            {name: "Stealth", attribute: "Dex"},
+            {name: "Survival", attribute: "Wis"}
+        ];
 
-    let populateNPC = function (characterId, textToParse) {
-        setAttribute(characterId, "Perception-npc-misc", getSkillValue("Perception", "Wis", textToParse));
-        setAttribute(characterId, "npc-init-misc", getSkillValue("Init", "Dex", textToParse));
-
-        let section = getStringValue("XP", textToParse, "DEFENSE").trim();
-
-        let subtypeStart = 0;
-        let dropdown = 0;
-        if (section.toLowerCase().includes("medium")) {
-            dropdown = 0;
-            subtypeStart = section.indexOf("Medium") + "Medium".length;
-        } else if (section.toLowerCase().includes("large")) {
-            dropdown = -1;
-            subtypeStart = section.indexOf("Large") + "Large".length;
-        } else if (section.toLowerCase().includes("small")) {
-            dropdown = 1;
-            subtypeStart = section.indexOf("Small") + "Small".length;
-        } else if (section.toLowerCase().includes("gargantuan")) {
-            dropdown = -4;
-            subtypeStart = section.indexOf("Gargantuan") + "Gargantuan".length;
-        } else if (section.toLowerCase().includes("huge")) {
-            dropdown = -2;
-            subtypeStart = section.indexOf("Huge") + "Huge".length;
-        } else if (section.toLowerCase().includes("tiny")) {
-            dropdown = 2;
-            subtypeStart = section.indexOf("Tiny") + "Tiny".length;
-        } else if (section.toLowerCase().includes("diminutive")) {
-            dropdown = 4;
-            subtypeStart = section.indexOf("Diminutive") + "Diminutive".length;
-        } else if (section.toLowerCase().includes("fine")) {
-            dropdown = 8;
-            subtypeStart = section.indexOf("Fine") + "Fine".length;
-        } else if (section.toLowerCase().includes("colossal")) {
-            dropdown = -8;
-            subtypeStart = section.indexOf("Colossal") + "Colossal".length;
+        if (simpleSheetUsed) {
+            for (let skill of skills) {
+                setAttribute(characterId, `${skill.name}-npc-misc`, getSkillValue(skill.name, skill.attribute, textToParse));
+                setAttribute(characterId, `${skill.name}-ranks`, getSkillValue(skill.name, skill.attribute, textToParse));
+            }
+        } else {
+            for (let skill of skills) {
+                let skillName = skill.name.split('-').join('_').toLowerCase();
+                setAttribute(characterId, skillName, getSkillValue(skill.name, null, textToParse));
+                setAttribute(characterId, skillName + "_base", getSkillValue(skill.name, null, textToParse));
+            }
         }
-
-        setAttribute(characterId, "npc-size", dropdown);
-        setAttribute(characterId, "npc-subtype", section.substring(subtypeStart, section.indexOf("Init")));
     };
 
     let doWeapons = function (characterId, textToParse) {
@@ -1403,7 +1494,7 @@ var Guidance = Guidance || (function () {
         let weapon = "";
         while (isNaN(details[i]) && i < details.length) {
             weapon = weapon + details[i] + " ";
-            i++; 
+            i++;
         }
 
         if (i === details.length) {
@@ -1425,33 +1516,33 @@ var Guidance = Guidance || (function () {
         if (dnd[1] !== undefined) {
             setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-damage", dnd[1]);
         }
-        
+
         i++;
         //createWeaponDamageType(characterId, uuid, details, i);
-        try{
-            if(i <= details.length){
+        try {
+            if (i <= details.length) {
                 debugLog("Weapon type: " + details[i]);
                 let damageType = details[i];
                 //Test for 2 damage types aka plasma E & F
-                if(details[i+1] == "&"){
+                if (details[i + 1] == "&") {
                     damageType += details[++i] + " " + details[++i];
                 }
                 damageType = details[i].replace(/;/, "").replace(/\)/, "");
                 setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-type", damageType);
             }
-        }catch(ex){
+        } catch (ex) {
             debugLog("Error parsing damage type for: " + uuid);
-            debugLog(ex);    
+            debugLog(ex);
         }
         i++;
         //createWeaponCriticals(characterId, uuid, details, i);
-        try{
-            if(i <= details.length && details[i] != ")"){
-                if(details[i] == "critical"){
+        try {
+            if (i <= details.length && details[i] != ")") {
+                if (details[i] == "critical") {
                     i++;
                     //Probably need a foreach in here to go through the rest
                     let critical = "";
-                    while(i < details.length){
+                    while (i < details.length) {
                         critical = critical + " " + details[i];
                         i++;
                     }
@@ -1459,10 +1550,10 @@ var Guidance = Guidance || (function () {
                     debugLog("Weapon Critical: " + critical);
                     setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-critical", critical);
                 }
-            }   
-        }catch(ex){
+            }
+        } catch (ex) {
             debugLog("Error parsing damage critical for: " + uuid);
-            debugLog(ex);    
+            debugLog(ex);
         }
 
         //Add token macro for parsed weapon attack
@@ -1471,11 +1562,11 @@ var Guidance = Guidance || (function () {
             createObj("ability", {
                 name: "2-" + weapon,
                 description: details,
-                action: "%{selected|repeating_npc-weapon_"+ uuid + "_roll}",
+                action: "%{selected|repeating_npc-weapon_" + uuid + "_roll}",
                 _characterid: characterId,
                 istokenaction: true
             });
-        } catch(ex) {
+        } catch (ex) {
             debugLog("Creating weapon ability error occurred.");
             debugLog(ex);
         }
@@ -1486,41 +1577,41 @@ var Guidance = Guidance || (function () {
     //<editor-fold desc="Stat block formatter templates">
     let getShipStatBlocks = function () {
         let t = [];
-        t.push(new TemplateRow(t.length, "starship-name", ""));
-        t.push(new TemplateRow(t.length, "starship-tier", ""));
-        t.push(new TemplateRow(t.length, "starship-size", ""));
-        t.push(new TemplateRow(t.length, "starship-frame", ""));
-        t.push(new TemplateRow(t.length, "starship-speed", "Speed"));
-        t.push(new TemplateRow(t.length, "starship-maneuverability", "Maneuverability"));
-        t.push(new TemplateRow(t.length, "starship-drift-rating", "Drift"));
-        t.push(new TemplateRow(t.length, "starship-ac-misc", "AC"));
-        t.push(new TemplateRow(t.length, "starship-tl-misc", "TL"));
-        t.push(new TemplateRow(t.length, "starship-hp", "HP"));
-        t.push(new TemplateRow(t.length, "starship-damage-threshold", "DT"));
-        t.push(new TemplateRow(t.length, "starship-critical-threshold", "CT"));
-        t.push(new TemplateRow(t.length, "starship-total-shield-points", "Shields"));
-        t.push(new TemplateRow(t.length, "starship-fwd-shields", "(forward"));
-        t.push(new TemplateRow(t.length, "starship-port-shields", "port"));
-        t.push(new TemplateRow(t.length, "starship-stbd-shields", "starboard"));
-        t.push(new TemplateRow(t.length, "starship-aft-shields", "aft"));
-        t.push(new TemplateRow(t.length, "starship-fwd-weapon", "Attack (Forward)"));
-        t.push(new TemplateRow(t.length, "starship-port-weapon", "Attack (Port)"));
-        t.push(new TemplateRow(t.length, "starship-stbd-weapon", "Attack (Starboard)"));
-        t.push(new TemplateRow(t.length, "starship-aft-weapon", "Attack (Aft)"));
-        t.push(new TemplateRow(t.length, "starship-turret-weapon", "Attack (Turret)"));
-        t.push(new TemplateRow(t.length, "starship-power-core", "Power Core"));
-        t.push(new TemplateRow(t.length, "starship-drift-engine", "Drift Engine"));
-        t.push(new TemplateRow(t.length, "starship-notes", "Systems"));
-        t.push(new TemplateRow(t.length, "starship-bays", "Expansion Bays"));
-        t.push(new TemplateRow(t.length, "starship-computer", "Modifiers"));
-        t.push(new TemplateRow(t.length, "starship-crew-size", "Complement"));
-        t.push(new TemplateRow(t.length, "", "CREW"));
-        t.push(new TemplateRow(t.length, "starship-crew-capt", "Captain"));
-        t.push(new TemplateRow(t.length, "starship-crew-eng", "Engineer"));
-        t.push(new TemplateRow(t.length, "starship-crew-gun", "Gunner")); //(s) (#)
-        t.push(new TemplateRow(t.length, "starship-crew-pilot", "Pilot"));
-        t.push(new TemplateRow(t.length, "starship-crew-sci", "Science Officer"));
-        t.push(new TemplateRow(t.length, "", "SPECIAL ABILITIES"));
+        t.push(new TemplateRow(t.length, ""));
+        t.push(new TemplateRow(t.length, ""));
+        t.push(new TemplateRow(t.length, ""));
+        t.push(new TemplateRow(t.length, ""));
+        t.push(new TemplateRow(t.length, "Speed"));
+        t.push(new TemplateRow(t.length, "Maneuverability"));
+        t.push(new TemplateRow(t.length, "Drift"));
+        t.push(new TemplateRow(t.length, "AC"));
+        t.push(new TemplateRow(t.length, "TL"));
+        t.push(new TemplateRow(t.length, "HP"));
+        t.push(new TemplateRow(t.length, "DT"));
+        t.push(new TemplateRow(t.length, "CT"));
+        t.push(new TemplateRow(t.length, "Shields"));
+        t.push(new TemplateRow(t.length, "(forward"));
+        t.push(new TemplateRow(t.length, "port"));
+        t.push(new TemplateRow(t.length, "starboard"));
+        t.push(new TemplateRow(t.length, "aft"));
+        t.push(new TemplateRow(t.length, "Attack (Forward)"));
+        t.push(new TemplateRow(t.length, "Attack (Port)"));
+        t.push(new TemplateRow(t.length, "Attack (Starboard)"));
+        t.push(new TemplateRow(t.length, "Attack (Aft)"));
+        t.push(new TemplateRow(t.length, "Attack (Turret)"));
+        t.push(new TemplateRow(t.length, "Power Core"));
+        t.push(new TemplateRow(t.length, "Drift Engine"));
+        t.push(new TemplateRow(t.length, "Systems"));
+        t.push(new TemplateRow(t.length, "Expansion Bays"));
+        t.push(new TemplateRow(t.length, "Modifiers"));
+        t.push(new TemplateRow(t.length, "Complement"));
+        t.push(new TemplateRow(t.length, "CREW"));
+        t.push(new TemplateRow(t.length, "Captain"));
+        t.push(new TemplateRow(t.length, "Engineer"));
+        t.push(new TemplateRow(t.length, "Gunner")); //(s) (#)
+        t.push(new TemplateRow(t.length, "Pilot"));
+        t.push(new TemplateRow(t.length, "Science Officer"));
+        t.push(new TemplateRow(t.length, "SPECIAL ABILITIES"));
         t.sort(function (a, b) {
             return a.order - b.order;
         });
@@ -1529,23 +1620,23 @@ var Guidance = Guidance || (function () {
 
     let getSpellStatBlocks = function () {
         let spellArray = [];
-        spellArray.push(new TemplateRow(spellArray.length, "name", ""));
-        spellArray.push(new TemplateRow(spellArray.length, "source", "Source"));
-        spellArray.push(new TemplateRow(spellArray.length, "level", "Classes"));
-        spellArray.push(new TemplateRow(spellArray.length, "school", "School"));
-        spellArray.push(new TemplateRow(spellArray.length, "casting_time", "Casting Time"));
-        spellArray.push(new TemplateRow(spellArray.length, "range", "Range"));
-        spellArray.push(new TemplateRow(spellArray.length, "target", "Area"));
-        spellArray.push(new TemplateRow(spellArray.length, "target", "Effect"));
-        spellArray.push(new TemplateRow(spellArray.length, "target", "Target"));
-        spellArray.push(new TemplateRow(spellArray.length, "duration", "Duration"));
-        spellArray.push(new TemplateRow(spellArray.length, "saving_throw", "Saving Throw"));
+        spellArray.push(new TemplateRow(spellArray.length, ""));
+        spellArray.push(new TemplateRow(spellArray.length, "Source"));
+        spellArray.push(new TemplateRow(spellArray.length, "Classes"));
+        spellArray.push(new TemplateRow(spellArray.length, "School"));
+        spellArray.push(new TemplateRow(spellArray.length, "Casting Time"));
+        spellArray.push(new TemplateRow(spellArray.length, "Range"));
+        spellArray.push(new TemplateRow(spellArray.length, "Area"));
+        spellArray.push(new TemplateRow(spellArray.length, "Effect"));
+        spellArray.push(new TemplateRow(spellArray.length, "Target"));
+        spellArray.push(new TemplateRow(spellArray.length, "Duration"));
+        spellArray.push(new TemplateRow(spellArray.length, "Saving Throw"));
         //spellArray.push(new TemplateRow(spellArray.length, "save_effect", "Save Effect"));
-        spellArray.push(new TemplateRow(spellArray.length, "sr", "Spell Resistance"));
-        spellArray.push(new TemplateRow(spellArray.length, "rng_attack", "Ranged Attack"));
-        spellArray.push(new TemplateRow(spellArray.length, "mel_attack", "Melee Attack"));
-        spellArray.push(new TemplateRow(spellArray.length, "damage", "Damage"));
-        spellArray.push(new TemplateRow(spellArray.length, "spell_description", "Description"));
+        spellArray.push(new TemplateRow(spellArray.length, "Spell Resistance"));
+        spellArray.push(new TemplateRow(spellArray.length, "Ranged Attack"));
+        spellArray.push(new TemplateRow(spellArray.length, "Melee Attack"));
+        spellArray.push(new TemplateRow(spellArray.length, "Damage"));
+        spellArray.push(new TemplateRow(spellArray.length, "Description"));
         spellArray.sort(function (a, b) {
             return a.order - b.order;
         });
@@ -1558,81 +1649,77 @@ var Guidance = Guidance || (function () {
 
     let getNPCStatBlocks = function () {
         let t = [];
-        t.push(new TemplateRow(t.length, "npc-race")); // name
-        t.push(new TemplateRow(0, "npc-cr", "CR"));
-        t.push(new TemplateRow(t.length, "npc-XP", "XP"));
-        t.push(new TemplateRow(t.length, "npc-alignment"));
-        t.push(new TemplateRow(t.length, "npc-size"));
-        t.push(new TemplateRow(t.length, "npc-subtype"));
-        t.push(new TemplateRow(t.length, "npc-init-misc", "Init"));
-        t.push(new TemplateRow(t.length, "npc-senses", "Senses"));
-        t.push(new TemplateRow(t.length, "Perception-npc-misc", "Perception"));
-        t.push(new TemplateRow(t.length, "npc-aura", "Aura"));
-        t.push(new TemplateRow(t.length, "", "DEFENSE"));
-        t.push(new TemplateRow(t.length, "HP-npc", "HP"));
-        t.push(new TemplateRow(t.length, "RP-npc", "RP"));
-        t.push(new TemplateRow(t.length, "EAC-npc", "EAC"));
-        t.push(new TemplateRow(t.length, "KAC-npc", "KAC"));
-        t.push(new TemplateRow(t.length, "Fort-npc", "Fort"));
-        t.push(new TemplateRow(t.length, "Ref-npc", "Ref"));
-        t.push(new TemplateRow(t.length, "Will-npc", "Will"));
-        t.push(new TemplateRow(t.length, "npc-defensive-abilities", "Defensive Abilities"));
-        t.push(new TemplateRow(t.length, "npc-DR", "DR"));
-        t.push(new TemplateRow(t.length, "npc-immunities", "Immunities"));
-        t.push(new TemplateRow(t.length, "npc-resistances", "Resistances"));
-        t.push(new TemplateRow(t.length, "npc-SR", "SR"));
-        t.push(new TemplateRow(t.length, "npc-weaknesses", "Weaknesses"));
-        t.push(new TemplateRow(t.length, "", "OFFENSE"));
-        t.push(new TemplateRow(t.length, "speed-base-npc", "Speed"));
-        t.push(new TemplateRow(t.length, "speed-burrow-npc", "burrow"));
-        t.push(new TemplateRow(t.length, "speed-climb-npc", "climb"));
-        t.push(new TemplateRow(t.length, "speed-swim-npc", "swim"));
-        t.push(new TemplateRow(t.length, "speed-fly-npc", "fly"));
-        t.push(new TemplateRow(t.length, "speed-fly-maneuverability-npc"));
-        t.push(new TemplateRow(t.length, "SPECIAL", "Melee"));
-        t.push(new TemplateRow(t.length, "SPECIAL", "Ranged"));
-        t.push(new TemplateRow(t.length, "SPECIAL", "Multiattack"));
-        t.push(new TemplateRow(t.length, "space", "Space"));
-        t.push(new TemplateRow(t.length, "reach", "Reach"));
-        t.push(new TemplateRow(t.length, "npc-special-attacks", "Offensive Abilities"));
-        t.push(new TemplateRow(t.length, "SPECIAL", "Spell-Like Abilities"));  // (CL )
-        t.push(new TemplateRow(t.length, "SPECIAL", "Spells Known")); // (CL )
-        t.push(new TemplateRow(t.length, "SPECIAL", "Connection")); //   (if Mystic)
-        t.push(new TemplateRow(t.length, "", "TACTICS"));
-        t.push(new TemplateRow(t.length, "", "STATISTICS"));
-        t.push(new TemplateRow(t.length, "STR-bonus", "Str"));
-        t.push(new TemplateRow(t.length, "DEX-bonus", "Dex"));
-        t.push(new TemplateRow(t.length, "CON-bonus", "Con"));
-        t.push(new TemplateRow(t.length, "INT-bonus", "Int"));
-        t.push(new TemplateRow(t.length, "WIS-bonus", "Wis"));
-        t.push(new TemplateRow(t.length, "CHA-bonus", "Cha"));
-        t.push(new TemplateRow(t.length, "", "Feats"));
-        t.push(new TemplateRow(t.length, "", "Skills"));
-        t.push(new TemplateRow(t.length, "Acrobatics-npc-misc", "Acrobatics"));
-        t.push(new TemplateRow(t.length, "Athletics-npc-misc", "Athletics"));
-        t.push(new TemplateRow(t.length, "Bluff-npc-misc", "Bluff"));
-        t.push(new TemplateRow(t.length, "Computers-npc-misc", "Computers"));
-        t.push(new TemplateRow(t.length, "Culture-npc-misc", "Culture"));
-        t.push(new TemplateRow(t.length, "Diplomacy-npc-misc", "Diplomacy"));
-        t.push(new TemplateRow(t.length, "Disguise-npc-misc", "Disguise"));
-        t.push(new TemplateRow(t.length, "Engineering-npc-misc", "Engineering"));
-        t.push(new TemplateRow(t.length, "Intimidate-npc-misc", "Intimidate"));
-        t.push(new TemplateRow(t.length, "Life-Science-npc-misc", "Life Science"));
-        t.push(new TemplateRow(t.length, "Medicine-npc-misc", "Medicine"));
-        t.push(new TemplateRow(t.length, "Mysticism-npc-misc", "Mysticism"));
-        t.push(new TemplateRow(t.length, "Physical-Science-npc-misc", "Physical Science"));
-        t.push(new TemplateRow(t.length, "Piloting-npc-misc", "Piloting"));
-        t.push(new TemplateRow(t.length, "Sense-Motive-npc-misc", "Sense Motive"));
-        t.push(new TemplateRow(t.length, "Sleight-of-Hand-npc-misc", "Sleight of Hand"));
-        t.push(new TemplateRow(t.length, "Stealth-npc-misc", "Stealth"));
-        t.push(new TemplateRow(t.length, "Survival-npc-misc", "Survival"));
-        t.push(new TemplateRow(t.length, "languages-npc", "Language"));
-        t.push(new TemplateRow(t.length, "SQ", "Other Abilities"));
-        t.push(new TemplateRow(t.length, "npc-gear", "Gear"));
-        t.push(new TemplateRow(t.length, "", "ECOLOGY"));
-        t.push(new TemplateRow(t.length, "", "Environment"));
-        t.push(new TemplateRow(t.length, "", "Organization"));
-        t.push(new TemplateRow(t.length, "SPECIAL", "SPECIAL ABILITIES"));
+        t.push(new TemplateRow(t.length)); // name
+        t.push(new TemplateRow(0, "CR"));
+        t.push(new TemplateRow(t.length, "XP"));
+        t.push(new TemplateRow(t.length, "Init"));
+        t.push(new TemplateRow(t.length, "Senses"));
+        t.push(new TemplateRow(t.length, "Perception"));
+        t.push(new TemplateRow(t.length, "Aura"));
+        t.push(new TemplateRow(t.length, "DEFENSE"));
+        t.push(new TemplateRow(t.length, "HP"));
+        t.push(new TemplateRow(t.length, "RP"));
+        t.push(new TemplateRow(t.length, "EAC"));
+        t.push(new TemplateRow(t.length, "KAC"));
+        t.push(new TemplateRow(t.length, "Fort"));
+        t.push(new TemplateRow(t.length, "Ref"));
+        t.push(new TemplateRow(t.length, "Will"));
+        t.push(new TemplateRow(t.length, "Defensive Abilities"));
+        t.push(new TemplateRow(t.length, "DR"));
+        t.push(new TemplateRow(t.length, "Immunities"));
+        t.push(new TemplateRow(t.length, "Resistances"));
+        t.push(new TemplateRow(t.length, "SR"));
+        t.push(new TemplateRow(t.length, "Weaknesses"));
+        t.push(new TemplateRow(t.length, "OFFENSE"));
+        t.push(new TemplateRow(t.length, "Speed"));
+        t.push(new TemplateRow(t.length, "burrow"));
+        t.push(new TemplateRow(t.length, "climb"));
+        t.push(new TemplateRow(t.length, "swim"));
+        t.push(new TemplateRow(t.length, "fly"));
+        t.push(new TemplateRow(t.length, "Melee"));
+        t.push(new TemplateRow(t.length, "Ranged"));
+        t.push(new TemplateRow(t.length, "Multiattack"));
+        t.push(new TemplateRow(t.length, "Space"));
+        t.push(new TemplateRow(t.length, "Reach"));
+        t.push(new TemplateRow(t.length, "Offensive Abilities"));
+        t.push(new TemplateRow(t.length, "Spell-Like Abilities"));  // (CL )
+        t.push(new TemplateRow(t.length, "Spells Known")); // (CL )
+        t.push(new TemplateRow(t.length, "Connection")); //   (if Mystic)
+        t.push(new TemplateRow(t.length, "TACTICS"));
+        t.push(new TemplateRow(t.length, "STATISTICS"));
+        t.push(new TemplateRow(t.length, "Str"));
+        t.push(new TemplateRow(t.length, "Dex"));
+        t.push(new TemplateRow(t.length, "Con"));
+        t.push(new TemplateRow(t.length, "Int"));
+        t.push(new TemplateRow(t.length, "Wis"));
+        t.push(new TemplateRow(t.length, "Cha"));
+        t.push(new TemplateRow(t.length, "Feats"));
+        t.push(new TemplateRow(t.length, "Skills"));
+        t.push(new TemplateRow(t.length, "Acrobatics"));
+        t.push(new TemplateRow(t.length, "Athletics"));
+        t.push(new TemplateRow(t.length, "Bluff"));
+        t.push(new TemplateRow(t.length, "Computers"));
+        t.push(new TemplateRow(t.length, "Culture"));
+        t.push(new TemplateRow(t.length, "Diplomacy"));
+        t.push(new TemplateRow(t.length, "Disguise"));
+        t.push(new TemplateRow(t.length, "Engineering"));
+        t.push(new TemplateRow(t.length, "Intimidate"));
+        t.push(new TemplateRow(t.length, "Life Science"));
+        t.push(new TemplateRow(t.length, "Medicine"));
+        t.push(new TemplateRow(t.length, "Mysticism"));
+        t.push(new TemplateRow(t.length, "Physical Science"));
+        t.push(new TemplateRow(t.length, "Piloting"));
+        t.push(new TemplateRow(t.length, "Sense Motive"));
+        t.push(new TemplateRow(t.length, "Sleight of Hand"));
+        t.push(new TemplateRow(t.length, "Stealth"));
+        t.push(new TemplateRow(t.length, "Survival"));
+        t.push(new TemplateRow(t.length, "Language"));
+        t.push(new TemplateRow(t.length, "Other Abilities"));
+        t.push(new TemplateRow(t.length, "Gear"));
+        t.push(new TemplateRow(t.length, "ECOLOGY"));
+        t.push(new TemplateRow(t.length, "Environment"));
+        t.push(new TemplateRow(t.length, "Organization"));
+        t.push(new TemplateRow(t.length, "SPECIAL ABILITIES"));
         t.sort(function (a, b) {
             return a.order - b.order;
         });

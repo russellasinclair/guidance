@@ -1,0 +1,2358 @@
+{
+  "schema_version": 3,
+  "type": "character",
+  "character": {
+    "oldId": "-MmsnpVU6vmOhFrwTmId",
+    "name": "Guardian Robot",
+    "avatar": "https://s3.amazonaws.com/files.d20.io/marketplace/2101971/B4lWNAPZGV_PUqHChCUx0w/med.png?1635953278",
+    "bio": "%3Cp%3E%3Cb%3EPicture%3A%3C/b%3E%20%3Ca%20href%3D%22http%3A//journal.roll20.net/handout/-Mmx_Q88ON743gQHHir0%22%3EHandout%3A%20Guardian%20Robot%3C/a%3E%3C/p%3E%3Cp%3E%3Cimg%20src%3D%22https%3A//s3.amazonaws.com/files.d20.io/images/173657813/z6xxt8LYXN31WbWHSGLw8Q/med.png%3F1603829190%22%3E%0A%09%09%09%09%09%3C/p%3E%3Cp%3EOne%20of%20the%20many%20functions%20robots%20can%20serve%20is%20protection%2C%20whether%20for%20a%20single%20person%20or%20a%20large%20property.%20Several%20robot%20models%20have%20been%20created%20for%20just%20this%20purpose.%3C/p%3E%3Cp%3EGuardian%20robots%20have%20become%20something%20of%20a%20status%20symbol%20among%20business%20leaders%20and%20politicians%20in%20the%20Pact%20Worlds%2C%20and%20a%20whole%20range%20of%20defense-focused%20robotic%20bodyguards%20of%20all%20shapes%20and%20sizes%20are%20available.%20Most%20guardian%20robots%20are%20crafted%20to%20appear%20as%20unassuming%20humanoids%20of%20a%20certain%20species%20and%20usually%20have%20a%20quiet%20and%20deferential%20virtual%20intelligence.%20They%20constantly%20scan%20for%20potential%20nearby%20threats%20and%20endeavor%20to%20stay%20close%20to%20their%20handlers%2C%20engaging%20opponents%20from%20a%20distance%20using%20grenades%20or%20weighted%20nets.%3C/p%3E%3Cp%3EThe%20desire%20to%20create%20autonomous%20defensive%20constructs%20can%20sometimes%20lead%20to%20unfortunate%20results%2C%20however%2C%20especially%20when%20time%20or%20a%20natural%20disaster%20alters%20a%20robot%u2019s%20programming.%20A%20collection%20of%20massive%20drones%20known%20as%20keeper%20robots%20stalk%20the%20wild%20and%20forgotten%20areas%20of%20Castrovel%20seeking%20to%20destroy%20intruders%2C%20their%20original%20directives%20clearly%20corrupted%20into%20a%20surprising%20ferocity.%20Usually%20nonhumanoid%20in%20appearance%2C%20keeper%20robots%20are%20dangerous%20and%20implacable%20opponents.%20Some%20stand%20about%2014%20feet%20high%20on%20eight%20legs%20and%20weigh%20several%20tons.%3C/p%3E%3Cp%3EScholars%20believe%20these%20keeper%20robots%20were%20designed%20to%20protect%20lands%20and%20resources%20from%20would-be%20scavengers%20at%20some%20point%20during%20the%20Gap.%20Interestingly%2C%20the%20Xenokeepers%20have%20led%20a%20campaign%20to%20keep%20Castrovel%20from%20amassing%20a%20small%20fighting%20force%20to%20destroy%20the%20keeper%20robots%2C%20arguing%20that%20the%20constructs%20provide%20a%20natural%20deterrent%20to%20poachers%20and%20others%20who%20would%20pillage%20the%20natural%20resources%20or%20archaeological%20finds%20of%20an%20area%2C%20since%20keeper%20robots%20are%20known%20to%20ignore%20the%20surrounding%20native%20wildlife.%3C/p%3E%3Cp%3ERecent%20reports%20have%20noted%20the%20existence%20of%20keeper%20robots%20on%20other%20planets%20outside%20of%20the%20Pact%20Worlds%2C%20looking%20as%20new%20as%20if%20they%20had%20just%20rolled%20off%20the%20factory%20floor%2C%20and%20sporting%20more%20modern%20weaponry.%20This%20has%20sparked%20a%20flurry%20of%20speculation%20about%20these%20robots%u2019%20origins.%20One%20of%20the%20more%20outrageous%20theories%20bandied%20about%20various%20infospheres%20is%20that%20keeper%20robots%20weren%u2019t%20created%20during%20the%20Gap%20but%20at%20some%20point%20in%20the%20far%20future%20and%20were%20sent%20back%20to%20secure%20%28or%20even%20destroy%29%20some%20mysterious%20objective.%3Cbr%3E%0A%09%09%09%09%09%0A%09%09%09%09%3C/p%3E%0A%09%09%09%09%3Cp%3E%3C/p%3E",
+    "gmnotes": "%3Ch3%3ELocation%28s%29%3A%3C/h3%3E%3Cul%3E%3Cli%3E%3Ca%20href%3D%22http%3A//journal.roll20.net/handout/-MmdoIIpl1QUsjNDinOL%22%3EWave%202%3A%20Robots%3C/a%3E%3A%20area%20C%20of%20the%20Train%20Station%3C/li%3E%3C/ul%3E",
+    "defaulttoken": "{\"left\":105,\"top\":875,\"width\":70,\"height\":70,\"imgsrc\":\"https://s3.amazonaws.com/files.d20.io/marketplace/2101972/EQYMzmqxuaoXD86uzeZ_lg/thumb.png?1635953282\",\"page_id\":\"-MmxeaFGUbMKuoS-jEng\",\"layer\":\"objects\",\"name\":\"Guardian Robot\",\"show_tooltip\":false,\"represents\":\"-MmsnpVU6vmOhFrwTmId\",\"bar1_value\":\"70\",\"bar1_max\":\"70\",\"bar2_value\":17,\"bar2_link\":\"-Mmsnpz244MExdqjv27x\",\"bar3_value\":19,\"bar3_link\":\"-Mmsnpz471j9gWkiyQMc\",\"showname\":true,\"lastmove\":\"385,1085\",\"night_vision_distance\":60,\"dim_light_opacity\":\"0.75\"}",
+    "tags": "[]",
+    "controlledby": "",
+    "inplayerjournals": "",
+    "attribs": [
+      {
+        "name": "character_sheet",
+        "current": "Starfinder v1.0071566306000",
+        "max": "",
+        "id": "-Mmsnpn5hPGlhth9KRFi"
+      },
+      {
+        "name": "strength_mod",
+        "current": "3",
+        "max": "",
+        "id": "-Mmsnpn7Ep9_KX2a4gwE"
+      },
+      {
+        "name": "dexterity_mod",
+        "current": "5",
+        "max": "",
+        "id": "-Mmsnpn9qByc9dRIL_8u"
+      },
+      {
+        "name": "constitution_mod",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnpnBwpgb3UlNQZXR"
+      },
+      {
+        "name": "intelligence_mod",
+        "current": "1",
+        "max": "",
+        "id": "-MmsnpnCCR_XOxh9kU35"
+      },
+      {
+        "name": "wisdom_mod",
+        "current": "2",
+        "max": "",
+        "id": "-MmsnpnDaFjEu1ZwcF3U"
+      },
+      {
+        "name": "charisma_mod",
+        "current": "1",
+        "max": "",
+        "id": "-MmsnpnEA3EvMVXyQdgO"
+      },
+      {
+        "name": "attacks_menu",
+        "current": "/w @{character_name} &{template:sf_generic} {{name=@{character_name}}} {{characterid=@{character_id}}} {{title=ATTACKS}}{{buttons1=MELEE\n[slam](~-MmsnpVU6vmOhFrwTmId|repeating_attack_-mmsnpxmfhvixsovnjg8_roll) |[flash grenade I](~-MmsnpVU6vmOhFrwTmId|repeating_attack_-mmsnpxmfhvixsovnjgc_roll) |[smoke grenade](~-MmsnpVU6vmOhFrwTmId|repeating_attack_-mmsnpxmfhvixsovnjgd_roll)}} {{buttons2=RANGED\n[advanced plasma bolter](~-MmsnpVU6vmOhFrwTmId|repeating_attack_-mmtd0psgjrngvwughlx_roll) |[pulse grenade](~-MmsnpVU6vmOhFrwTmId|repeating_attack_-mmthzld8wnd6lynak7w_roll) |[nyfiber net](~-MmsnpVU6vmOhFrwTmId|repeating_attack_-mmtiqjnv1k6oppakkpp_roll) |[sentry shield projector](~-MmsnpVU6vmOhFrwTmId|repeating_attack_-mmtizqxyw7sn67qkrme_roll) |[smoke grenade](~-MmsnpVU6vmOhFrwTmId|repeating_attack_-mmtihdt3q1e5gbpzjan_roll)}} {{buttons3=}}",
+        "max": "",
+        "id": "-MmsnpnFxgnVvg4f1cYK"
+      },
+      {
+        "name": "spells_menu",
+        "current": "/w @{character_name} &{template:sf_generic} {{name=@{character_name}}} {{characterid=@{character_id}}} {{title=SPELLS}}{{buttons0=}}{{buttons1=}}{{buttons2=}}{{buttons3=}}{{buttons4=}}{{buttons5=}}{{buttons6=}}{{buttons7=}}{{buttons8=}}{{buttons9=}}",
+        "max": "",
+        "id": "-MmsnpnGsyvO9OrcRR6l"
+      },
+      {
+        "name": "ability_checks_menu",
+        "current": "/w @{character_name} &{template:sf_generic} {{name=@{character_name}}} {{characterid=@{character_id}}} {{title=ABILITY CHECKS}}",
+        "max": "",
+        "id": "-MmsnpnHxtk2K1tQiIFf"
+      },
+      {
+        "name": "abilities_menu",
+        "current": "/w @{character_name} &{template:sf_generic} {{name=@{character_name}}} {{characterid=@{character_id}}} {{title=SPECIAL ABILITIES}}{{buttons1=RACIAL\n[Nanite Repair](~-MmsnpVU6vmOhFrwTmId|repeating_ability_-mmsnpxn82amnwxzrhyl_npc_roll) |[Integrated Weapons](~-MmsnpVU6vmOhFrwTmId|repeating_ability_-mmt6jckfwqutwb7huxg_npc_roll) |[Unliving](~-MmsnpVU6vmOhFrwTmId|repeating_ability_-mmtbsdwjxxua8rrjjro_npc_roll)}}{{buttons2=FEATS\n[Bodyguard](~-MmsnpVU6vmOhFrwTmId|repeating_ability_-mmtbgpizkfhw8os-hup_npc_roll) |[In Harm&#39;s Way](~-MmsnpVU6vmOhFrwTmId|repeating_ability_-mmtbkhzypzgqushe6zt_npc_roll)}}{{buttons3={{buttons4={{buttons5={{buttons6={{buttons7=",
+        "max": "",
+        "id": "-MmsnpnHxtk2K1tQiIFg"
+      },
+      {
+        "name": "skills_menu",
+        "current": "/w @{character_name} &{template:sf_generic} {{name=@{character_name}}} {{characterid=@{character_id}}} {{title=SKILLS}}{{buttons0=[Perception](~-MmsnpVU6vmOhFrwTmId|perception)}}{{buttons1=PHYSICAL\n[Acrobatics](~-MmsnpVU6vmOhFrwTmId|acrobatics) | [Athletics](~-MmsnpVU6vmOhFrwTmId|athletics) | [Piloting](~-MmsnpVU6vmOhFrwTmId|piloting)}}{{buttons2=SOCIAL\n[Bluff](~-MmsnpVU6vmOhFrwTmId|bluff) | [Diplomacy](~-MmsnpVU6vmOhFrwTmId|diplomacy) | [Disguise](~-MmsnpVU6vmOhFrwTmId|disguise) | [Intimidate](~-MmsnpVU6vmOhFrwTmId|intimidate) | [Sense Motive](~-MmsnpVU6vmOhFrwTmId|sense_motive)}}{{buttons3=THIEVERY\n[Sleight of Hand](~-MmsnpVU6vmOhFrwTmId|sleight_of_hand) | [Stealth](~-MmsnpVU6vmOhFrwTmId|stealth)}}{{buttons4=KNOWLEDGE\n[Computers](~-MmsnpVU6vmOhFrwTmId|computers) | [Culture](~-MmsnpVU6vmOhFrwTmId|culture) | [Engineering](~-MmsnpVU6vmOhFrwTmId|engineering) | [Life Science](~-MmsnpVU6vmOhFrwTmId|life_science) | [Medicine](~-MmsnpVU6vmOhFrwTmId|medicine) | [Mysticism](~-MmsnpVU6vmOhFrwTmId|mysticism) | [Physical Science](~-MmsnpVU6vmOhFrwTmId|physical_science) | [Survival](~-MmsnpVU6vmOhFrwTmId|survival)}}{{buttons5=",
+        "max": "",
+        "id": "-MmsnpnJPORV8zqgzdri"
+      },
+      {
+        "name": "multiattack_macro",
+        "current": "{{notes=^{add multiattack}}}",
+        "max": "",
+        "id": "-MmsnpnLKSE16vUBLagO"
+      },
+      {
+        "name": "drop_category",
+        "current": "",
+        "max": "",
+        "id": "-MmsnpvatCB7ifqZIcBt"
+      },
+      {
+        "name": "drop_name",
+        "current": "",
+        "max": "",
+        "id": "-MmsnpvhQiOPLAbuIoe8"
+      },
+      {
+        "name": "drop_data",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnpvn-CT18lXxD6Ay"
+      },
+      {
+        "name": "drop_content",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnpvtyx8nOU_Ua5-A"
+      },
+      {
+        "name": "drop_header",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnpy5CES-0umF8Y8S"
+      },
+      {
+        "name": "sheet_type",
+        "current": "npc",
+        "max": "",
+        "id": "-MmsnpyQspcKlLcbkHn8"
+      },
+      {
+        "name": "tab_select",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnpyXDL5zB9taYi9T"
+      },
+      {
+        "name": "character_level",
+        "current": "5",
+        "max": "",
+        "id": "-Mmsnpy_urArSIpzTFEo"
+      },
+      {
+        "name": "xp",
+        "current": "1,600",
+        "max": "",
+        "id": "-MmsnpydzmFGGfWVRFtP"
+      },
+      {
+        "name": "race",
+        "current": "construct",
+        "max": "",
+        "id": "-Mmsnpyg44eOZg93rkvS"
+      },
+      {
+        "name": "alignment",
+        "current": "N",
+        "max": "",
+        "id": "-Mmsnpykz6vQgDY89StX"
+      },
+      {
+        "name": "size",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnpyngOTYsoY6LF_k"
+      },
+      {
+        "name": "type_subtype",
+        "current": "construct (technological)",
+        "max": "",
+        "id": "-MmsnpyqaFx5RO024jNN"
+      },
+      {
+        "name": "initiative_base",
+        "current": 5,
+        "max": "",
+        "id": "-Mmsnpyr3hefJD5yfOpG"
+      },
+      {
+        "name": "initiative",
+        "current": "5",
+        "max": "",
+        "id": "-MmsnpytzrIb3Sk2o6MP"
+      },
+      {
+        "name": "senses",
+        "current": "darkvision 60 ft, low-light vision, sense through (vision) 60 ft.",
+        "max": "",
+        "id": "-MmsnpyusitOb0nFh8sy"
+      },
+      {
+        "name": "aura",
+        "current": "",
+        "max": "",
+        "id": "-MmsnpywMo4DAO6Xk0R8"
+      },
+      {
+        "name": "hp",
+        "current": 70,
+        "max": 70,
+        "id": "-MmsnpyxlsPczWkdK07c"
+      },
+      {
+        "name": "rp",
+        "current": 0,
+        "max": 0,
+        "id": "-Mmsnpyztiqp9BxaySfy"
+      },
+      {
+        "name": "eac_base",
+        "current": 17,
+        "max": "",
+        "id": "-Mmsnpz0hgismlHl7DYN"
+      },
+      {
+        "name": "eac",
+        "current": "17",
+        "max": "",
+        "id": "-Mmsnpz244MExdqjv27x"
+      },
+      {
+        "name": "kac_base",
+        "current": 19,
+        "max": "",
+        "id": "-Mmsnpz3u1RG7CH6ojDe"
+      },
+      {
+        "name": "kac",
+        "current": "19",
+        "max": "",
+        "id": "-Mmsnpz471j9gWkiyQMc"
+      },
+      {
+        "name": "cmd_base",
+        "current": 27,
+        "max": "",
+        "id": "-Mmsnpz6TrM9ArS5_yi8"
+      },
+      {
+        "name": "cmd",
+        "current": "27",
+        "max": "",
+        "id": "-Mmsnpz7ozz6EjAtn505"
+      },
+      {
+        "name": "ac_notes",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnpz9yGq1P9fAMaRR"
+      },
+      {
+        "name": "fort_base",
+        "current": 5,
+        "max": "",
+        "id": "-MmsnpzAJa0QuMVqhsjs"
+      },
+      {
+        "name": "fort",
+        "current": "5",
+        "max": "",
+        "id": "-MmsnpzBTJzv_E-Mble8"
+      },
+      {
+        "name": "ref_base",
+        "current": 5,
+        "max": "",
+        "id": "-MmsnpzDx4t2V4ZXBlwH"
+      },
+      {
+        "name": "ref",
+        "current": "5",
+        "max": "",
+        "id": "-MmsnpzEA6lEXFMmk4cI"
+      },
+      {
+        "name": "will_base",
+        "current": 2,
+        "max": "",
+        "id": "-MmsnpzGTdsMNbR1S8pB"
+      },
+      {
+        "name": "will",
+        "current": "2",
+        "max": "",
+        "id": "-MmsnpzHerj3G2qghtCG"
+      },
+      {
+        "name": "save_notes",
+        "current": "",
+        "max": "",
+        "id": "-MmsnpzJvW_8Sj_rbvQC"
+      },
+      {
+        "name": "defensive_abilities",
+        "current": "integrated weapons",
+        "max": "",
+        "id": "-MmsnpzKtO3fw1MrRyzK"
+      },
+      {
+        "name": "dr",
+        "current": "",
+        "max": "",
+        "id": "-MmsnpzL1eQzERwsfL5S"
+      },
+      {
+        "name": "immunities",
+        "current": "construct immunities",
+        "max": "",
+        "id": "-MmsnpzMqBjM7leUlfUZ"
+      },
+      {
+        "name": "sr",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnpzPTRU8WixBo9D6"
+      },
+      {
+        "name": "resistances",
+        "current": "",
+        "max": "",
+        "id": "-MmsnpzQOn4Z01UjnMkb"
+      },
+      {
+        "name": "weaknesses",
+        "current": "vulnerable to critical hits, vulnerable to electricity",
+        "max": "",
+        "id": "-MmsnpzRa0E7lmYAK8aP"
+      },
+      {
+        "name": "speed",
+        "current": "30 ft.",
+        "max": "",
+        "id": "-MmsnpzTRUznbJ0xS_vF"
+      },
+      {
+        "name": "offensive_abilities",
+        "current": "",
+        "max": "",
+        "id": "-MmsnpzU0PL51iCldCbo"
+      },
+      {
+        "name": "space",
+        "current": "",
+        "max": "",
+        "id": "-MmsnpzV6qd0DmMpeJRP"
+      },
+      {
+        "name": "reach",
+        "current": "",
+        "max": "",
+        "id": "-MmsnpzW417kNTFJ4Fqz"
+      },
+      {
+        "name": "caster_level",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnpzW417kNTFJ4Fr-"
+      },
+      {
+        "name": "melee_spell_attack",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnpzYygQUj0A_BbRr"
+      },
+      {
+        "name": "ranged_spell_attack",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnpzZ1V6a8uWZmENE"
+      },
+      {
+        "name": "spell_like_caster_level",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnpzaiLrcm38jGp7M"
+      },
+      {
+        "name": "melee_spell_like_attack",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnpzcC4nYEyeDiYrl"
+      },
+      {
+        "name": "ranged_spell_like_attack",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnpzevSVBQl2JTKRk"
+      },
+      {
+        "name": "strength_base",
+        "current": 3,
+        "max": "",
+        "id": "-MmsnpzfcsVqtAsnvBZ3"
+      },
+      {
+        "name": "dexterity_base",
+        "current": 5,
+        "max": "",
+        "id": "-Mmsnq-2jdnB4KJ3ATY1"
+      },
+      {
+        "name": "constitution_base",
+        "current": "0[-]",
+        "max": "",
+        "id": "-Mmsnq-6BDrDqx4gQHsf"
+      },
+      {
+        "name": "intelligence_base",
+        "current": 1,
+        "max": "",
+        "id": "-Mmsnq-8Dv_SF81HtIo0"
+      },
+      {
+        "name": "wisdom_base",
+        "current": 2,
+        "max": "",
+        "id": "-Mmsnq-A_bxcLIxJM4ZT"
+      },
+      {
+        "name": "charisma_base",
+        "current": 1,
+        "max": "",
+        "id": "-Mmsnq-C9Ej9eCGKf0Dw"
+      },
+      {
+        "name": "acrobatics_base",
+        "current": 11,
+        "max": "",
+        "id": "-Mmsnq-F9sjVp2_PJiQ8"
+      },
+      {
+        "name": "acrobatics",
+        "current": "11",
+        "max": "",
+        "id": "-Mmsnq-Ghnh7h6EQTdxy"
+      },
+      {
+        "name": "athletics_base",
+        "current": 3,
+        "max": "",
+        "id": "-Mmsnq-HuWVsDljkBzmt"
+      },
+      {
+        "name": "athletics",
+        "current": "3",
+        "max": "",
+        "id": "-Mmsnq-JJofAvdVeznu9"
+      },
+      {
+        "name": "bluff_base",
+        "current": 1,
+        "max": "",
+        "id": "-Mmsnq-KdRR4axjgKrqW"
+      },
+      {
+        "name": "bluff",
+        "current": "1",
+        "max": "",
+        "id": "-Mmsnq-MYYTSw--9VSul"
+      },
+      {
+        "name": "computers_base",
+        "current": 1,
+        "max": "",
+        "id": "-Mmsnq-OYFu5i8dJnZo-"
+      },
+      {
+        "name": "computers",
+        "current": "1",
+        "max": "",
+        "id": "-Mmsnq-PJB8QN1jFLH5X"
+      },
+      {
+        "name": "culture_base",
+        "current": 1,
+        "max": "",
+        "id": "-Mmsnq-Qv4JXmxBzIGxc"
+      },
+      {
+        "name": "culture",
+        "current": "1",
+        "max": "",
+        "id": "-Mmsnq-RjpnymGHW5f2z"
+      },
+      {
+        "name": "diplomacy_base",
+        "current": 1,
+        "max": "",
+        "id": "-Mmsnq-SmW2wJLz7_Z38"
+      },
+      {
+        "name": "diplomacy",
+        "current": "1",
+        "max": "",
+        "id": "-Mmsnq-T6AnOmDUrBpKA"
+      },
+      {
+        "name": "disguise_base",
+        "current": 1,
+        "max": "",
+        "id": "-Mmsnq-UTbyVLJDMAEff"
+      },
+      {
+        "name": "disguise",
+        "current": "1",
+        "max": "",
+        "id": "-Mmsnq-UTbyVLJDMAEfg"
+      },
+      {
+        "name": "engineering_base",
+        "current": 1,
+        "max": "",
+        "id": "-Mmsnq-Vlp2MwCcLrX6P"
+      },
+      {
+        "name": "engineering",
+        "current": "1",
+        "max": "",
+        "id": "-Mmsnq-Wj5JG888GoF3J"
+      },
+      {
+        "name": "intimidate_base",
+        "current": 11,
+        "max": "",
+        "id": "-Mmsnq-Xg37S24gnj7xN"
+      },
+      {
+        "name": "intimidate",
+        "current": "11",
+        "max": "",
+        "id": "-Mmsnq-Z6lYqarxyJMRu"
+      },
+      {
+        "name": "life_science_base",
+        "current": 1,
+        "max": "",
+        "id": "-Mmsnq-_KQqFegPPOj6B"
+      },
+      {
+        "name": "life_science",
+        "current": "1",
+        "max": "",
+        "id": "-Mmsnq-aUktOnAtDtZgJ"
+      },
+      {
+        "name": "medicine_base",
+        "current": 11,
+        "max": "",
+        "id": "-Mmsnq-cpnwbyHtQ_Eof"
+      },
+      {
+        "name": "medicine",
+        "current": "11",
+        "max": "",
+        "id": "-Mmsnq-dVxmT_FpC4ppm"
+      },
+      {
+        "name": "mysticism_base",
+        "current": 2,
+        "max": "",
+        "id": "-Mmsnq-eh9BJsiw8zVxm"
+      },
+      {
+        "name": "mysticism",
+        "current": "2",
+        "max": "",
+        "id": "-Mmsnq-fhk49iL6uh3qg"
+      },
+      {
+        "name": "perception_base",
+        "current": 14,
+        "max": "",
+        "id": "-Mmsnq-gQgPMVsBnb-Zk"
+      },
+      {
+        "name": "perception",
+        "current": "14",
+        "max": "",
+        "id": "-Mmsnq-hkprs-iuQRb1E"
+      },
+      {
+        "name": "physical_science_base",
+        "current": 1,
+        "max": "",
+        "id": "-Mmsnq-hkprs-iuQRb1F"
+      },
+      {
+        "name": "physical_science",
+        "current": "1",
+        "max": "",
+        "id": "-Mmsnq-jjE2MeYQL36Uk"
+      },
+      {
+        "name": "piloting_base",
+        "current": 5,
+        "max": "",
+        "id": "-Mmsnq-kKRCM_Wmj8RTy"
+      },
+      {
+        "name": "piloting",
+        "current": "5",
+        "max": "",
+        "id": "-Mmsnq-lweEVi1u2bMmi"
+      },
+      {
+        "name": "sense_motive_base",
+        "current": 2,
+        "max": "",
+        "id": "-Mmsnq-lweEVi1u2bMmj"
+      },
+      {
+        "name": "sense_motive",
+        "current": "2",
+        "max": "",
+        "id": "-Mmsnq-mu6jDf-gaBXyh"
+      },
+      {
+        "name": "sleight_of_hand_base",
+        "current": 5,
+        "max": "",
+        "id": "-Mmsnq-nK3PK_Gw6bfeT"
+      },
+      {
+        "name": "sleight_of_hand",
+        "current": "5",
+        "max": "",
+        "id": "-Mmsnq-ojlrB6NI4tehP"
+      },
+      {
+        "name": "stealth_base",
+        "current": 5,
+        "max": "",
+        "id": "-Mmsnq-pUVu_O_DifX7x"
+      },
+      {
+        "name": "stealth",
+        "current": "5",
+        "max": "",
+        "id": "-Mmsnq-rQSYvJyC8FPrn"
+      },
+      {
+        "name": "survival_base",
+        "current": 2,
+        "max": "",
+        "id": "-Mmsnq-svccna-9wv145"
+      },
+      {
+        "name": "survival",
+        "current": "2",
+        "max": "",
+        "id": "-Mmsnq-tcUn_AzczGLqG"
+      },
+      {
+        "name": "feats",
+        "current": "Bodyguard, In Harm's Way",
+        "max": "",
+        "id": "-Mmsnq-uAW5JcI2FMwYE"
+      },
+      {
+        "name": "languages",
+        "current": "Common",
+        "max": "",
+        "id": "-Mmsnq-vV_dYYkggfyp-"
+      },
+      {
+        "name": "other_abilities",
+        "current": "nanite repair, unliving",
+        "max": "",
+        "id": "-Mmsnq-xUeFKNbEdwxdb"
+      },
+      {
+        "name": "gear",
+        "current": "nyfiber net, sentry shield projectorAR with 1 high-capacity battery (40 charges), voltaic anchor pistolAR with 1 high-capacity battery (40 charges), flash grenades I (2), smoke grenades (2), mk 2 serum of healing, mk 1 serums of healing (2), advanced medkit, advanced plasma bolter with 1 high-capacity battery (40 charges), sentry shield projector with 1 high capacity battery (40 charges), pulse grenades I (2)",
+        "max": "",
+        "id": "-Mmsnq-yOdDrp0kc9nhG"
+      },
+      {
+        "name": "environment",
+        "current": "any",
+        "max": "",
+        "id": "-Mmsnq-zM4QLfBMAvdRj"
+      },
+      {
+        "name": "organization",
+        "current": "solitary or detail (1 plus client)",
+        "max": "",
+        "id": "-Mmsnq0-MAvgFsC_02jT"
+      },
+      {
+        "name": "tactics",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnq00InBY5fyjIBoB"
+      },
+      {
+        "name": "acrobatics_ranks",
+        "current": 6,
+        "max": "",
+        "id": "-Mmsnq00InBY5fyjIBoC"
+      },
+      {
+        "name": "athletics_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq019GTEUDcHkYwD"
+      },
+      {
+        "name": "bluff_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq02pXOxal_7s1E0"
+      },
+      {
+        "name": "computers_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq04B5Qw7LXlCvqI"
+      },
+      {
+        "name": "culture_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq05ssTOSxoRBREK"
+      },
+      {
+        "name": "diplomacy_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq07IzCuipEAQx8R"
+      },
+      {
+        "name": "disguise_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq08lA5kKqP56exq"
+      },
+      {
+        "name": "engineering_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq09UCLXLBYXiSP6"
+      },
+      {
+        "name": "intimidate_ranks",
+        "current": 10,
+        "max": "",
+        "id": "-Mmsnq0AdZJ4h-1J_snn"
+      },
+      {
+        "name": "life_science_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq0DWW2BFqudaPwj"
+      },
+      {
+        "name": "medicine_ranks",
+        "current": 10,
+        "max": "",
+        "id": "-Mmsnq0Egg98GHQugzU3"
+      },
+      {
+        "name": "mysticism_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq0FQ7_wmMoXT1tI"
+      },
+      {
+        "name": "perception_ranks",
+        "current": 12,
+        "max": "",
+        "id": "-Mmsnq0GF5XYUVG1uOcc"
+      },
+      {
+        "name": "physical_science_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq0HBsO-mfg_V2pI"
+      },
+      {
+        "name": "piloting_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq0IfrH0t7rKlUzU"
+      },
+      {
+        "name": "sense_motive_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq0JuieUnoO8g1Ga"
+      },
+      {
+        "name": "sleight_of_hand_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq0KmxBxX849RQho"
+      },
+      {
+        "name": "stealth_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq0MwVmTR7W1Y-VB"
+      },
+      {
+        "name": "survival_ranks",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq0NaW7lokk-jL0S"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_name",
+        "current": "slam",
+        "max": "",
+        "id": "-Mmsnq0P-5dTRN-DPOX8"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_id",
+        "current": "-mmsnpxmfhvixsovnjg8",
+        "max": "",
+        "id": "-Mmsnq0QOlF4LRAgURU-"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_base_attack_bonus_base",
+        "current": 12,
+        "max": "",
+        "id": "-Mmsnq0RNfO3pzOBomg9"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_total",
+        "current": " +12",
+        "max": "",
+        "id": "-Mmsnq0TY24A9dR9yYJf"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_damage_dice",
+        "current": "1d6+8",
+        "max": "",
+        "id": "-Mmsnq0VYSs1EPy2pziE"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_damage_total",
+        "current": "1d6+8",
+        "max": "",
+        "id": "-Mmsnq0WbD7ZLV5oMK01"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_type",
+        "current": "Bludgeoning nonlethal",
+        "max": "",
+        "id": "-Mmsnq0Ye5qUSJeLoREZ"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_crit",
+        "current": "knockdown",
+        "max": "",
+        "id": "-Mmsnq0ZNxkmBxiQwQ_J"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_special",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnq0auw644AVhHqX0"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_engagement_range",
+        "current": "melee",
+        "max": "",
+        "id": "-Mmsnq0auw644AVhHqX1"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_range_filter",
+        "current": "melee",
+        "max": "",
+        "id": "-Mmsnq0beWo2efDWM55w"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_show_options",
+        "current": "0",
+        "max": "",
+        "id": "-Mmsnq0ctRPaBUSq7mls"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_ability",
+        "current": "[[@{strength_mod}-@{strength_base}]]",
+        "max": "",
+        "id": "-Mmsnq0eyrVtfqrqmFaX"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_damage_ability",
+        "current": "[[@{strength_mod}-@{strength_base}]]",
+        "max": "",
+        "id": "-Mmsnq0fEqtdcbEGYP8s"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_base_attack_bonus",
+        "current": "9",
+        "max": "",
+        "id": "-Mmsnq0fEqtdcbEGYP8t"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_name",
+        "current": "flash grenade I",
+        "max": "",
+        "id": "-Mmsnq1TXf93UlwQbDYt"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_id",
+        "current": "-mmsnpxmfhvixsovnjgc",
+        "max": "",
+        "id": "-Mmsnq1UF7qSdphKp_tp"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_base_attack_bonus_base",
+        "current": 15,
+        "max": "",
+        "id": "-Mmsnq1VPa_aXb6Mf-Fl"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_total",
+        "current": " +15",
+        "max": "",
+        "id": "-Mmsnq1YSUxB-hd7PIxj"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_damage_dice",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnq1_EPs1DSN1Nwhb"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_damage_total",
+        "current": " +0",
+        "max": "",
+        "id": "-Mmsnq1aTyxcHTq7cQE0"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_type",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnq1b6FOExh5jzahV"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_crit",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnq1b6FOExh5jzahW"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_special",
+        "current": "explode (20 ft. smoke cloud 1 minte, DC 15)",
+        "max": "",
+        "id": "-Mmsnq1cXm1VircT9GsT"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_engagement_range",
+        "current": "thrown",
+        "max": "",
+        "id": "-Mmsnq1dhor6bbTG43FX"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_range_filter",
+        "current": "thrown",
+        "max": "",
+        "id": "-Mmsnq1e4Slb78daencw"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_show_options",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq1f3-WRm6fVeOx-"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_ability",
+        "current": "[[@{strength_mod}-@{strength_base}]]",
+        "max": "",
+        "id": "-Mmsnq1gnj92HC3NV9OY"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_damage_ability",
+        "current": "[[@{strength_mod}-@{strength_base}]]",
+        "max": "",
+        "id": "-Mmsnq1h1gNO8iMkp9OB"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_base_attack_bonus",
+        "current": "12",
+        "max": "",
+        "id": "-Mmsnq1iD1Bm_3u7w9AH"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_name",
+        "current": "smoke grenade",
+        "max": "",
+        "id": "-Mmsnq1jysDBTclm6Ktx"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_id",
+        "current": "-mmsnpxmfhvixsovnjgd",
+        "max": "",
+        "id": "-Mmsnq1k0_oIgmgudSfQ"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_base_attack_bonus_base",
+        "current": 15,
+        "max": "",
+        "id": "-Mmsnq1l0pZiBw7TxJ6D"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_total",
+        "current": " +15",
+        "max": "",
+        "id": "-Mmsnq1mbqVURgG4rn1e"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_damage_dice",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnq1nFraut5NOXLKq"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_damage_total",
+        "current": " +0",
+        "max": "",
+        "id": "-Mmsnq1oNnE7ouZkEAZz"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_type",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnq1r5y99QhD-7E_O"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_crit",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnq1r5y99QhD-7E_P"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_special",
+        "current": "explode (20 ft., smoke cloud 1 minute, DC 15)",
+        "max": "",
+        "id": "-Mmsnq1sw2l_ZOxDWnYu"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_engagement_range",
+        "current": "thrown",
+        "max": "",
+        "id": "-Mmsnq1uza9dMoAD95hA"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_range_filter",
+        "current": "thrown",
+        "max": "",
+        "id": "-Mmsnq1wKranJZ_WzZgs"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_show_options",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq1xlEhvRswxiWCG"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_ability",
+        "current": "[[@{strength_mod}-@{strength_base}]]",
+        "max": "",
+        "id": "-Mmsnq1ytHh-TGqfcxk-"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_damage_ability",
+        "current": "[[@{strength_mod}-@{strength_base}]]",
+        "max": "",
+        "id": "-Mmsnq2-9By3o20mqd9e"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_base_attack_bonus",
+        "current": "12",
+        "max": "",
+        "id": "-Mmsnq20rO6pfMraGHsN"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_show_options",
+        "current": "0",
+        "max": "",
+        "id": "-Mmsnq213eKVtS3k2jmS"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_name",
+        "current": "Nanite Repair",
+        "max": "",
+        "id": "-Mmsnq23AwnobNnGQU8e"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_dc_base",
+        "current": 10,
+        "max": "",
+        "id": "-Mmsnq24HF9WUlPYEqAX"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_dc",
+        "current": "10",
+        "max": "",
+        "id": "-Mmsnq27djjJ_G0fJrLy"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_level",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnq28AAdMKwUdywjl"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_type",
+        "current": "EX",
+        "max": "",
+        "id": "-Mmsnq2AA-CPk_TDnEBK"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_save_type",
+        "current": "save",
+        "max": "",
+        "id": "-Mmsnq2BHMlcjqq6OCJX"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_duration",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnq2C5bW_NBDCFf-A"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_frequency",
+        "current": "x/day",
+        "max": "",
+        "id": "-Mmsnq2DFdNFyoT9fiG3"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_description",
+        "current": "A guardian robot’s nanites heal it, restoring a number of Hit Points per hour equal to its CR. Once per day as a full action, the robot can restore 3d8 Hit Points to itself or any touched construct with the technological subtype. ",
+        "max": "",
+        "id": "-Mmsnq2EihUHJtimiJEa"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_id",
+        "current": "-mmsnpxn82amnwxzrhyl",
+        "max": "",
+        "id": "-Mmsnq2FRcIRVRLPvBS-"
+      },
+      {
+        "name": "pilot_bonus",
+        "current": "@{Guardian Robot|whisper_state}&{template:sf_generic} {{name=@{character_name}}} {{characterid=@{character_id}}} {{title=^{pilot}}} {{r1=[[1d20+@{|piloting_ranks}[RNK]+[[({0,@{|piloting_ranks}}>1) * @{|piloting_class_skill}]][CS]+@{|piloting_ability}[ABI]+2-2@{|piloting_misc}@{Guardian Robot|engines_status}@{Guardian Robot|power_core_status}@{Guardian Robot|computer_query}?{HELM PHASE INITIATIVE|NO, |YES,&{tracker&#125;}]]}} {{r1name=}}",
+        "max": "",
+        "id": "-MmsnqFLfJZWE5YH6wXw"
+      },
+      {
+        "name": "ship_pcu",
+        "current": 0,
+        "max": 0,
+        "id": "-MmsnqFS8UqtcLP-IBuQ"
+      },
+      {
+        "name": "ship_computer",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqFTrvk9D6vDm8hG"
+      },
+      {
+        "name": "computer_query",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqFTrvk9D6vDm8hH"
+      },
+      {
+        "name": "shield_total",
+        "current": "",
+        "max": 0,
+        "id": "-MmsnqFUwwLeLI7TvOaK"
+      },
+      {
+        "name": "ac_armor",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqFUwwLeLI7TvOaL"
+      },
+      {
+        "name": "ship_bp",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqFVsX-i9g36BHzC"
+      },
+      {
+        "name": "ship_sensors",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqFVsX-i9g36BHzD"
+      },
+      {
+        "name": "tl_countermeasures",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqFVsX-i9g36BHzE"
+      },
+      {
+        "name": "ac",
+        "current": 10,
+        "max": "",
+        "id": "-MmsnqFWXdxJA1Yeb5Dx"
+      },
+      {
+        "name": "tl",
+        "current": 10,
+        "max": "",
+        "id": "-MmsnqFWXdxJA1Yeb5Dy"
+      },
+      {
+        "name": "athletics_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqHxvldzfP1YoAPb"
+      },
+      {
+        "name": "athletics_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqHy5Blqmj-Ha6x4"
+      },
+      {
+        "name": "stealth_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqHzze8ur2TnPmly"
+      },
+      {
+        "name": "stealth_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqI-B6zlmuVSRzL2"
+      },
+      {
+        "name": "sleight_of_hand_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqI-B6zlmuVSRzL3"
+      },
+      {
+        "name": "sleight_of_hand_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqI0z29wfdibC-D_"
+      },
+      {
+        "name": "piloting_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqI0z29wfdibC-Da"
+      },
+      {
+        "name": "piloting_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqI0z29wfdibC-Db"
+      },
+      {
+        "name": "acrobatics_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqI1O_teEXKcj5Gw"
+      },
+      {
+        "name": "acrobatics_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqI1O_teEXKcj5Gx"
+      },
+      {
+        "name": "ref_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqI2A7vIXjvHp77T"
+      },
+      {
+        "name": "ref_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqI3qJY2mkLFszlz"
+      },
+      {
+        "name": "initiative_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqI3qJY2mkLFszm-"
+      },
+      {
+        "name": "initiative_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqI3qJY2mkLFszm0"
+      },
+      {
+        "name": "kac_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqI4pgVg6GOISllc"
+      },
+      {
+        "name": "kac_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqI7xOgwiXrnWySM"
+      },
+      {
+        "name": "eac_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqI7xOgwiXrnWySN"
+      },
+      {
+        "name": "eac_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqI8eKTXj7jCaDAq"
+      },
+      {
+        "name": "physical_science_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqI9w9o-BWeXHrEG"
+      },
+      {
+        "name": "physical_science_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqI9w9o-BWeXHrEH"
+      },
+      {
+        "name": "medicine_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIAvq4NuMJaKRDz"
+      },
+      {
+        "name": "medicine_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIAvq4NuMJaKRE-"
+      },
+      {
+        "name": "life_science_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIBjCssKwNCa1yq"
+      },
+      {
+        "name": "life_science_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIBjCssKwNCa1yr"
+      },
+      {
+        "name": "engineering_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqICU24y4ccFX96T"
+      },
+      {
+        "name": "engineering_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqICU24y4ccFX96U"
+      },
+      {
+        "name": "culture_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIDjcY3fClJ6hFG"
+      },
+      {
+        "name": "culture_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIDjcY3fClJ6hFH"
+      },
+      {
+        "name": "computers_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIEuY_cg-xi9ZD6"
+      },
+      {
+        "name": "computers_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIFiZ4FYuhxjj50"
+      },
+      {
+        "name": "survival_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIFiZ4FYuhxjj51"
+      },
+      {
+        "name": "survival_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIGkXAiu2xLHm63"
+      },
+      {
+        "name": "sense_motive_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIH4H9PZclFtJRa"
+      },
+      {
+        "name": "sense_motive_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIH4H9PZclFtJRb"
+      },
+      {
+        "name": "perception_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIH4H9PZclFtJRc"
+      },
+      {
+        "name": "perception_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIIfO9Lcot7D46H"
+      },
+      {
+        "name": "mysticism_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqINaG3OWDXzk6pU"
+      },
+      {
+        "name": "mysticism_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqINaG3OWDXzk6pV"
+      },
+      {
+        "name": "will_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIOglPzKT29MmPR"
+      },
+      {
+        "name": "will_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIOglPzKT29MmPS"
+      },
+      {
+        "name": "intimidate_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIPJ525k6r2C7UG"
+      },
+      {
+        "name": "intimidate_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIPJ525k6r2C7UH"
+      },
+      {
+        "name": "disguise_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIQuELMsHjly2P2"
+      },
+      {
+        "name": "disguise_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIQuELMsHjly2P3"
+      },
+      {
+        "name": "diplomacy_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIRiBDArP-83kvO"
+      },
+      {
+        "name": "diplomacy_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIRiBDArP-83kvP"
+      },
+      {
+        "name": "bluff_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqISECDC6WUyKvsu"
+      },
+      {
+        "name": "bluff_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqISECDC6WUyKvsv"
+      },
+      {
+        "name": "whisper_state",
+        "current": "/w gm ",
+        "max": "",
+        "id": "-MmsnqITQNUeJsy1cjA4"
+      },
+      {
+        "name": "health_status",
+        "current": 1,
+        "max": "",
+        "id": "-MmsnqIURx0jbD1IoiWx"
+      },
+      {
+        "name": "cmd_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqI_1tI_yXNdHo1H"
+      },
+      {
+        "name": "cmd_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqI_1tI_yXNdHo1I"
+      },
+      {
+        "name": "fort_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqIaeLw8y0-R13NZ"
+      },
+      {
+        "name": "fort_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIaeLw8y0-R13N_"
+      },
+      {
+        "name": "strength_mod_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIb_6VpDhq19C3M"
+      },
+      {
+        "name": "dexterity_mod_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIcdB6RKfx97js7"
+      },
+      {
+        "name": "intelligence_mod_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIdK4Z8tJqkA7JM"
+      },
+      {
+        "name": "intelligence_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIdK4Z8tJqkA7JN"
+      },
+      {
+        "name": "wisdom_mod_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIeZ2KqQ1HTPNfk"
+      },
+      {
+        "name": "charisma_mod_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqIfExklE4Z2NXr_"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_base_attack_bonus",
+        "current": "0",
+        "max": "",
+        "id": "-MmsnqbonaL_GiwS8nW6"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_attack_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqbqgcAttv_Q5o-b"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_attack_totaltrue",
+        "current": 0,
+        "max": "",
+        "id": "-MmsnqbrTw8K0PfV9UV9"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_attack_total",
+        "current": "0",
+        "max": "",
+        "id": "-MmsnqbsOJjAMj2V3Lj0"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_damage_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqbtYfFq4WDG3iw-"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_damage_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnqbur05ypVYIWzNr"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmsnqbxmGkp3oTAJSMK"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGD_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnqbyc5Cbb0WuUQp1"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_damage_misc",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnqbz6D5zPIGF4BnE"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_damage_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnqc-pyEYNcUx-z_7"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_misc",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnqc3er5uwLVwuCn9"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJGC_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnqc3er5uwLVwuCnA"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_damage_misc",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnqc5nirbZanbfFn1"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_damage_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnqc6ShGF-3OpWfrr"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_misc",
+        "current": "",
+        "max": "",
+        "id": "-Mmsnqc849KSpzYl6smo"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-Mmsnqc96TnathaiuTTO"
+      },
+      {
+        "name": "repeating_ability_-Mmt6jckFwQUtWb7hUXG_name",
+        "current": "Integrated Weapons",
+        "max": "",
+        "id": "-Mmt6lNHZE3crpVFiAJS"
+      },
+      {
+        "name": "repeating_ability_-Mmt6jckFwQUtWb7hUXG_id",
+        "current": "-mmt6jckfwqutwb7huxg",
+        "max": "",
+        "id": "-Mmt6lWvkQ4Dg-9OcidT"
+      },
+      {
+        "name": "repeating_attack_-MmsnpxmFhvIxsovnJG8_description",
+        "current": "Knockdown: The target is knocked prone.",
+        "max": "",
+        "id": "-Mmt70ZY-M6NvD6U1w-R"
+      },
+      {
+        "name": "repeating_ability_-MmtBgpizKfHW8os-HuP_name",
+        "current": "Bodyguard",
+        "max": "",
+        "id": "-MmtBizjf8Lkwi8dsSHI"
+      },
+      {
+        "name": "repeating_ability_-MmtBgpizKfHW8os-HuP_id",
+        "current": "-mmtbgpizkfhw8os-hup",
+        "max": "",
+        "id": "-MmtBj86dSLdXJ4yZust"
+      },
+      {
+        "name": "repeating_ability_-MmtBgpizKfHW8os-HuP_source",
+        "current": "Feat",
+        "max": "",
+        "id": "-MmtBj_-nZ_RmfDarzS5"
+      },
+      {
+        "name": "repeating_ability_-MmtBgpizKfHW8os-HuP_dc_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtBjeBaZ0i4yQqb2fs"
+      },
+      {
+        "name": "repeating_ability_-MmtBgpizKfHW8os-HuP_dc",
+        "current": "10",
+        "max": "",
+        "id": "-MmtBjeCBkZXQM0CdiKV"
+      },
+      {
+        "name": "repeating_ability_-MmtBkHZyPZGQUShE6zt_name",
+        "current": "In Harm's Way",
+        "max": "",
+        "id": "-MmtBnGUEtfXiDbncm33"
+      },
+      {
+        "name": "repeating_ability_-MmtBkHZyPZGQUShE6zt_id",
+        "current": "-mmtbkhzypzgqushe6zt",
+        "max": "",
+        "id": "-MmtBnR5RRK95lU1bXfS"
+      },
+      {
+        "name": "repeating_ability_-MmtBkHZyPZGQUShE6zt_source",
+        "current": "Feat",
+        "max": "",
+        "id": "-MmtBo3VbAc5MS_827U9"
+      },
+      {
+        "name": "repeating_ability_-MmtBkHZyPZGQUShE6zt_dc_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtBoC2QVgwDLTpS2n4"
+      },
+      {
+        "name": "repeating_ability_-MmtBkHZyPZGQUShE6zt_dc",
+        "current": "10",
+        "max": "",
+        "id": "-MmtBoC46j94MRorX1p0"
+      },
+      {
+        "name": "repeating_ability_-MmtBsDwJxXUA8rrjjRO_name",
+        "current": "Unliving",
+        "max": "",
+        "id": "-MmtBuF617Duh9jm7f0U"
+      },
+      {
+        "name": "repeating_ability_-MmtBsDwJxXUA8rrjjRO_id",
+        "current": "-mmtbsdwjxxua8rrjjro",
+        "max": "",
+        "id": "-MmtBuVN7sjS6ViG8o8y"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_source",
+        "current": "Construct",
+        "max": "",
+        "id": "-MmtC3pS1b-X3vdaDY9z"
+      },
+      {
+        "name": "repeating_ability_-Mmsnpxn82AmnwXZRhYL_dc_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtC41L4mK06--apTrZ"
+      },
+      {
+        "name": "repeating_ability_-Mmt6jckFwQUtWb7hUXG_description",
+        "current": "An integrated weapon can be wielded normally or installed in an armor upgrade slot. When properly installed, the weapon is considered to be wielded without needing to assign a number of hands to wield it. An integrated weapon requires the listed number of armor slots for proper installation. An android or any other creature with the upgrade slot racial ability cannot combine its racial upgrade slot with armor upgrade slots to install an integrated weapon. Installing, removing, or replacing an integrated weapon in a suit of armor takes 10 minutes, as if it were an armor upgrade.",
+        "max": "",
+        "id": "-MmtCFA6uJ8YwETMqCp8"
+      },
+      {
+        "name": "repeating_ability_-Mmt6jckFwQUtWb7hUXG_show_options",
+        "current": "0",
+        "max": "",
+        "id": "-MmtCGc9oXlmfQ0w-czj"
+      },
+      {
+        "name": "repeating_ability_-MmtBgpizKfHW8os-HuP_description",
+        "current": "You can attempt to ward off attacks that target nearby allies.\n\nBenefit: As a reaction when an adjacent ally is attacked, you can grant that ally a +2 circumstance bonus to its AC against that attack. If you do so, you take a –2 penalty to your own Armor Class until the beginning of your next turn.",
+        "max": "",
+        "id": "-MmtCLPQg55PP5DOGv7q"
+      },
+      {
+        "name": "repeating_ability_-MmtBgpizKfHW8os-HuP_show_options",
+        "current": "0",
+        "max": "",
+        "id": "-MmtCLV4loXjwKMSg9QP"
+      },
+      {
+        "name": "repeating_ability_-MmtBkHZyPZGQUShE6zt_description",
+        "current": "You put yourself in danger’s path to save your allies.\n\nPrerequisites: Bodyguard.\n\nBenefit: When an attack hits an ally whose Armor Class you have increased with the Bodyguard feat, you can intercept the attack. You take all damage and associated effects from that attack, and once you intercept the attack, no other ability can redirect it. This ability takes no action, but you can intercept only one attack in this way each round.",
+        "max": "",
+        "id": "-MmtCQdDn0Unnxdz9Na7"
+      },
+      {
+        "name": "repeating_ability_-Mmt6jckFwQUtWb7hUXG_source",
+        "current": "Construct",
+        "max": "",
+        "id": "-MmtCSPyl_vKFtAaFayw"
+      },
+      {
+        "name": "repeating_ability_-Mmt6jckFwQUtWb7hUXG_dc_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtCShQbRE8RpAXC0o3"
+      },
+      {
+        "name": "repeating_ability_-Mmt6jckFwQUtWb7hUXG_dc",
+        "current": "10",
+        "max": "",
+        "id": "-MmtCShUDrQpc_jp-P8r"
+      },
+      {
+        "name": "repeating_ability_-MmtBkHZyPZGQUShE6zt_show_options",
+        "current": "0",
+        "max": "",
+        "id": "-MmtCT465wrOuTUntcM_"
+      },
+      {
+        "name": "repeating_ability_-MmtBsDwJxXUA8rrjjRO_source",
+        "current": "Construct",
+        "max": "",
+        "id": "-MmtCVVvy1xREusRd2d3"
+      },
+      {
+        "name": "repeating_ability_-MmtBsDwJxXUA8rrjjRO_dc_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtCVott8yE3Jr2tEsL"
+      },
+      {
+        "name": "repeating_ability_-MmtBsDwJxXUA8rrjjRO_dc",
+        "current": "10",
+        "max": "",
+        "id": "-MmtCVowUWvZ_xfFIYj3"
+      },
+      {
+        "name": "repeating_ability_-MmtBsDwJxXUA8rrjjRO_description",
+        "current": "The creature has no Constitution score or modifier. Any DCs or other statistics that rely on a Constitution score treat the creature as having a score of 10 (+0). The creature is immediately destroyed when it reaches 0 Hit Points. An unliving creature doesn’t heal damage naturally, but a construct can be repaired with the right tools. Spells, such as make whole, can heal constructs, and magic effects can heal undead. An unliving creature with fast healing still benefits from that ability. Unliving creatures don’t breathe, eat, or sleep. They can’t be raised or resurrected, except through the use of miracle, wish, or a similar effect that specifically works on unliving creatures.",
+        "max": "",
+        "id": "-MmtCdpABRLTqzXKrqBW"
+      },
+      {
+        "name": "repeating_ability_-MmtBsDwJxXUA8rrjjRO_show_options",
+        "current": "0",
+        "max": "",
+        "id": "-MmtCdsnnNxkU7P3HFQB"
+      },
+      {
+        "name": "_reporder_repeating_ability",
+        "current": "-Mmt6jckFwQUtWb7hUXG,-MmtBgpizKfHW8os-HuP,-MmtBkHZyPZGQUShE6zt,-Mmsnpxn82AmnwXZRhYL,-MmtBsDwJxXUA8rrjjRO",
+        "max": "",
+        "id": "-MmtCgVNCinnMJiJsB8p"
+      },
+      {
+        "name": "create_npcranged",
+        "current": 0,
+        "max": "",
+        "id": "-MmtD0MF_GFKtTUykHsv"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_engagement_range",
+        "current": "ranged",
+        "max": "",
+        "id": "-MmtD0QACZ3xOW33waSf"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_id",
+        "current": "-mmtd0psgjrngvwughlx",
+        "max": "",
+        "id": "-MmtD0QBirrKnkSGS-xK"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_range_filter",
+        "current": "ranged",
+        "max": "",
+        "id": "-MmtD0QDEgltlgOzr6NE"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_ability",
+        "current": "@{dexterity_mod}",
+        "max": "",
+        "id": "-MmtD0QEKGI5707bUc1k"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_proficiency",
+        "current": "specialized",
+        "max": "",
+        "id": "-MmtD0QGA_i2XYXBgssj"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_name",
+        "current": "advanced plasma bolter",
+        "max": "",
+        "id": "-MmtD3339HxGSOknEeOh"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_level",
+        "current": "0",
+        "max": "",
+        "id": "-MmtD3CZD9TmDhFFruhS"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_base_attack_bonus_base",
+        "current": "15",
+        "max": "",
+        "id": "-MmtD3npRLsMXDfGVbsh"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_base_attack_bonus",
+        "current": "10",
+        "max": "",
+        "id": "-MmtD3tbiBaociwB2yYV"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmtD3tcPTC1NXP837Df"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtD3tdX42Jab3auTkz"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_total",
+        "current": " +15",
+        "max": "",
+        "id": "-MmtD3tfxhmRNxeXhm3t"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_damage_dice",
+        "current": "2d8+5",
+        "max": "",
+        "id": "-MmtD5-8qwHANG_BxIUE"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_damage_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmtD54syU3VazbDi1G_"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_damage_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtD54tYs_JhOeJpMZ5"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_damage_total",
+        "current": "2d8+5",
+        "max": "",
+        "id": "-MmtD54vuI3rDqvogGN1"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_type",
+        "current": "Electricity and Fire",
+        "max": "",
+        "id": "-MmtD79WUZt7eI_ZgRAT"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_crit",
+        "current": "wound",
+        "max": "",
+        "id": "-MmtDB-Iq0sarBM71K5z"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_description",
+        "current": "Roll twice on Table 7–11: Wounding Weapons and choose your desired result. The target can still attempt any associated save.\n\nD20\tLocation\t  Save\t Effect\n1–10\tGeneral \t   —\t Bleed 1d6\n11–13\tEye (sensory)\t   Ref\t Lost eye, –2 \n                                 Perception\n14–15\tLeg (mobility)\t   Fort\t Severed limb, –10 \n                                 land speed\n16–17\tArm (manipulation) Ref\t Severed limb, lose a \n                                 hand\n18–19\tVital organ\t   Fort\t 1d4 Con damage\n20\tBrain\t           Fort  Stunned 1 round",
+        "max": "",
+        "id": "-MmtG6ut-_alpgAuctQl"
+      },
+      {
+        "name": "repeating_attack_-MmtD0PsgJRngVWuGhlX_show_options",
+        "current": "0",
+        "max": "",
+        "id": "-MmtGlBTuqwKyVr7Irds"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_engagement_range",
+        "current": "ranged",
+        "max": "",
+        "id": "-MmtHZLuReZIO6u0oAMJ"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_id",
+        "current": "-mmthzld8wnd6lynak7w",
+        "max": "",
+        "id": "-MmtHZLwIcZzi6D2-4d2"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_range_filter",
+        "current": "ranged",
+        "max": "",
+        "id": "-MmtHZLymYeOnjD-t4so"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_ability",
+        "current": "@{dexterity_mod}",
+        "max": "",
+        "id": "-MmtHZM2Fk9eSdiS2BA7"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_proficiency",
+        "current": "specialized",
+        "max": "",
+        "id": "-MmtHZM4XWalp5pvRJez"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_name",
+        "current": "pulse grenade",
+        "max": "",
+        "id": "-MmtHb756DEv0UbHtcPt"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_base_attack_bonus_base",
+        "current": "15",
+        "max": "",
+        "id": "-MmtHc8LGPttWGDJ5XRY"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_base_attack_bonus",
+        "current": "10",
+        "max": "",
+        "id": "-MmtHcCOkLaYXY6G2LDW"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmtHcCPds9dHbkbSCRH"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtHcCQ-2LVUWGlGtC-"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_total",
+        "current": " +15",
+        "max": "",
+        "id": "-MmtHcCSbhsxa22O57lz"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_damage_dice",
+        "current": "1d10",
+        "max": "",
+        "id": "-MmtHdLezWJnVIIApwnb"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_damage_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmtHdPtGxwbhPnkfVG8"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_damage_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtHdPvhaySCJxeqYMx"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_damage_total",
+        "current": "1d10",
+        "max": "",
+        "id": "-MmtHdPxslvfsIRzIoUm"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_type",
+        "current": "Electricity",
+        "max": "",
+        "id": "-MmtHgIJ5X1iigH49QkF"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_special",
+        "current": "explode (1d10 E; 20 ft.), entangle 1 round, DC 15",
+        "max": "",
+        "id": "-MmtHnYSb9IlKOKbpygO"
+      },
+      {
+        "name": "repeating_attack_-MmtHZLd8wnd6lyNAK7w_show_options",
+        "current": "0",
+        "max": "",
+        "id": "-MmtIOnOfGQGyJCipUUT"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_engagement_range",
+        "current": "ranged",
+        "max": "",
+        "id": "-MmtIQJzPKKRHBupRItl"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_id",
+        "current": "-mmtiqjnv1k6oppakkpp",
+        "max": "",
+        "id": "-MmtIQK0sR7r6o1itzz_"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_range_filter",
+        "current": "ranged",
+        "max": "",
+        "id": "-MmtIQK2M7_82Gi-KV6G"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_ability",
+        "current": "@{dexterity_mod}",
+        "max": "",
+        "id": "-MmtIQK5YLcIJWmONMSd"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_proficiency",
+        "current": "specialized",
+        "max": "",
+        "id": "-MmtIQK7AOy4ofbyJi-b"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_name",
+        "current": "nyfiber net",
+        "max": "",
+        "id": "-MmtIRzH87KqqGMoB2pc"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_level",
+        "current": "2",
+        "max": "",
+        "id": "-MmtIS54H6S8oNryA4kG"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_base_attack_bonus_base",
+        "current": "15",
+        "max": "",
+        "id": "-MmtISs1xyfcdwaYH4-1"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_base_attack_bonus",
+        "current": "10",
+        "max": "",
+        "id": "-MmtISy_d6XIrYsO2jJ4"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmtISycWfxojmaRxQz4"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtISyeKCdk95Vv6RCq"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_total",
+        "current": " +15",
+        "max": "",
+        "id": "-MmtISygDPpbysqiXp9C"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_special",
+        "current": "entangle",
+        "max": "",
+        "id": "-MmtIYjvyGEXeVpKeSDu"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_engagement_range",
+        "current": "ranged",
+        "max": "",
+        "id": "-MmtIZr5yqVlp61ODvGC"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_id",
+        "current": "-mmtizqxyw7sn67qkrme",
+        "max": "",
+        "id": "-MmtIZr7uT4oKArBpbud"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_range_filter",
+        "current": "ranged",
+        "max": "",
+        "id": "-MmtIZrAQ9Stv23wJV-n"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_ability",
+        "current": "@{dexterity_mod}",
+        "max": "",
+        "id": "-MmtIZrBN8kKQ-9cb24T"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_proficiency",
+        "current": "specialized",
+        "max": "",
+        "id": "-MmtIZrDasPLb1XftyrU"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_name",
+        "current": "sentry shield projector",
+        "max": "",
+        "id": "-MmtIcCYp1P58qc9gOsR"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_level",
+        "current": "0",
+        "max": "",
+        "id": "-MmtIcJeKRc7xj0zWEw2"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_base_attack_bonus_base",
+        "current": "15",
+        "max": "",
+        "id": "-MmtId7u_FTZ6mDjweM_"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_base_attack_bonus",
+        "current": "10",
+        "max": "",
+        "id": "-MmtIdEtW6t2c05Jc980"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmtIdEvX9x2VpESymEx"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtIdEx8q_CXVtR6j5k"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_total",
+        "current": " +15",
+        "max": "",
+        "id": "-MmtIdEyHcQP-qylZBD1"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_special",
+        "current": "shield [[1d4]] (1d4)",
+        "max": "",
+        "id": "-MmtIgHuPYqpgb7ZAia-"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_engagement_range",
+        "current": "ranged",
+        "max": "",
+        "id": "-MmtIhdjtlVBVcgPFAaM"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_id",
+        "current": "-mmtihdt3q1e5gbpzjan",
+        "max": "",
+        "id": "-MmtIhdl1cWMKA1zeqv2"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_range_filter",
+        "current": "ranged",
+        "max": "",
+        "id": "-MmtIhdmayZgubRqFWnB"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_ability",
+        "current": "@{dexterity_mod}",
+        "max": "",
+        "id": "-MmtIhdpIyhguV7L3c8r"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_proficiency",
+        "current": "specialized",
+        "max": "",
+        "id": "-MmtIhdrd6n_MfeemYK-"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_name",
+        "current": "smoke grenade",
+        "max": "",
+        "id": "-MmtIk-n3MeLipUaXWqI"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_level",
+        "current": "0",
+        "max": "",
+        "id": "-MmtIk60c7yUeqwe0Hi8"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_base_attack_bonus_base",
+        "current": "15",
+        "max": "",
+        "id": "-MmtIloCFEsRDV5Sne6w"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_base_attack_bonus",
+        "current": "10",
+        "max": "",
+        "id": "-MmtIlsbRJp_L_H6XOLH"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_misc",
+        "current": "",
+        "max": "",
+        "id": "-MmtIlsdrQSV7Ofv-854"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_total_change",
+        "current": 0,
+        "max": "",
+        "id": "-MmtIlse-Ms2bZdLcQod"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_total",
+        "current": " +15",
+        "max": "",
+        "id": "-MmtIlsfkmdaE-fHnNWB"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_special",
+        "current": "explode (20 ft., smoke cloud 1 minute, DC 15)",
+        "max": "",
+        "id": "-MmtIsyQICZr2hxq9XlD"
+      },
+      {
+        "name": "repeating_attack_-MmtIhdT3Q1e5gBpzjaN_show_options",
+        "current": "0",
+        "max": "",
+        "id": "-MmtItkDSjt7ny0ybGMM"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_description",
+        "current": "A shield weapon encapsulates the target in a short-term force field. This force field lasts until the start of your next turn or until it has absorbed the listed amount of damage, whichever occurs first. A force field originating from a shield weapon blocks only incoming damage; it does not interfere in any way with the target’s weapons or attacks. You can’t use a shield projector to target yourself.",
+        "max": "",
+        "id": "-MmtJ-Jsg2ZLI-3Ra7h-"
+      },
+      {
+        "name": "repeating_attack_-MmtIZqxYW7sn67qkrME_show_options",
+        "current": "0",
+        "max": "",
+        "id": "-MmtJ-R-zJgPzxCYrV2c"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_description",
+        "current": "A creature hit by an entangle weapon becomes entangled until it escapes with an Acrobatics check (DC = 10 + weapon’s item level + the attacker’s Dexterity modifier [17]) or a Strength check (DC = 15 + weapon’s item level + the attacker’s Dexterity modifier [23]). An entangled creature can attempt such a check as a move action. Some weapons (such as stickybomb grenades) have a maximum duration for this effect. See the entangled condition.\n\nEntangled: You are ensnared. Being entangled impedes your movement but does not entirely prevent you from moving unless the bonds are anchored to an immobile object or tethered by an opposing force. You move at half speed, you cannot run or charge, and you take a –2 penalty to your AC, attack rolls, Reflex saving throws, initiative checks, and Dexterity-based skill and ability checks.",
+        "max": "",
+        "id": "-MmtJALiKERypH50HWdr"
+      },
+      {
+        "name": "repeating_attack_-MmtIQJnv1k6oPpaKkPP_show_options",
+        "current": "0",
+        "max": "",
+        "id": "-MmtJIhvBKrwZ6VlLc6K"
+      }
+    ],
+    "abilities": []
+  }
+}
