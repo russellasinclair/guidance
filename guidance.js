@@ -6,9 +6,8 @@ Requires API, Starfinder (Simple) character sheets - official sheets not support
 var Guidance = Guidance || (function () {
     "use strict";
 
-    let version = "-=> Guidance is online. v2.0.1 <=-";
+    let version = "-=> Guidance is online. v2.x.x <=-";
     let debugMode = true;
-    let enableNewNPCParser = false;
 
     /// Class that represents a NPC/Starship that is being worked on.
     class NPC {
@@ -82,7 +81,6 @@ var Guidance = Guidance || (function () {
             log(`${timestamp} ${stackTrace[2].trim()} ${text}`);
         }
     };
-
 
     let speakAsGuidanceToGM = function (text) {
         text = "/w gm  &{template:pf_spell} {{name=Guidance}} {{spell_description=" + text + "}}";
@@ -258,10 +256,6 @@ var Guidance = Guidance || (function () {
         return {name: text.substring(0, start), type: text.substring(start, text.indexOf("Speed"))};
     };
 
-    let npcTemplateRowConvert = function (templateRow) {
-        return templateRow;
-    };
-
     let shipTemplateRowConvert = function (templateRow) {
         templateRow.val = templateRow.val.replace("—", "");
         if (templateRow.attribute.startsWith("AC") || templateRow.attribute.startsWith("TL")) {
@@ -304,7 +298,6 @@ var Guidance = Guidance || (function () {
     //</editor-fold>
 
     //<editor-fold desc="Roll 20 object Interactions">
-
     let getSelectedNPCs = function (selected) {
         let npcs = [];
         for (const t of selected) {
@@ -587,17 +580,6 @@ var Guidance = Guidance || (function () {
         // reduce chance of error
         let section = parseBlockIntoSubSectionMap(cleanNotes);
 
-        if (enableNewNPCParser) {
-            let npc = parseStatBlock(getNPCStatBlocks(), cleanNotes);
-
-            let filtered = npc.filter(element => element.val !== undefined && element.sheetAttribute !== undefined && !element.sheetAttribute.includes("weapon"));
-            filtered = filtered.filter(element => !element.sheetAttribute.includes("weapon"));
-            filtered.forEach(function (i) {
-                i.val = i.val.replace(i.attribute, "").trim();
-                let attrib = npcTemplateRowConvert(i);
-                setAttribute(c.characterId, attrib.sheetAttribute, attrib.val);
-            });
-        } else {
             populateHeader(c.characterId, section.get("header"));
             // Setup Character Sheet
             populateDefense(c.characterId, section.get("defense"));
@@ -605,7 +587,7 @@ var Guidance = Guidance || (function () {
             populateStatics(c.characterId, section.get("statistics"));
             populateSkills(c.characterId, section.get("statistics"));
             populateNPC(c.characterId, cleanNotes);
-        }
+
 
         let featText = getCleanSheetValue(getNPCStatBlocks(), "Feats", cleanNotes);
         populateFeats(c.characterId, featText);
@@ -626,7 +608,6 @@ var Guidance = Guidance || (function () {
 
         speakAsGuidanceToGM(c.characterSheet.get("name") + " NPC character sheet processed");
     };
-
     //</editor-fold>
 
     //////////////////////////////////////////////////////////////////
@@ -1095,7 +1076,6 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "repeating_spells_" + uuid + "_npc-spell-list", textToParse.substring(textToParse.indexOf("—") + 2).trim());
     };
 
-
     let addSpellLikeAbility = function (characterId, textToParse) {
         let uuid = generateRowID();
         setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-usage", textToParse.substring(0, textToParse.indexOf("—")).trim());
@@ -1501,52 +1481,7 @@ var Guidance = Guidance || (function () {
         }
         debugLog("Creating weapon ability " + uuid + " completed");
     };
-    
-    let createWeaponDamageType = function(characterId, weaponUuid, details, position)
-    {
-        try{
-            if(position <= details.length){
-                debugLog("Weapon type: " + details[position]);
-                let damageType = details[i];
-                //Test for 2 damage types aka plasma E & F
-                if(details[position+1] == "&"){
-                    damageType += details[++position] + " " + details[++position];
-                }
-                damageType = details[position].replace(/;/, "").replace(/\)/, "");
-                setAttribute(characterId, "repeating_npc-weapon_" + weaponUuid + "_npc-weapon-type", damageType);
-            }
-        }catch(ex){
-            debugLog("Error parsing damage type for: " + uuid);
-            debugLog(ex);    
-        }
-    };
-
-    let createWeaponCriticals = function(characterId, weaponUuid, details, position)
-    {
-        try{
-            if(position <= details.length && details[position] != ")"){
-                if(details[position] == "critical"){
-                    position++;
-                    //Probably need a foreach in here to go through the rest
-                    let critical = "";
-                    while(position < details.length){
-                        critical = critical + " " + details[position];
-                        position++;
-                    }
-                    critical = critical.replace(/\)/, "")
-                    debugLog("Weapon Critical: " + critical);
-                    setAttribute(characterId, "repeating_npc-weapon_" + weaponUuid + "_npc-weapon-critical", critical);
-                }
-            }   
-        }catch(ex){
-            debugLog("Error parsing damage critical for: " + uuid);
-            debugLog(ex);    
-        }
-    };
-    
     //</editor-fold>
-
-    
 
     //<editor-fold desc="Stat block formatter templates">
     let getShipStatBlocks = function () {
