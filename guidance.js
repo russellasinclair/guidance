@@ -82,8 +82,12 @@ var Guidance = Guidance || (function () {
     };
 
     let speakAsGuidanceToGM = function (text) {
-        text = "/w gm  &{template:default} {{name=Guidance}} {{spell_description=" + text + "}}";
+        text = "/w gm  &{template:default} {{name=Guidance}} {{" + text + "}}";
         sendChat("Guidance", text);
+    };
+
+    let welcomeHandout = function () {
+        return "<p>This is a tool to support the usage of the Starfinder (Simple) character sheets in Roll20. It has the ability to read a statblock from the GMNotes section of a selected character and fill out the NPC section of the charactersheet. Statblocks from Archives of Nethys and Starjammer SRD are supported. Statblocks from PDFs can be used, but there may be parsing issues.</p> <p>&nbsp;</p> <h2>THE MAIN COMMANDS</h2> <p>&nbsp;</p> <p><em><strong>!sf_character</strong></em></p> <p>This imports a Starfinder statblock in the GM Notes section of a character sheet and will out the NPC section of the Starfinder (Simple) character sheet. Furthermore, it configures the token's hit points and give EAC/KAC indicators.</p> <p><em>How to:</em></p> <ol> <li>Select and copy a stat block and paste it into the \"GM Notes\" section of a Character sheet. (Don't worry about removing any formatting)</li> <li>Click Save.</li> <li>Select the token that you have<a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\"> linked to the character sheet</a>.</li> <li>Type !sf_character. The script attempts to use the statblock to fill out the NPC section of the Starfinder (Simple) character sheet.</li> </ol> <p>The script supports character statblocks from the <a href=\"https://www.aonsrd.com/Default.aspx\">Archives of Nethys</a> and the <a href=\"https://www.starjammersrd.com/\">Starjammer SRD</a>. <span style=\"font-style: italic;\">Society PDFs, at least in the earlier ones, sometimes present issues. Double check the results after importing a statblock from a PDF.</span></p> <p>&nbsp;</p> <p><strong><span style=\"font-style: italic;\">!sf_starship</span></strong></p> <p>This imports a Starfinder starship statblock from the GM Notes section of a <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked character sheet</a> and populates the Starship page of the sheet. Furthermore, It adds gunnery and piloting check macros. If the statblock doesn&rsquo;t have stats for the pilot/gunner, the script adds prompts so that when you click the macro, you are prompted for the bonus.</p> <p>This works the same as !sf_character but in practice, statblocks for starships are less consistent across platforms.</p> <p>&nbsp;</p> <p><em><strong>!sf_token</strong></em></p> <p>This populates the token with hitpoint, EAC, and KAC information in the event that the NPC sheet is setup, but the token isn't. The token will look like the one produced by !sf_character</p> <p>&nbsp;</p> <p><em><strong>!sf_clean</strong></em></p> <p>I've included this for completeness, but be warned - this command will <span style=\"text-decoration: underline;\"><strong>PERMANENTLY ERASE</strong></span> things from the character sheet so use with caution. As above, this command requires selecting a token that has been <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked to the character sheet</a>.</p> <p><em>How to:</em></p> <p style=\"padding-left: 40px;\"><em><strong>!sf_clean CONFIRM</strong></em> - This will erase ALL stats from the character sheet AND remove ALL formatting from the token. It will not touch the GM Notes section of the character sheet so it can be reimported using !sf_character.</p> <p style=\"padding-left: 40px;\"><strong><em>!sf_clean ABILITIES</em></strong> - This will rease ALL macros from the character sheet.</p> <p>&nbsp;</p> <h3>OTHER USEFUL COMMANDS</h3> <p><em><strong>!sf_init</strong></em></p> <p>This rolls group initiative for all selected NPCs. The script refers to the Initiative bonus on the NPC tab of the character sheet to do this.</p> <p>&nbsp;</p> <p><em><strong>!sf_addtrick</strong></em></p> <p>This adds a macro to handle Trick Attacks for the NPC. Click over to the main \"Character\" page, and configure Trick Attacks to make it work.</p> <p>&nbsp;</p> <h3>The next two commands will require creating a simple macro to run correctly</h3> <p>The macro will look like this.</p> <blockquote> <p style=\"padding-left: 40px;\">!sf_ability ?{textToPaste}</p> </blockquote> <p>&nbsp;</p> <p><em><strong>!sf_ability</strong></em></p> <p>This adds a special ability to the NPC character sheet for quick reference. If the macro has been created as described above, a box appears allowing you to paste the full text of a special ability.</p> <p>&nbsp;</p> <p><em><strong>!sf_addspell</strong></em></p> <p>This adds a spell to the NPC character sheet as a macro. Similar to sf_ability, when you run the macro to call this, a box appears allowing you to paste the full text of the spell. The script formats the spellblock. Afterwards, I recommend manually editing the macro in the \"description\" tag to tailor the results of the macro for use in play.</p> <p>&nbsp;</p> <p>Find other details on the wiki <a href=\"https://wiki.roll20.net/Script:Starfinder_-_Guidance_Tools_for_Starfinder_(Simple)_Character_sheet\">HERE</a>.</p> <p>Feel free to reach out to me if you find any bug or have any suggestions <a href=\"https://app.roll20.net/users/927625/kahn265\">HERE</a>.</p>";
     };
 
     // For Debugging purposes
@@ -156,64 +160,6 @@ var Guidance = Guidance || (function () {
             });
     };
 
-    let getCleanSheetValue = function (statBlockTemplate, statToFind, statBlockText, delimiter) {
-        let x = getSheetValue(statBlockTemplate, statToFind, statBlockText, delimiter);
-        return (x !== undefined) ? x.replace(statToFind, "") : "";
-    };
-
-    // new parsing logic
-    let getSheetValue = function (statBlockTemplate, statToFind, statBlockText, delimiter) {
-        if (!statBlockText.includes(statToFind)) {
-            return undefined;
-        }
-        debugLog(statBlockText);
-        debugLog("Looking for " + statToFind);
-        statBlockText = statBlockText.substring(statBlockText.indexOf(statToFind));
-        debugLog(statBlockText);
-        statBlockTemplate = statBlockTemplate.filter(element => element.attribute !== undefined);
-
-        let nextToken = statBlockTemplate.findIndex(element => element.attribute === statToFind);
-
-        try {
-            do {
-                nextToken++;
-            } while (!statBlockText.includes(statBlockTemplate[nextToken].attribute));
-        } catch (e) {
-            // token wasn't found, exception was thrown.
-            return statBlockText;
-        }
-
-        statBlockText = statBlockText.substring(0, statBlockText.indexOf(statBlockTemplate[nextToken].attribute));
-        debugLog(statBlockText);
-        if (statBlockText.includes(";")) {
-            statBlockText = statBlockText.substring(0, statBlockText.indexOf(";"));
-            debugLog(statBlockText);
-        }
-
-        if (delimiter !== undefined && statBlockText.includes(delimiter)) {
-            statBlockText = statBlockText.substring(0, statBlockText.indexOf(delimiter));
-        }
-        debugLog(statBlockText);
-
-        return statBlockText;
-    };
-
-    let parseStatBlock = function (statBlockTemplate, statBlockText) {
-        debugLog(statBlockTemplate.length);
-        let statBlockData = [];
-        for (let i = 0; i < statBlockTemplate.length; i++) {
-            if (statBlockTemplate[i].attribute !== undefined && statBlockTemplate[i].attribute !== "") {
-                let preParsedText = statBlockText;
-                if (i > 0 && statBlockTemplate[i - 1].attribute !== "") {
-                    preParsedText = statBlockText.substring(statBlockText.indexOf(statBlockTemplate[i - 1].attribute));
-                }
-                let val = getSheetValue(statBlockTemplate, statBlockTemplate[i].attribute, preParsedText);
-                statBlockData.push(new TemplateRow(i, statBlockTemplate[i].attribute, val));
-                debugLog(statBlockTemplate[i].attribute + " = " + val);
-            }
-        }
-        return statBlockData;
-    };
     //</editor-fold>
 
     //<editor-fold desc="Data Transformation Routines">
@@ -414,14 +360,6 @@ var Guidance = Guidance || (function () {
         }
     };
 
-    let queryCharacterSheet = function (gmNotes, chatMessage, characterId) {
-        let cleanNotes = cleanText(gmNotes);
-        let lookup = chatMessage.content.replace("!sf_get ", "");
-        let value = getSheetValue(getNPCStatBlocks(), lookup, cleanNotes);
-        let sheets = findObjs({_id: characterId, _type: "character"});
-        speakAsGuidanceToGM(sheets[0].get("name") + "<br><br>" + value);
-    };
-
     let formatTemplateAsMacro = function (spellAsMacro, template) {
         let filteredTemplate = template.filter(element => element.attribute !== undefined && element.val !== undefined);
         for (let i = 0; i < filteredTemplate.length; i++) {
@@ -433,186 +371,6 @@ var Guidance = Guidance || (function () {
     let formatSpellAsMacro = function (template) {
         let spellAsMacro = "?{Hide this roll?|No, |Yes,/w GM} &{template:default}";
         return formatTemplateAsMacro(spellAsMacro, template);
-    };
-    //</editor-fold>
-
-    //<editor-fold desc="Population helpers for v 2.0">
-    let populateStarshipData = function (gmNotes, c) {
-        let cleanNotes = cleanText(gmNotes).trim();
-        debugLog("clean notes = " + cleanNotes);
-
-        if (debugMode) {
-            isNullOrUndefined(cleanNotes);
-            c.npcToken.set("gmnotes", cleanNotes);
-        }
-        const attributes = {};
-
-        let ship = parseStatBlock(getShipStatBlocks(), cleanNotes);
-        setAttribute(c.characterId, "tab", 3);
-        setToken(c.characterSheet, c.npcToken);
-
-        let basics = getShipBasics(cleanNotes);
-        debugLog("Basics = " + basics);
-        let frame = getShipFrame(basics.type.toLowerCase());
-
-        setAttribute(c.characterId, "starship-name", c.characterSheet.get("name"));
-        setAttribute(c.characterId, "starship-make", basics.type);
-        setAttribute(c.characterId, "starship-pc-crew-show", 0);
-        debugLog("Frame = " + frame);
-        setAttribute(c.characterId, "starship-frame", String(frame));
-        setAttribute(c.characterId, "starship-weapon-fwd-weapon1-show", 0);
-        setAttribute(c.characterId, "starship-weapon-port-weapon1-show", 0);
-        setAttribute(c.characterId, "starship-weapon-aft-weapon1-show", 0);
-        setAttribute(c.characterId, "starship-weapon-turret-weapon1-show", 0);
-        setAttribute(c.characterId, "starship-weapon-stbd-weapon1-show", 0);
-
-        // get piloting stat and make macro
-        let piloting = cleanNotes.match(/iloting\s*(?:\+\s*(\d+))?/);
-        let pilotBonus = piloting?.[1] ?? "?{Piloting Bonus?|0}";
-        let pilotingRanks = piloting ? piloting[0].match(/\((.*?)\)/)?.[1] : "Ranks Not Defined";
-
-        let pilotingMacro = `&{template:default} {{name=${c.characterSheet.get("name")}'s Piloting}} {{skill_chk=[[[[d20+${pilotBonus}]] + ?{Any other modifiers?|0}]]}}{{notes=${pilotingRanks}}}`;
-
-        createObj("ability", {
-            name: "Piloting Check",
-            description: "",
-            action: pilotingMacro,
-            _characterid: c.characterId,
-        });
-
-        let gunnery = cleanNotes.match(/unnery\s*(.*?)(?:\s|$)/)?.[1];
-
-        let filtered = ship.filter(element => element.val !== undefined && element.sheetAttribute !== undefined && !element.sheetAttribute.includes("weapon"));
-        filtered.forEach(function (i) {
-            i.val = i.val.replace(i.attribute, "").trim();
-            let attrib = shipTemplateRowConvert(i);
-            attributes[attrib.sheetAttribute] = attrib.val;
-        });
-
-        setAttribute(c.characterId, "starship-frame", String(frame));
-        setAttribute(c.characterId, "starship-name", c.characterSheet.get("name"));
-        let allAttacks = cleanNotes.substring(cleanNotes.indexOf("Attack"), cleanNotes.indexOf("Power Core"));
-        let allArcs = allAttacks.split("Attack ");
-
-        allArcs.forEach(function (arc) {
-            debugLog("Arc = " + arc);
-            let weapons = arc.substring(arc.indexOf(")") + 1).trim();
-            debugLog(weapons);
-            let weapon = weapons.split(", ");
-            let direction = arc.substring(1, arc.indexOf(")"));
-            debugLog(direction);
-            let i = 1;
-            weapon.forEach(function (w) {
-                debugLog("w = " + w);
-                debugLog("Gunnery = " + gunnery);
-                let weaponName = w.substring(0, w.indexOf("("));
-                debugLog("WeaponName = " + weaponName);
-                if (weaponName.trim() === "") {
-                    return;
-                }
-                let bonus = gunnery.substring(gunnery.indexOf("+") + 1, gunnery.indexOf("(")).trim();
-                if (bonus === undefined || String(bonus).trim() === "" || isNaN(bonus)) {
-                    bonus = "?{Gunner's Attack Bonus|0}";
-                }
-
-                debugLog("Bonus = " + bonus);
-                debugLog("w (before getting damage) = " + w);
-                let damage = w.substring(w.indexOf("(") + 1);
-                if (damage.includes(")")) {
-                    damage = damage.substring(0, damage.indexOf(")"));
-                }
-                debugLog("damage = " + damage);
-                let range = "";
-                if (damage.includes(";")) {
-                    damage = damage.substring(0, damage.indexOf(";")).trim();
-                    range = damage.substring(damage.indexOf(";") + 1).trim();
-                } else if (damage.includes(",")) {
-                    damage = damage.substring(0, damage.indexOf(",")).trim();
-                    range = damage.substring(damage.indexOf(",") + 1).trim();
-                }
-                debugLog("Damage = " + damage);
-                debugLog("Range = " + range);
-
-                let weaponMacro = "&{template:default} {{name=" + c.characterSheet.get("name") +
-                    "'s " + weaponName + "}} {{attack=[[ [[d20+" + bonus + "]] + ?{Any other modifiers?|0}]] }}" +
-                    " {{damage=[[" + damage + "]] }} {{notes=" + range + " }} }} ";
-
-                createObj("ability", {
-                    name: direction.trim() + " " + weaponName.trim() + " fire",
-                    description: "",
-                    action: weaponMacro,
-                    _characterid: c.characterId,
-                });
-
-                let abb = abbreviateArc(arc);
-                setAttribute(c.characterId, "starship-" + abb + "-weapon" + i, weaponName);
-                setAttribute(c.characterId, "starship-" + abb + "-weapon" + i + "-special", "See Abilites for Macro");
-                setAttribute(c.characterId, "starship-" + abb + "-weapon" + i + "-dmg", damage);
-                setAttribute(c.characterId, "starship-" + abb + "-weapon" + i + "-rng", range);
-                setAttribute(c.characterId, "starship-weapon-" + abb + "-weapon1-show", 1);
-                i++;
-            });
-        });
-
-        let hitPoints = getAttribute(c.characterId, "starship-hp");
-        c.npcToken.set("bar1_link", hitPoints.id);
-        let armorClass = getAttribute(c.characterId, "starship-ac-misc").get("current");
-        armorClass = parseFloat(armorClass) + 10;
-        c.npcToken.set("bar2_value", "AC " + armorClass);
-        c.npcToken.set("bar2_max", armorClass);
-        armorClass = getAttribute(c.characterId, "starship-tl-misc").get("current");
-        armorClass = parseFloat(armorClass) + 10;
-        c.npcToken.set("bar3_value", "TL " + armorClass);
-        c.npcToken.set("bar3_max", armorClass);
-        c.npcToken.set("showname", true);
-        speakAsGuidanceToGM("Token setup. For extra settings, check out the API TokenMod");
-
-        speakAsGuidanceToGM(c.characterSheet.get("name") + " a " + basics.type + " has been constructed");
-    };
-
-    let populateNPCData = function (gmNotes, c) {
-        let cleanNotes = cleanText(gmNotes).trim();
-
-        if (debugMode) {
-            isNullOrUndefined(cleanNotes);
-            c.npcToken.set("gmnotes", cleanNotes);
-        }
-
-        let section = parseBlockIntoSubSectionMap(cleanNotes);
-
-        if (simpleSheetUsed) {
-            setAttribute(c.characterId, "tab", 4);
-            setAttribute(c.characterId, "npc-race", c.characterSheet.get("name"));
-            setAttribute(c.characterId, "npc-tactics-show", 0);
-            setAttribute(c.characterId, "npc-feats-show", 0);
-        } else {
-            setAttribute(c.characterId, "sheet_type", "npc");
-            setAttribute(c.characterId, "name", c.characterSheet.get("name"));
-        }
-
-        populateHeader(c.characterId, section.get("header"));
-        populateDefense(c.characterId, section.get("defense"));
-        populateOffense(c.characterId, section.get("offense"));
-        populateStatics(c.characterId, section.get("statistics"));
-        populateSkills(c.characterId, section.get("statistics"));
-
-        let featText = getCleanSheetValue(getNPCStatBlocks(), "Feats", cleanNotes);
-        populateFeats(c.characterId, featText);
-        populateSpecialAbilities(c.characterId, section.get("special"));
-        setAlignment(c.characterId, cleanNotes);
-
-        setUpToken(c.characterId, c.npcToken);
-        if (cleanNotes.toLowerCase().includes("trick attack")) {
-            createObj("ability", {
-                name: "Trick Attack (settings on main sheet)",
-                description: "",
-                action: "&{template:default}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
-                _characterid: c.characterId,
-            });
-            speakAsGuidanceToGM("Trick attack added to selected character");
-        }
-
-        speakAsGuidanceToGM(c.characterSheet.get("name") + " NPC character sheet processed");
     };
     //</editor-fold>
 
@@ -866,12 +624,6 @@ var Guidance = Guidance || (function () {
             //<editor-fold desc="Code for Testing and Debugging">
             if (debugMode) {
                 let character = npcs[0];
-                if (chatMessage.content.startsWith("!sf_get")) {
-                    character.characterSheet.get("gmnotes", function (gmNotes) {
-                        queryCharacterSheet(gmNotes, chatMessage, character.characterId);
-                    });
-                    return;
-                }
 
                 // Code for Testing and Debugging
                 if (chatMessage.content.startsWith("!sf_debug")) {
@@ -912,24 +664,7 @@ var Guidance = Guidance || (function () {
     //</editor-fold>
     //////////////////////////////////////////////////////////////////
 
-    //<editor-fold desc="Old Population Helpers - try to move to new helper">
-    let setToken = function (characterId, tokenLinkedToNpcCharacterSheet) {
-        try {
-            let hitPoints = getAttribute(characterId, "HP-npc");
-            tokenLinkedToNpcCharacterSheet.set("bar1_link", hitPoints.id);
-            let armorClass = getAttribute(characterId, "EAC-npc");
-            tokenLinkedToNpcCharacterSheet.set("bar2_value", "EAC " + armorClass.get("current"));
-            tokenLinkedToNpcCharacterSheet.set("bar2_max", armorClass.get("current"));
-            armorClass = getAttribute(characterId, "KAC-npc");
-            tokenLinkedToNpcCharacterSheet.set("bar3_value", "KAC " + armorClass.get("current"));
-            tokenLinkedToNpcCharacterSheet.set("bar3_max", armorClass.get("current"));
-            tokenLinkedToNpcCharacterSheet.set("showname", true);
-            speakAsGuidanceToGM("Token setup. For extra settings, check out the API TokenMod");
-        } catch (e) {
-            speakAsGuidanceToGM("Check to make sure the token is linked and the character sheet is populated");
-        }
-    };
-
+    //<editor-fold desc="Updated Population Helpers">
     let parseBlockIntoSubSectionMap = function (textToParse) {
         let sections = new Map();
         let parsedText = textToParse;
@@ -956,6 +691,455 @@ var Guidance = Guidance || (function () {
         }
 
         return sections;
+    };
+
+    let populateNPCData = function (gmNotes, c) {
+        let cleanNotes = cleanText(gmNotes).trim();
+
+        if (debugMode) {
+            isNullOrUndefined(cleanNotes);
+            c.npcToken.set("gmnotes", cleanNotes);
+        }
+
+        let section = parseBlockIntoSubSectionMap(cleanNotes);
+
+        if (simpleSheetUsed) {
+            setAttribute(c.characterId, "tab", 4);
+            setAttribute(c.characterId, "npc-race", c.characterSheet.get("name"));
+            setAttribute(c.characterId, "npc-tactics-show", 0);
+            setAttribute(c.characterId, "npc-feats-show", 0);
+        } else {
+            setAttribute(c.characterId, "sheet_type", "npc");
+            setAttribute(c.characterId, "name", c.characterSheet.get("name"));
+        }
+
+        populateHeader(c.characterId, section.get("header"));
+        populateDefense(c.characterId, section.get("defense"));
+        populateSkills(c.characterId, section.get("statistics"));
+
+        populateOffense(c.characterId, section.get("offense"));
+        populateStatics(c.characterId, section.get("statistics"));
+
+        let featText = getStringValue("Feats", cleanNotes, "Skills");
+        populateFeats(c.characterId, featText);
+        populateSpecialAbilities(c.characterId, section.get("special"));
+        setAlignment(c.characterId, cleanNotes);
+
+        setUpToken(c.characterId, c.npcToken);
+        if (cleanNotes.toLowerCase().includes("trick attack")) {
+            createObj("ability", {
+                name: "Trick Attack (settings on main sheet)",
+                description: "",
+                action: "&{template:default}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
+                _characterid: c.characterId,
+            });
+            speakAsGuidanceToGM("Trick attack added to selected character");
+        }
+
+        speakAsGuidanceToGM(c.characterSheet.get("name") + " NPC character sheet processed");
+    };
+
+    let populateHeader = function (characterId, textToParse) {
+        let {cr, xp, senses, aura, subtypeStart, simpleSheetSize, roll20Size} = {
+            cr: getValue("CR", textToParse),
+            xp: getValue("XP", textToParse).replace(/\s/, "").replace(/,/, ""),
+            senses: getStringValue("Senses", textToParse, "Perception").trim(),
+            aura: getStringValue("Aura", textToParse, "DEFENSE").trim(),
+            subtypeStart: 0,
+            simpleSheetSize: 0,
+            roll20Size: 0
+        };
+        if (textToParse.toLowerCase().includes("medium")) {
+            subtypeStart = textToParse.indexOf("Medium") + "Medium".length;
+        } else if (textToParse.toLowerCase().includes("large")) {
+            simpleSheetSize = -1;
+            roll20Size = 1
+            subtypeStart = textToParse.indexOf("Large") + "Large".length;
+        } else if (textToParse.toLowerCase().includes("small")) {
+            simpleSheetSize = 1;
+            roll20Size = -1;
+            subtypeStart = textToParse.indexOf("Small") + "Small".length;
+        } else if (textToParse.toLowerCase().includes("gargantuan")) {
+            simpleSheetSize = -4;
+            roll20Size = 3;
+            subtypeStart = textToParse.indexOf("Gargantuan") + "Gargantuan".length;
+        } else if (textToParse.toLowerCase().includes("huge")) {
+            simpleSheetSize = -2;
+            roll20Size = 2;
+            subtypeStart = textToParse.indexOf("Huge") + "Huge".length;
+        } else if (textToParse.toLowerCase().includes("tiny")) {
+            simpleSheetSize = 2;
+            roll20Size = -2;
+            subtypeStart = textToParse.indexOf("Tiny") + "Tiny".length;
+        } else if (textToParse.toLowerCase().includes("diminutive")) {
+            simpleSheetSize = 4;
+            roll20Size = -3;
+            subtypeStart = textToParse.indexOf("Diminutive") + "Diminutive".length;
+        } else if (textToParse.toLowerCase().includes("fine")) {
+            simpleSheetSize = 8;
+            roll20Size = -4;
+            subtypeStart = textToParse.indexOf("Fine") + "Fine".length;
+        } else if (textToParse.toLowerCase().includes("colossal")) {
+            simpleSheetSize = -8;
+            roll20Size = 4;
+            subtypeStart = textToParse.indexOf("Colossal") + "Colossal".length;
+        } else {
+            throw new Error("Alien Size not recognized");
+        }
+
+        let subType = textToParse.substring(subtypeStart, textToParse.indexOf("Init"));
+
+        if (simpleSheetUsed) {
+            let perception = getSkillValue("Perception", "Wis", textToParse);
+            let initiative = getSkillValue("Init", "Dex", textToParse);
+
+            setAttribute(characterId, "npc-cr", cr);
+            setAttribute(characterId, "npc-XP", xp);
+            setAttribute(characterId, "npc-senses", senses);
+            setAttribute(characterId, "npc-aura", aura);
+            setAttribute(characterId, "Perception-npc-misc", perception);
+            setAttribute(characterId, "npc-init-misc", initiative);
+            setAttribute(characterId, "Perception-npc-ranks", perception);
+            setAttribute(characterId, "npc-init-ranks", initiative);
+            setAttribute(characterId, "npc-size", simpleSheetSize);
+            setAttribute(characterId, "npc-subtype", subType);
+        } else {
+            let perception = getSkillValue("Perception", null, textToParse);
+            let initiative = getSkillValue("Init", null, textToParse);
+
+            setAttribute(characterId, "tab_select", "0");
+            setAttribute(characterId, "character_level", cr);
+            setAttribute(characterId, "xp", xp);
+            setAttribute(characterId, "senses", senses);
+            setAttribute(characterId, "aura", aura);
+            setAttribute(characterId, "perception", perception);
+            setAttribute(characterId, "perception_base", perception);
+            setAttribute(characterId, "initiative", initiative);
+            setAttribute(characterId, "initiative_base", initiative);
+            setAttribute(characterId, "size", roll20Size);
+            setAttribute(characterId, "type_subtype", subType);
+        }
+    };
+
+    let populateSkills = function (characterId, textToParse) {
+        let skills = [
+            {name: "Acrobatics", attribute: "Dex"},
+            {name: "Athletics", attribute: "Str"},
+            {name: "Bluff", attribute: "Cha"},
+            {name: "Computers", attribute: "Int"},
+            {name: "Culture", attribute: "Int"},
+            {name: "Diplomacy", attribute: "Cha"},
+            {name: "Disguise", attribute: "Cha"},
+            {name: "Engineering", attribute: "Int"},
+            {name: "Intimidate", attribute: "Cha"},
+            {name: "Life-Science", attribute: "Int"},
+            {name: "Medicine", attribute: "Int"},
+            {name: "Mysticism", attribute: "Wis"},
+            {name: "Physical-Science", attribute: "Int"},
+            {name: "Piloting", attribute: "Dex"},
+            {name: "Sense-Motive", attribute: "Wis"},
+            {name: "Sleight-of-Hand", attribute: "Dex"},
+            {name: "Stealth", attribute: "Dex"},
+            {name: "Survival", attribute: "Wis"}
+        ];
+
+        if (simpleSheetUsed) {
+            for (let skill of skills) {
+                setAttribute(characterId, `${skill.name}-npc-misc`, getSkillValue(skill.name, skill.attribute, textToParse));
+                setAttribute(characterId, `${skill.name}-ranks`, getSkillValue(skill.name, skill.attribute, textToParse));
+            }
+        } else {
+            for (let skill of skills) {
+                let skillName = skill.name.split('-').join('_').toLowerCase();
+                setAttribute(characterId, skillName, getSkillValue(skill.name, null, textToParse));
+                setAttribute(characterId, skillName + "_base", getSkillValue(skill.name, null, textToParse));
+            }
+        }
+    };
+
+    let populateDefense = function (characterId, textToParse) {
+        let {eac, kac, fort, ref, will, hp, rp, sr, dr, resistances, weaknesses, immunities, defensiveAbilities} = {
+            eac: getValue("EAC", textToParse),
+            kac: getValue("KAC", textToParse),
+            fort: getValue("Fort", textToParse).replace("+", ""),
+            ref: getValue("Ref", textToParse).replace("+", ""),
+            will: getValue("Will", textToParse).replace("+", ""),
+            hp: getValue("HP", textToParse),
+            rp: getValue("RP", textToParse),
+            sr: getValue("SR", textToParse),
+            dr: getValue("DR", textToParse, ";"),
+            resistances: getStringValue("Resistances", textToParse, ";"),
+            weaknesses: "",
+            immunities: getValue("Immunities", textToParse, "OFFENSE"),
+            defensiveAbilities: ""
+        };
+
+        rp = rp || 0;
+        sr = sr || 0;
+
+        if (textToParse.includes("Weaknesses")) {
+            resistances = getStringValue("Resistances", textToParse, "Weaknesses");
+            weaknesses = getStringValue("Weaknesses", textToParse, ";");
+        }
+
+        if (textToParse.includes("SR")) {
+            immunities = getValue("Immunities", textToParse, "SR");
+        }
+
+        if (textToParse.includes("vs.")) {
+            let extraSaveStart = textToParse.indexOf("Will") + 3;
+            defensiveAbilities = textToParse.substring(extraSaveStart);
+            extraSaveStart = defensiveAbilities.indexOf(";");
+            defensiveAbilities = defensiveAbilities.substring(extraSaveStart + 1);
+            if (defensiveAbilities.includes("Defensive")) {
+                defensiveAbilities = defensiveAbilities.substring(0, defensiveAbilities.indexOf("Defensive"));
+            }
+        }
+        if (textToParse.includes("Defensive")) {
+            let start = textToParse.indexOf("Defensive Abilities") + "Defensive Abilities".length;
+            if (textToParse.includes("Immunities")) {
+                textToParse = textToParse.substring(0, textToParse.indexOf("Immunities"));
+            }
+            defensiveAbilities = textToParse.substring(start) + " " + defensiveAbilities;
+        }
+
+        if (simpleSheetUsed) {
+            setAttribute(characterId, "EAC-npc", eac);
+            setAttribute(characterId, "KAC-npc", kac);
+            setAttribute(characterId, "Fort-npc", fort);
+            setAttribute(characterId, "Ref-npc", ref);
+            setAttribute(characterId, "Will-npc", will);
+            setAttribute(characterId, "HP-npc", hp);
+            setAttribute(characterId, "RP-npc", rp);
+            setAttribute(characterId, "npc-SR", sr);
+            setAttribute(characterId, "npc-DR", dr);
+            setAttribute(characterId, "npc-resistances", resistances);
+            setAttribute(characterId, "npc-weaknesses", weaknesses);
+            setAttribute(characterId, "npc-immunities", immunities);
+            setAttribute(characterId, "npc-defensive-abilities", defensiveAbilities);
+        } else {
+            setAttribute(characterId, "eac_base", eac);
+            setAttribute(characterId, "kac_base", kac);
+            setAttribute(characterId, "eac", eac);
+            setAttribute(characterId, "kac", kac);
+            setAttribute(characterId, "fort_base", fort);
+            setAttribute(characterId, "ref_base", ref);
+            setAttribute(characterId, "will_base", will);
+            setAttribute(characterId, "fort", fort);
+            setAttribute(characterId, "ref", ref);
+            setAttribute(characterId, "will", will);
+            setAttribute(characterId, "hp", hp);
+            setAttribute(characterId, "rp", rp);
+            setAttribute(characterId, "sr", sr);
+            setAttribute(characterId, "dr", dr);
+            setAttribute(characterId, "resistances", resistances);
+            setAttribute(characterId, "weaknesses", weaknesses);
+            setAttribute(characterId, "immunities", immunities);
+            setAttribute(characterId, "defensive_abilities", defensiveAbilities);
+        }
+    };
+    //</editor-fold>
+
+    let populateOffense = function (characterId, textToParse) {
+        setAttribute(characterId, "space", getMovement("Space", textToParse));
+        setAttribute(characterId, "reach", getMovement("Reach", textToParse));
+
+        let specialAbilities = getValue("Offensive Abilities", textToParse, "STATISTICS");
+
+        if (specialAbilities.includes("Spell")) {
+            specialAbilities = specialAbilities.substring(0, specialAbilities.indexOf("Spell"));
+        }
+
+        if (simpleSheetUsed) {
+            if (isNullOrUndefined(specialAbilities)) {
+                setAttribute(characterId, "npc-special-attacks-show", 0);
+            } else {
+                let offensiveAbilities = getStringValue("Offensive Abilities", textToParse, "STATISTICS");
+                setAttribute(characterId, "npc-special-attacks", offensiveAbilities);
+            }
+
+            setAttribute(characterId, "speed-base-npc", getMovement("Speed", textToParse));
+            setAttribute(characterId, "speed-fly-npc", getMovement("fly", textToParse));
+            setAttribute(characterId, "speed-burrow-npc", getMovement("burrow", textToParse));
+            setAttribute(characterId, "speed-climb-npc", getMovement("climb", textToParse));
+            setAttribute(characterId, "speed-swim-npc", getMovement("swim", textToParse));
+
+            if (textToParse.toLowerCase().includes("fly")) {
+                if (textToParse.includes("(Ex")) {
+                    setAttribute(characterId, "speed-fly-source-npc", 1);
+                } else if (textToParse.includes("(Su")) {
+                    setAttribute(characterId, "speed-fly-source-npc", 2);
+                } else {
+                    setAttribute(characterId, "speed-fly-source-npc", 3);
+                }
+
+                if (textToParse.includes("lumsy)")) {
+                    setAttribute(characterId, "speed-fly-maneuverability-npc", -8);
+                } else if (textToParse.includes("erfect)")) {
+                    setAttribute(characterId, "speed-fly-maneuverability-npc", 8);
+                } else {
+                    setAttribute(characterId, "speed-fly-maneuverability-npc", 0);
+                }
+            }
+        } else {
+            let speed = getStringValue("Speed", textToParse, "Melee");
+            setAttribute(characterId, "speed", speed);
+        }
+
+        doWeapons(characterId, textToParse);
+        doMagic(characterId, textToParse);
+    };
+
+
+    //<editor-fold desc="Old Population Helpers">
+    let setToken = function (characterId, tokenLinkedToNpcCharacterSheet) {
+        try {
+            let hitPoints = getAttribute(characterId, "HP-npc");
+            tokenLinkedToNpcCharacterSheet.set("bar1_link", hitPoints.id);
+            let armorClass = getAttribute(characterId, "EAC-npc");
+            tokenLinkedToNpcCharacterSheet.set("bar2_value", "EAC " + armorClass.get("current"));
+            tokenLinkedToNpcCharacterSheet.set("bar2_max", armorClass.get("current"));
+            armorClass = getAttribute(characterId, "KAC-npc");
+            tokenLinkedToNpcCharacterSheet.set("bar3_value", "KAC " + armorClass.get("current"));
+            tokenLinkedToNpcCharacterSheet.set("bar3_max", armorClass.get("current"));
+            tokenLinkedToNpcCharacterSheet.set("showname", true);
+            speakAsGuidanceToGM("Token setup. For extra settings, check out the API TokenMod");
+        } catch (e) {
+            speakAsGuidanceToGM("Check to make sure the token is linked and the character sheet is populated");
+        }
+    };
+
+    let populateStarshipData = function (gmNotes, c) {
+        let cleanNotes = cleanText(gmNotes).trim();
+        debugLog("clean notes = " + cleanNotes);
+
+        if (debugMode) {
+            isNullOrUndefined(cleanNotes);
+            c.npcToken.set("gmnotes", cleanNotes);
+        }
+        const attributes = {};
+
+        let ship = parseStatBlock(getShipStatBlocks(), cleanNotes);
+        setAttribute(c.characterId, "tab", 3);
+        setToken(c.characterSheet, c.npcToken);
+
+        let basics = getShipBasics(cleanNotes);
+        debugLog("Basics = " + basics);
+        let frame = getShipFrame(basics.type.toLowerCase());
+
+        setAttribute(c.characterId, "starship-name", c.characterSheet.get("name"));
+        setAttribute(c.characterId, "starship-make", basics.type);
+        setAttribute(c.characterId, "starship-pc-crew-show", 0);
+        debugLog("Frame = " + frame);
+        setAttribute(c.characterId, "starship-frame", String(frame));
+        setAttribute(c.characterId, "starship-weapon-fwd-weapon1-show", 0);
+        setAttribute(c.characterId, "starship-weapon-port-weapon1-show", 0);
+        setAttribute(c.characterId, "starship-weapon-aft-weapon1-show", 0);
+        setAttribute(c.characterId, "starship-weapon-turret-weapon1-show", 0);
+        setAttribute(c.characterId, "starship-weapon-stbd-weapon1-show", 0);
+
+        // get piloting stat and make macro
+        let piloting = cleanNotes.match(/iloting\s*(?:\+\s*(\d+))?/);
+        let pilotBonus = piloting?.[1] ?? "?{Piloting Bonus?|0}";
+        let pilotingRanks = piloting ? piloting[0].match(/\((.*?)\)/)?.[1] : "Ranks Not Defined";
+
+        let pilotingMacro = `&{template:default} {{name=${c.characterSheet.get("name")}'s Piloting}} {{skill_chk=[[[[d20+${pilotBonus}]] + ?{Any other modifiers?|0}]]}}{{notes=${pilotingRanks}}}`;
+
+        createObj("ability", {
+            name: "Piloting Check",
+            description: "",
+            action: pilotingMacro,
+            _characterid: c.characterId,
+        });
+
+        let gunnery = cleanNotes.match(/unnery\s*(.*?)(?:\s|$)/)?.[1];
+
+        let filtered = ship.filter(element => element.val !== undefined && element.sheetAttribute !== undefined && !element.sheetAttribute.includes("weapon"));
+        filtered.forEach(function (i) {
+            i.val = i.val.replace(i.attribute, "").trim();
+            let attrib = shipTemplateRowConvert(i);
+            attributes[attrib.sheetAttribute] = attrib.val;
+        });
+
+        setAttribute(c.characterId, "starship-frame", String(frame));
+        setAttribute(c.characterId, "starship-name", c.characterSheet.get("name"));
+        let allAttacks = cleanNotes.substring(cleanNotes.indexOf("Attack"), cleanNotes.indexOf("Power Core"));
+        let allArcs = allAttacks.split("Attack ");
+
+        allArcs.forEach(function (arc) {
+            debugLog("Arc = " + arc);
+            let weapons = arc.substring(arc.indexOf(")") + 1).trim();
+            debugLog(weapons);
+            let weapon = weapons.split(", ");
+            let direction = arc.substring(1, arc.indexOf(")"));
+            debugLog(direction);
+            let i = 1;
+            weapon.forEach(function (w) {
+                debugLog("w = " + w);
+                debugLog("Gunnery = " + gunnery);
+                let weaponName = w.substring(0, w.indexOf("("));
+                debugLog("WeaponName = " + weaponName);
+                if (weaponName.trim() === "") {
+                    return;
+                }
+                let bonus = gunnery.substring(gunnery.indexOf("+") + 1, gunnery.indexOf("(")).trim();
+                if (bonus === undefined || String(bonus).trim() === "" || isNaN(bonus)) {
+                    bonus = "?{Gunner's Attack Bonus|0}";
+                }
+
+                debugLog("Bonus = " + bonus);
+                debugLog("w (before getting damage) = " + w);
+                let damage = w.substring(w.indexOf("(") + 1);
+                if (damage.includes(")")) {
+                    damage = damage.substring(0, damage.indexOf(")"));
+                }
+                debugLog("damage = " + damage);
+                let range = "";
+                if (damage.includes(";")) {
+                    damage = damage.substring(0, damage.indexOf(";")).trim();
+                    range = damage.substring(damage.indexOf(";") + 1).trim();
+                } else if (damage.includes(",")) {
+                    damage = damage.substring(0, damage.indexOf(",")).trim();
+                    range = damage.substring(damage.indexOf(",") + 1).trim();
+                }
+                debugLog("Damage = " + damage);
+                debugLog("Range = " + range);
+
+                let weaponMacro = "&{template:default} {{name=" + c.characterSheet.get("name") +
+                    "'s " + weaponName + "}} {{attack=[[ [[d20+" + bonus + "]] + ?{Any other modifiers?|0}]] }}" +
+                    " {{damage=[[" + damage + "]] }} {{notes=" + range + " }} }} ";
+
+                createObj("ability", {
+                    name: direction.trim() + " " + weaponName.trim() + " fire",
+                    description: "",
+                    action: weaponMacro,
+                    _characterid: c.characterId,
+                });
+
+                let abb = abbreviateArc(arc);
+                setAttribute(c.characterId, "starship-" + abb + "-weapon" + i, weaponName);
+                setAttribute(c.characterId, "starship-" + abb + "-weapon" + i + "-special", "See Abilites for Macro");
+                setAttribute(c.characterId, "starship-" + abb + "-weapon" + i + "-dmg", damage);
+                setAttribute(c.characterId, "starship-" + abb + "-weapon" + i + "-rng", range);
+                setAttribute(c.characterId, "starship-weapon-" + abb + "-weapon1-show", 1);
+                i++;
+            });
+        });
+
+        let hitPoints = getAttribute(c.characterId, "starship-hp");
+        c.npcToken.set("bar1_link", hitPoints.id);
+        let armorClass = getAttribute(c.characterId, "starship-ac-misc").get("current");
+        armorClass = parseFloat(armorClass) + 10;
+        c.npcToken.set("bar2_value", "AC " + armorClass);
+        c.npcToken.set("bar2_max", armorClass);
+        armorClass = getAttribute(c.characterId, "starship-tl-misc").get("current");
+        armorClass = parseFloat(armorClass) + 10;
+        c.npcToken.set("bar3_value", "TL " + armorClass);
+        c.npcToken.set("bar3_max", armorClass);
+        c.npcToken.set("showname", true);
+        speakAsGuidanceToGM("Token setup. For extra settings, check out the API TokenMod");
+
+        speakAsGuidanceToGM(c.characterSheet.get("name") + " a " + basics.type + " has been constructed");
     };
 
     let doMagic = function (characterId, textToParse) {
@@ -1107,212 +1291,6 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-name", textToParse.substring(textToParse.indexOf("—") + 2).trim());
     };
 
-    let populateHeader = function (characterId, textToParse) {
-        let {cr, xp, senses, aura, subtypeStart, simpleSheetSize, roll20Size} = {
-            cr: getValue("CR", textToParse),
-            xp: getValue("XP", textToParse).replace(/\s/, "").replace(/,/, ""),
-            senses: getCleanSheetValue(getNPCStatBlocks(), "Senses", textToParse),
-            aura: getStringValue("Aura", textToParse, "DEFENSE"),
-            subtypeStart: 0,
-            simpleSheetSize: 0,
-            roll20Size: 0
-        };
-        if (textToParse.toLowerCase().includes("medium")) {
-            subtypeStart = textToParse.indexOf("Medium") + "Medium".length;
-        } else if (textToParse.toLowerCase().includes("large")) {
-            simpleSheetSize = -1;
-            roll20Size = 1
-            subtypeStart = textToParse.indexOf("Large") + "Large".length;
-        } else if (textToParse.toLowerCase().includes("small")) {
-            simpleSheetSize = 1;
-            roll20Size = -1;
-            subtypeStart = textToParse.indexOf("Small") + "Small".length;
-        } else if (textToParse.toLowerCase().includes("gargantuan")) {
-            simpleSheetSize = -4;
-            roll20Size = 3;
-            subtypeStart = textToParse.indexOf("Gargantuan") + "Gargantuan".length;
-        } else if (textToParse.toLowerCase().includes("huge")) {
-            simpleSheetSize = -2;
-            roll20Size = 2;
-            subtypeStart = textToParse.indexOf("Huge") + "Huge".length;
-        } else if (textToParse.toLowerCase().includes("tiny")) {
-            simpleSheetSize = 2;
-            roll20Size = -2;
-            subtypeStart = textToParse.indexOf("Tiny") + "Tiny".length;
-        } else if (textToParse.toLowerCase().includes("diminutive")) {
-            simpleSheetSize = 4;
-            roll20Size = -3;
-            subtypeStart = textToParse.indexOf("Diminutive") + "Diminutive".length;
-        } else if (textToParse.toLowerCase().includes("fine")) {
-            simpleSheetSize = 8;
-            roll20Size = -4;
-            subtypeStart = textToParse.indexOf("Fine") + "Fine".length;
-        } else if (textToParse.toLowerCase().includes("colossal")) {
-            simpleSheetSize = -8;
-            roll20Size = 4;
-            subtypeStart = textToParse.indexOf("Colossal") + "Colossal".length;
-        } else {
-            throw new Error("Alien Size not recognized");
-        }
-
-        let subType = textToParse.substring(subtypeStart, textToParse.indexOf("Init"));
-
-        if (simpleSheetUsed) {
-            let perception = getSkillValue("Perception", "Wis", textToParse);
-            let initiative = getSkillValue("Init", "Dex", textToParse);
-
-            setAttribute(characterId, "npc-cr", cr);
-            setAttribute(characterId, "npc-XP", xp);
-            setAttribute(characterId, "npc-senses", senses);
-            setAttribute(characterId, "npc-aura", aura);
-            setAttribute(characterId, "Perception-npc-misc", perception);
-            setAttribute(characterId, "npc-init-misc", initiative);
-            setAttribute(characterId, "Perception-npc-ranks", perception);
-            setAttribute(characterId, "npc-init-ranks", initiative);
-            setAttribute(characterId, "npc-size", simpleSheetSize);
-            setAttribute(characterId, "npc-subtype", subType);
-        } else {
-            let perception = getSkillValue("Perception", null, textToParse);
-            let initiative = getSkillValue("Init", null, textToParse);
-
-            setAttribute(characterId, "character_level", cr);
-            setAttribute(characterId, "xp", xp);
-            setAttribute(characterId, "senses", senses);
-            setAttribute(characterId, "aura", aura);
-            setAttribute(characterId, "perception", perception);
-            setAttribute(characterId, "perception_base", perception);
-            setAttribute(characterId, "initiative", initiative);
-            setAttribute(characterId, "initiative_base", initiative);
-            setAttribute(characterId, "size", roll20Size);
-            setAttribute(characterId, "type_subtype", subType);
-        }
-    };
-
-    let populateDefense = function (characterId, textToParse) {
-        let {eac, kac, fort, ref, will, hp, rp, sr, dr, resistances, weaknesses, immunities, defensiveAbilities} = {
-            eac: getValue("EAC", textToParse),
-            kac: getValue("KAC", textToParse),
-            fort: getValue("Fort", textToParse).replace("+", ""),
-            ref: getValue("Ref", textToParse).replace("+", ""),
-            will: getValue("Will", textToParse).replace("+", ""),
-            hp: getValue("HP", textToParse),
-            rp: getValue("RP", textToParse),
-            sr: getValue("SR", textToParse),
-            dr: getValue("DR", textToParse, ";"),
-            resistances: getCleanSheetValue(getNPCStatBlocks(), "Resistances", textToParse, ";"),
-            weaknesses: "",
-            immunities: getValue("Immunities", textToParse, "OFFENSE"),
-            defensiveAbilities: ""
-        };
-
-        rp = rp || 0;
-        sr = sr || 0;
-
-        if (textToParse.includes("Weaknesses")) {
-            resistances = getCleanSheetValue(getNPCStatBlocks(), "Resistances", textToParse, "Weaknesses");
-            weaknesses = getCleanSheetValue(getNPCStatBlocks(), "Weaknesses", textToParse, ";");
-        }
-
-        if (textToParse.includes("SR")) {
-            immunities = getValue("Immunities", textToParse, "SR");
-        }
-
-        if (textToParse.includes("vs.")) {
-            let extraSaveStart = textToParse.indexOf("Will") + 3;
-            defensiveAbilities = textToParse.substring(extraSaveStart);
-            extraSaveStart = defensiveAbilities.indexOf(";");
-            defensiveAbilities = defensiveAbilities.substring(extraSaveStart + 1);
-            if (defensiveAbilities.includes("Defensive")) {
-                defensiveAbilities = defensiveAbilities.substring(0, defensiveAbilities.indexOf("Defensive"));
-            }
-        }
-        if (textToParse.includes("Defensive")) {
-            let start = textToParse.indexOf("Defensive Abilities") + "Defensive Abilities".length;
-            if (textToParse.includes("Immunities")) {
-                textToParse = textToParse.substring(0, textToParse.indexOf("Immunities"));
-            }
-            defensiveAbilities = textToParse.substring(start) + " " + defensiveAbilities;
-        }
-
-        if (simpleSheetUsed) {
-            setAttribute(characterId, "EAC-npc", eac);
-            setAttribute(characterId, "KAC-npc", kac);
-            setAttribute(characterId, "Fort-npc", fort);
-            setAttribute(characterId, "Ref-npc", ref);
-            setAttribute(characterId, "Will-npc", will);
-            setAttribute(characterId, "HP-npc", hp);
-            setAttribute(characterId, "RP-npc", rp);
-            setAttribute(characterId, "npc-SR", sr);
-            setAttribute(characterId, "npc-DR", dr);
-            setAttribute(characterId, "npc-resistances", resistances);
-            setAttribute(characterId, "npc-weaknesses", weaknesses);
-            setAttribute(characterId, "npc-immunities", immunities);
-            setAttribute(characterId, "npc-defensive-abilities", defensiveAbilities);
-        } else {
-            setAttribute(characterId, "eac_base", eac);
-            setAttribute(characterId, "kac_base", kac);
-            setAttribute(characterId, "eac", eac);
-            setAttribute(characterId, "kac", kac);
-            setAttribute(characterId, "fort_base", fort);
-            setAttribute(characterId, "ref_base", ref);
-            setAttribute(characterId, "will_base", will);
-            setAttribute(characterId, "fort", fort);
-            setAttribute(characterId, "ref", ref);
-            setAttribute(characterId, "will", will);
-            setAttribute(characterId, "hp", hp);
-            setAttribute(characterId, "rp", rp);
-            setAttribute(characterId, "sr", sr);
-            setAttribute(characterId, "dr", dr);
-            setAttribute(characterId, "resistances", resistances);
-            setAttribute(characterId, "weaknesses", weaknesses);
-            setAttribute(characterId, "immunities", immunities);
-            setAttribute(characterId, "defensive_abilities", defensiveAbilities);
-        }
-    };
-
-    let populateOffense = function (characterId, textToParse) {
-        let specialAbilities = getValue("Offensive Abilities", textToParse, "STATISTICS");
-
-        if (specialAbilities.includes("Spell")) {
-            specialAbilities = specialAbilities.substring(0, specialAbilities.indexOf("Spell"));
-        }
-        if (isNullOrUndefined(specialAbilities)) {
-            setAttribute(characterId, "npc-special-attacks-show", 0);
-        } else {
-            let offensiveAbilities = getCleanSheetValue(getNPCStatBlocks(), "Offensive Abilities", textToParse, "STATISTICS");
-            setAttribute(characterId, "npc-special-attacks", offensiveAbilities);
-        }
-
-        setAttribute(characterId, "speed-base-npc", getMovement("Speed", textToParse));
-        setAttribute(characterId, "speed-fly-npc", getMovement("fly", textToParse));
-        setAttribute(characterId, "speed-burrow-npc", getMovement("burrow", textToParse));
-        setAttribute(characterId, "speed-climb-npc", getMovement("climb", textToParse));
-        setAttribute(characterId, "speed-swim-npc", getMovement("swim", textToParse));
-        setAttribute(characterId, "space", getMovement("Space", textToParse));
-        setAttribute(characterId, "reach", getMovement("Reach", textToParse));
-
-        if (textToParse.toLowerCase().includes("fly")) {
-            if (textToParse.includes("(Ex")) {
-                setAttribute(characterId, "speed-fly-source-npc", 1);
-            } else if (textToParse.includes("(Su")) {
-                setAttribute(characterId, "speed-fly-source-npc", 2);
-            } else {
-                setAttribute(characterId, "speed-fly-source-npc", 3);
-            }
-
-            if (textToParse.includes("lumsy)")) {
-                setAttribute(characterId, "speed-fly-maneuverability-npc", -8);
-            } else if (textToParse.includes("erfect)")) {
-                setAttribute(characterId, "speed-fly-maneuverability-npc", 8);
-            } else {
-                setAttribute(characterId, "speed-fly-maneuverability-npc", 0);
-            }
-        }
-
-        doWeapons(characterId, textToParse);
-        doMagic(characterId, textToParse);
-    };
-
     let getMovement = function (textToFind, textToParse) {
         if (textToParse.includes(textToFind)) {
             return getStringValue(textToFind, textToParse, "ft.").trim();
@@ -1326,11 +1304,11 @@ var Guidance = Guidance || (function () {
         for (const att of stats) {
             let stat = parseFloat(getValue(att, textToParse).replace("+", ""));
             let attUpper = att.toUpperCase();
-            setAttribute(characterId, attUpper + "-bonus", String(stat));
-            setAttribute(characterId, attUpper + "-temp", String(stat * 2));
+            setAttribute(characterId, attUpper + "-bonus", stat);
+            setAttribute(characterId, attUpper + "-temp", stat * 2);
         }
 
-        let langs = getCleanSheetValue(getNPCStatBlocks(), "Language", textToParse, "ECOLOGY");
+        let langs = getStringValue("Language", textToParse, "ECOLOGY");
         if (langs.startsWith("s ")) {
             langs = langs.substring(2);
         }
@@ -1338,13 +1316,13 @@ var Guidance = Guidance || (function () {
 
         let gear = "";
         if (textToParse.includes("Gear")) {
-            gear = getCleanSheetValue(getNPCStatBlocks(), "Gear", textToParse, "ECOLOGY");
+            gear = getStringValue("Gear", textToParse, "ECOLOGY");
             setAttribute(characterId, "npc-gear", gear);
         } else {
             setAttribute(characterId, "npc-gear-show", 0);
         }
 
-        let sq = getCleanSheetValue(getNPCStatBlocks(), "Other Abilities", textToParse, "Gear");
+        let sq = getStringValue("Other Abilities", textToParse, "Gear");
         if (sq.includes("ECOLOGY")) {
             sq = sq.substring(0, sq.indexOf("ECOLOGY"));
         }
@@ -1395,42 +1373,6 @@ var Guidance = Guidance || (function () {
             setAttribute(characterId, "repeating_special-ability_" + uuid + "_npc-spec-abil-description", textToParse.trim());
         }
         speakAsGuidanceToGM("Added " + abilityName + " to Character");
-    };
-
-    let populateSkills = function (characterId, textToParse) {
-        let skills = [
-            {name: "Acrobatics", attribute: "Dex"},
-            {name: "Athletics", attribute: "Str"},
-            {name: "Bluff", attribute: "Cha"},
-            {name: "Computers", attribute: "Int"},
-            {name: "Culture", attribute: "Int"},
-            {name: "Diplomacy", attribute: "Cha"},
-            {name: "Disguise", attribute: "Cha"},
-            {name: "Engineering", attribute: "Int"},
-            {name: "Intimidate", attribute: "Cha"},
-            {name: "Life-Science", attribute: "Int"},
-            {name: "Medicine", attribute: "Int"},
-            {name: "Mysticism", attribute: "Wis"},
-            {name: "Physical-Science", attribute: "Int"},
-            {name: "Piloting", attribute: "Dex"},
-            {name: "Sense-Motive", attribute: "Wis"},
-            {name: "Sleight-of-Hand", attribute: "Dex"},
-            {name: "Stealth", attribute: "Dex"},
-            {name: "Survival", attribute: "Wis"}
-        ];
-
-        if (simpleSheetUsed) {
-            for (let skill of skills) {
-                setAttribute(characterId, `${skill.name}-npc-misc`, getSkillValue(skill.name, skill.attribute, textToParse));
-                setAttribute(characterId, `${skill.name}-ranks`, getSkillValue(skill.name, skill.attribute, textToParse));
-            }
-        } else {
-            for (let skill of skills) {
-                let skillName = skill.name.split('-').join('_').toLowerCase();
-                setAttribute(characterId, skillName, getSkillValue(skill.name, null, textToParse));
-                setAttribute(characterId, skillName + "_base", getSkillValue(skill.name, null, textToParse));
-            }
-        }
     };
 
     let doWeapons = function (characterId, textToParse) {
@@ -1572,6 +1514,23 @@ var Guidance = Guidance || (function () {
         }
         debugLog("Creating weapon ability " + uuid + " completed");
     };
+
+    let parseStatBlock = function (statBlockTemplate, statBlockText) {
+        debugLog(statBlockTemplate.length);
+        let statBlockData = [];
+        for (let i = 0; i < statBlockTemplate.length; i++) {
+            if (statBlockTemplate[i].attribute !== undefined && statBlockTemplate[i].attribute !== "") {
+                let preParsedText = statBlockText;
+                if (i > 0 && statBlockTemplate[i - 1].attribute !== "") {
+                    preParsedText = statBlockText.substring(statBlockText.indexOf(statBlockTemplate[i - 1].attribute));
+                }
+                let val = getStringValue(statBlockTemplate[i].attribute, preParsedText);
+                statBlockData.push(new TemplateRow(i, statBlockTemplate[i].attribute, val));
+                debugLog(statBlockTemplate[i].attribute + " = " + val);
+            }
+        }
+        return statBlockData;
+    };
     //</editor-fold>
 
     //<editor-fold desc="Stat block formatter templates">
@@ -1643,88 +1602,6 @@ var Guidance = Guidance || (function () {
         return spellArray;
     };
 
-    let welcomeHandout = function () {
-        return "<p>This is a tool to support the usage of the Starfinder (Simple) character sheets in Roll20. It has the ability to read a statblock from the GMNotes section of a selected character and fill out the NPC section of the charactersheet. Statblocks from Archives of Nethys and Starjammer SRD are supported. Statblocks from PDFs can be used, but there may be parsing issues.</p> <p>&nbsp;</p> <h2>THE MAIN COMMANDS</h2> <p>&nbsp;</p> <p><em><strong>!sf_character</strong></em></p> <p>This imports a Starfinder statblock in the GM Notes section of a character sheet and will out the NPC section of the Starfinder (Simple) character sheet. Furthermore, it configures the token's hit points and give EAC/KAC indicators.</p> <p><em>How to:</em></p> <ol> <li>Select and copy a stat block and paste it into the \"GM Notes\" section of a Character sheet. (Don't worry about removing any formatting)</li> <li>Click Save.</li> <li>Select the token that you have<a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\"> linked to the character sheet</a>.</li> <li>Type !sf_character. The script attempts to use the statblock to fill out the NPC section of the Starfinder (Simple) character sheet.</li> </ol> <p>The script supports character statblocks from the <a href=\"https://www.aonsrd.com/Default.aspx\">Archives of Nethys</a> and the <a href=\"https://www.starjammersrd.com/\">Starjammer SRD</a>. <span style=\"font-style: italic;\">Society PDFs, at least in the earlier ones, sometimes present issues. Double check the results after importing a statblock from a PDF.</span></p> <p>&nbsp;</p> <p><strong><span style=\"font-style: italic;\">!sf_starship</span></strong></p> <p>This imports a Starfinder starship statblock from the GM Notes section of a <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked character sheet</a> and populates the Starship page of the sheet. Furthermore, It adds gunnery and piloting check macros. If the statblock doesn&rsquo;t have stats for the pilot/gunner, the script adds prompts so that when you click the macro, you are prompted for the bonus.</p> <p>This works the same as !sf_character but in practice, statblocks for starships are less consistent across platforms.</p> <p>&nbsp;</p> <p><em><strong>!sf_token</strong></em></p> <p>This populates the token with hitpoint, EAC, and KAC information in the event that the NPC sheet is setup, but the token isn't. The token will look like the one produced by !sf_character</p> <p>&nbsp;</p> <p><em><strong>!sf_clean</strong></em></p> <p>I've included this for completeness, but be warned - this command will <span style=\"text-decoration: underline;\"><strong>PERMANENTLY ERASE</strong></span> things from the character sheet so use with caution. As above, this command requires selecting a token that has been <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked to the character sheet</a>.</p> <p><em>How to:</em></p> <p style=\"padding-left: 40px;\"><em><strong>!sf_clean CONFIRM</strong></em> - This will erase ALL stats from the character sheet AND remove ALL formatting from the token. It will not touch the GM Notes section of the character sheet so it can be reimported using !sf_character.</p> <p style=\"padding-left: 40px;\"><strong><em>!sf_clean ABILITIES</em></strong> - This will rease ALL macros from the character sheet.</p> <p>&nbsp;</p> <h3>OTHER USEFUL COMMANDS</h3> <p><em><strong>!sf_init</strong></em></p> <p>This rolls group initiative for all selected NPCs. The script refers to the Initiative bonus on the NPC tab of the character sheet to do this.</p> <p>&nbsp;</p> <p><em><strong>!sf_addtrick</strong></em></p> <p>This adds a macro to handle Trick Attacks for the NPC. Click over to the main \"Character\" page, and configure Trick Attacks to make it work.</p> <p>&nbsp;</p> <h3>The next two commands will require creating a simple macro to run correctly</h3> <p>The macro will look like this.</p> <blockquote> <p style=\"padding-left: 40px;\">!sf_ability ?{textToPaste}</p> </blockquote> <p>&nbsp;</p> <p><em><strong>!sf_ability</strong></em></p> <p>This adds a special ability to the NPC character sheet for quick reference. If the macro has been created as described above, a box appears allowing you to paste the full text of a special ability.</p> <p>&nbsp;</p> <p><em><strong>!sf_addspell</strong></em></p> <p>This adds a spell to the NPC character sheet as a macro. Similar to sf_ability, when you run the macro to call this, a box appears allowing you to paste the full text of the spell. The script formats the spellblock. Afterwards, I recommend manually editing the macro in the \"description\" tag to tailor the results of the macro for use in play.</p> <p>&nbsp;</p> <p>Find other details on the wiki <a href=\"https://wiki.roll20.net/Script:Starfinder_-_Guidance_Tools_for_Starfinder_(Simple)_Character_sheet\">HERE</a>.</p> <p>Feel free to reach out to me if you find any bug or have any suggestions <a href=\"https://app.roll20.net/users/927625/kahn265\">HERE</a>.</p>";
-    };
-
-    let getNPCStatBlocks = function () {
-        let t = [];
-        t.push(new TemplateRow(t.length)); // name
-        t.push(new TemplateRow(0, "CR"));
-        t.push(new TemplateRow(t.length, "XP"));
-        t.push(new TemplateRow(t.length, "Init"));
-        t.push(new TemplateRow(t.length, "Senses"));
-        t.push(new TemplateRow(t.length, "Perception"));
-        t.push(new TemplateRow(t.length, "Aura"));
-        t.push(new TemplateRow(t.length, "DEFENSE"));
-        t.push(new TemplateRow(t.length, "HP"));
-        t.push(new TemplateRow(t.length, "RP"));
-        t.push(new TemplateRow(t.length, "EAC"));
-        t.push(new TemplateRow(t.length, "KAC"));
-        t.push(new TemplateRow(t.length, "Fort"));
-        t.push(new TemplateRow(t.length, "Ref"));
-        t.push(new TemplateRow(t.length, "Will"));
-        t.push(new TemplateRow(t.length, "Defensive Abilities"));
-        t.push(new TemplateRow(t.length, "DR"));
-        t.push(new TemplateRow(t.length, "Immunities"));
-        t.push(new TemplateRow(t.length, "Resistances"));
-        t.push(new TemplateRow(t.length, "SR"));
-        t.push(new TemplateRow(t.length, "Weaknesses"));
-        t.push(new TemplateRow(t.length, "OFFENSE"));
-        t.push(new TemplateRow(t.length, "Speed"));
-        t.push(new TemplateRow(t.length, "burrow"));
-        t.push(new TemplateRow(t.length, "climb"));
-        t.push(new TemplateRow(t.length, "swim"));
-        t.push(new TemplateRow(t.length, "fly"));
-        t.push(new TemplateRow(t.length, "Melee"));
-        t.push(new TemplateRow(t.length, "Ranged"));
-        t.push(new TemplateRow(t.length, "Multiattack"));
-        t.push(new TemplateRow(t.length, "Space"));
-        t.push(new TemplateRow(t.length, "Reach"));
-        t.push(new TemplateRow(t.length, "Offensive Abilities"));
-        t.push(new TemplateRow(t.length, "Spell-Like Abilities"));  // (CL )
-        t.push(new TemplateRow(t.length, "Spells Known")); // (CL )
-        t.push(new TemplateRow(t.length, "Connection")); //   (if Mystic)
-        t.push(new TemplateRow(t.length, "TACTICS"));
-        t.push(new TemplateRow(t.length, "STATISTICS"));
-        t.push(new TemplateRow(t.length, "Str"));
-        t.push(new TemplateRow(t.length, "Dex"));
-        t.push(new TemplateRow(t.length, "Con"));
-        t.push(new TemplateRow(t.length, "Int"));
-        t.push(new TemplateRow(t.length, "Wis"));
-        t.push(new TemplateRow(t.length, "Cha"));
-        t.push(new TemplateRow(t.length, "Feats"));
-        t.push(new TemplateRow(t.length, "Skills"));
-        t.push(new TemplateRow(t.length, "Acrobatics"));
-        t.push(new TemplateRow(t.length, "Athletics"));
-        t.push(new TemplateRow(t.length, "Bluff"));
-        t.push(new TemplateRow(t.length, "Computers"));
-        t.push(new TemplateRow(t.length, "Culture"));
-        t.push(new TemplateRow(t.length, "Diplomacy"));
-        t.push(new TemplateRow(t.length, "Disguise"));
-        t.push(new TemplateRow(t.length, "Engineering"));
-        t.push(new TemplateRow(t.length, "Intimidate"));
-        t.push(new TemplateRow(t.length, "Life Science"));
-        t.push(new TemplateRow(t.length, "Medicine"));
-        t.push(new TemplateRow(t.length, "Mysticism"));
-        t.push(new TemplateRow(t.length, "Physical Science"));
-        t.push(new TemplateRow(t.length, "Piloting"));
-        t.push(new TemplateRow(t.length, "Sense Motive"));
-        t.push(new TemplateRow(t.length, "Sleight of Hand"));
-        t.push(new TemplateRow(t.length, "Stealth"));
-        t.push(new TemplateRow(t.length, "Survival"));
-        t.push(new TemplateRow(t.length, "Language"));
-        t.push(new TemplateRow(t.length, "Other Abilities"));
-        t.push(new TemplateRow(t.length, "Gear"));
-        t.push(new TemplateRow(t.length, "ECOLOGY"));
-        t.push(new TemplateRow(t.length, "Environment"));
-        t.push(new TemplateRow(t.length, "Organization"));
-        t.push(new TemplateRow(t.length, "SPECIAL ABILITIES"));
-        t.sort(function (a, b) {
-            return a.order - b.order;
-        });
-        return t;
-    };
     //</editor-fold>
 }
 ());
