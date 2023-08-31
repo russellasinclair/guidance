@@ -7,7 +7,7 @@ var Guidance = Guidance || (function () {
 
     let version = "-=> Guidance is online. v3.0.0.beta <=-";
     let debugMode = true;
-    let simpleSheetUsed = true;
+    let simpleSheetUsed = false;
 
     /// Class that represents a NPC/Starship that is being worked on.
     class NPC {
@@ -30,6 +30,10 @@ var Guidance = Guidance || (function () {
             this.attribute = attribute;
         }
     }
+
+    let test = (function () {
+        console.log("test");
+    })
 
     //<editor-fold desc="GENERIC HELPER ROUTINES">
     // Based on code from https://app.roll20.net/users/104025/the-aaron
@@ -149,10 +153,10 @@ var Guidance = Guidance || (function () {
             .replace(/(<([^>]+)>)/gi, " ")
             .replace(/&nbsp;|&amp;/gi, " ")
             .replace(/\s+/g, " ")
-            .replace(/Offense|Defense|Statistics/i, function (match) {
+            .replace(/(Offense|Defense|Statistics)/gi, function (match) {
                 return match.toUpperCase() + " ";
             })
-            .replace(/Ecology|Special Abilities|Tactics/i, function (match) {
+            .replace(/(Ecology|Special Abilities|Tactics)/gi, function (match) {
                 return match.toUpperCase() + " ";
             })
             .replace(/\b(Str|Dex|Con|Int|Wis|Cha)\b/gi, function (match) {
@@ -343,7 +347,7 @@ var Guidance = Guidance || (function () {
 
     //Get or replace ability with specified ID
     let createAbility = function (name, pattern, id) {
-        var checkAbility = findObjs({_type: 'ability', _characterid: id, name: name});
+        let checkAbility = findObjs({_type: 'ability', _characterid: id, name: name});
         if (checkAbility[0]) {
             checkAbility[0].set({action: pattern});
         } else {
@@ -938,6 +942,100 @@ var Guidance = Guidance || (function () {
             setAttribute(characterId, "defensive_abilities", defensiveAbilities);
         }
     };
+
+
+    let getMovement = function (textToFind, textToParse) {
+        if (textToParse.includes(textToFind)) {
+            return getStringValue(textToFind, textToParse, "ft.").trim();
+        }
+        return "";
+    };
+
+    let populateStatics = function (characterId, textToParse) {
+        let stats = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
+
+        for (const att of stats) {
+            let x = getStringValue(att, textToParse).trim().replace("+", "");
+            debugLog(att + " - " + x);
+            let stat = parseFloat(x);
+
+            if(simpleSheetUsed) {
+                setAttribute(characterId, att + "-bonus", stat);
+                setAttribute(characterId, att + "-temp", stat * 2);
+            } else {
+                switch (att) {
+                    case "STR":
+                        setAttribute(characterId, "strength_base", stat);
+                        setAttribute(characterId, "strength_mod", stat);
+                        break;
+                    case "DEX":
+                        setAttribute(characterId, "dexterity_base", stat);
+                        setAttribute(characterId, "dexterity_mod", stat);
+                        break;
+                    case "CON":
+                        setAttribute(characterId, "constitution_base", stat);
+                        setAttribute(characterId, "constitution_mod", stat);
+                        break;
+                    case "INT":
+                        setAttribute(characterId, "intelligence_base", stat);
+                        setAttribute(characterId, "intelligence_mod", stat);
+                        break;
+                    case "WIS":
+                        setAttribute(characterId, "wisdom_base", stat);
+                        setAttribute(characterId, "wisdom_mod", stat);
+                        break;
+                    case "CHA":
+                        setAttribute(characterId, "charisma_base", stat);
+                        setAttribute(characterId, "charisma_mod", stat);
+                        break;
+                }
+            }
+        }
+
+        let langs = getStringValue("Language", textToParse, "ECOLOGY");
+        if (langs.startsWith("s ")) {
+            langs = langs.substring(2);
+        }
+        if(simpleSheetUsed) {
+            setAttribute(characterId, "languages-npc", langs);
+        } else {
+            setAttribute(characterId, "languages", langs);
+        }
+
+        let gear = "";
+        if (textToParse.includes("Gear")) {
+            gear = getStringValue("Gear", textToParse, "ECOLOGY");
+            if(simpleSheetUsed) {
+                setAttribute(characterId, "npc-gear", gear);
+            } else {
+                setAttribute(characterId, "gear", gear);
+            }
+        } else {
+            if(simpleSheetUsed) {
+                setAttribute(characterId, "npc-gear-show", 0);
+            }
+        }
+
+        let otherAbilities = getStringValue("Other Abilities", textToParse, "Gear");
+        if (otherAbilities.includes("ECOLOGY")) {
+            otherAbilities = otherAbilities.substring(0, otherAbilities.indexOf("ECOLOGY"));
+
+            let ecology = getStringValue("ECOLOGY", textToParse, "Gear");
+            let environment = ecology.match(/(?<=Environment\s).*(?=Organization)/).trim();
+            let organization = ecology.match(/(?<=Organization\s).*(?=SPECIAL)/).trim();
+
+            if(!simpleSheetUsed) {
+                setAttribute(characterId, "environment", environment);
+                setAttribute(characterId, "organization", organization);
+            }
+        }
+        if(simpleSheetUsed) {
+            setAttribute(characterId, "SQ", otherAbilities);
+        } else {
+            setAttribute(characterId, "other_abilities", otherAbilities);
+        }
+    };
+
     //</editor-fold>
 
     let populateOffense = function (characterId, textToParse) {
@@ -954,8 +1052,7 @@ var Guidance = Guidance || (function () {
             if (isNullOrUndefined(specialAbilities)) {
                 setAttribute(characterId, "npc-special-attacks-show", 0);
             } else {
-                let offensiveAbilities = getStringValue("Offensive Abilities", textToParse, "STATISTICS");
-                setAttribute(characterId, "npc-special-attacks", offensiveAbilities);
+                setAttribute(characterId, "npc-special-attacks", specialAbilities);
             }
 
             setAttribute(characterId, "speed-base-npc", getMovement("Speed", textToParse));
@@ -984,6 +1081,9 @@ var Guidance = Guidance || (function () {
         } else {
             let speed = getStringValue("Speed", textToParse, "Melee");
             setAttribute(characterId, "speed", speed);
+            if (!isNullOrUndefined(specialAbilities)) {
+                setAttribute(characterId, "offensive_abilities", specialAbilities);
+            }
         }
 
         doWeapons(characterId, textToParse);
@@ -1291,44 +1391,6 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, "repeating_npc-spell-like-abilities_" + uuid + "_npc-abil-name", textToParse.substring(textToParse.indexOf("—") + 2).trim());
     };
 
-    let getMovement = function (textToFind, textToParse) {
-        if (textToParse.includes(textToFind)) {
-            return getStringValue(textToFind, textToParse, "ft.").trim();
-        }
-        return "";
-    };
-
-    let populateStatics = function (characterId, textToParse) {
-        let stats = ["Str", "Dex", "Con", "Int", "Wis", "Cha"];
-
-        for (const att of stats) {
-            let stat = parseFloat(getValue(att, textToParse).replace("+", ""));
-            let attUpper = att.toUpperCase();
-            setAttribute(characterId, attUpper + "-bonus", stat);
-            setAttribute(characterId, attUpper + "-temp", stat * 2);
-        }
-
-        let langs = getStringValue("Language", textToParse, "ECOLOGY");
-        if (langs.startsWith("s ")) {
-            langs = langs.substring(2);
-        }
-        setAttribute(characterId, "languages-npc", langs);
-
-        let gear = "";
-        if (textToParse.includes("Gear")) {
-            gear = getStringValue("Gear", textToParse, "ECOLOGY");
-            setAttribute(characterId, "npc-gear", gear);
-        } else {
-            setAttribute(characterId, "npc-gear-show", 0);
-        }
-
-        let sq = getStringValue("Other Abilities", textToParse, "Gear");
-        if (sq.includes("ECOLOGY")) {
-            sq = sq.substring(0, sq.indexOf("ECOLOGY"));
-        }
-        setAttribute(characterId, "SQ", sq);
-    };
-
     let populateSpecialAbilities = function (characterId, textToParse) {
         debugLog("Parsing Special Abilities");
         try {
@@ -1603,5 +1665,6 @@ var Guidance = Guidance || (function () {
     };
 
     //</editor-fold>
+
 }
 ());
