@@ -5,10 +5,34 @@ Requires API
 var Guidance = Guidance || (function () {
     "use strict";
     let debugMode = true;
-    let simpleSheetUsed = true;
+    let simpleSheetUsed = false;
+
+    class StrUtils extends String {
+        constructor(s) {
+            super(s);
+        }
+
+        firstMatch(regex) {
+            let match = this.match(regex);
+            if (match == null || match.length === 0 || match[0] == null || !Array.isArray(match)) {
+                debugLog("firstItem: Not a valid array of strings");
+                return "";
+            }
+            return match[0].trim();
+        }
+
+        substringFrom(str) {
+            let index = this.indexOf(str);
+            if (index === -1) {
+                return "";
+            }
+            return this.substr(index + str.length);
+        }
+    }
 
     let firstItem = (function (str) {
-        if (str == null || str.length === 0 || str[0] == null) {
+        if (str == null || str.length === 0 || str[0] == null || !Array.isArray(str)) {
+            debugLog("firstItem: Not a valid array of strings");
             return "";
         }
         return str[0].trim();
@@ -86,12 +110,63 @@ var Guidance = Guidance || (function () {
         //}
     };
 
-    function getAttribute (characterId, attributeName) {
+    function getAttribute(characterId, attributeName) {
         return findObjs({
             _characterid: characterId,
             _type: "attribute",
             name: attributeName
         })[0];
+    };
+
+    // borrowed from https://app.roll20.net/users/901082/invincible-spleen in the forums
+    function setAttribute(characterId, attributeName, newValue, operator) {
+        if (!attributeName || !newValue) {
+            return;
+        }
+
+        let foundAttribute = getAttribute(characterId, attributeName);
+        let mod_newValue = {
+            "+": function (num) {
+                return num;
+            },
+            "-": function (num) {
+                return -num;
+            }
+        };
+
+        try {
+            if (!foundAttribute) {
+                if (typeof operator !== "undefined" && !isNaN(newValue)) {
+                    newValue = mod_newValue[operator](newValue);
+                }
+
+                if (attributeName.includes("show")) {
+                    return;
+                }
+
+                if (newValue === undefined || newValue === "" || newValue === 0) {
+                    return;
+                }
+
+                createObj("attribute", {
+                    name: attributeName,
+                    current: newValue,
+                    max: newValue,
+                    _characterid: characterId
+                });
+                debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
+            } else {
+                if (typeof operator !== "undefined" && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
+                    newValue = parseFloat(foundAttribute.get("current")) + parseFloat(mod_newValue[operator](newValue));
+                }
+
+                foundAttribute.set("current", newValue);
+                foundAttribute.set("max", newValue);
+                debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
+            }
+        } catch (err) {
+            debugLog("Error parsing " + attributeName);
+        }
     };
 
     let speakAsGuidanceToGM = function (text) {
@@ -275,61 +350,9 @@ var Guidance = Guidance || (function () {
             let cid = token.get("represents");
             npcs.push(new NPC(cid, token, findObjs({_id: cid, _type: "character"})[0]));
         }
-
         return npcs;
     };
 
-
-    // borrowed from https://app.roll20.net/users/901082/invincible-spleen in the forums
-    let setAttribute = function (characterId, attributeName, newValue, operator) {
-        if (!attributeName || !newValue) {
-            return;
-        }
-
-        let foundAttribute = getAttribute(characterId, attributeName);
-        let mod_newValue = {
-            "+": function (num) {
-                return num;
-            },
-            "-": function (num) {
-                return -num;
-            }
-        };
-
-        try {
-            if (!foundAttribute) {
-                if (typeof operator !== "undefined" && !isNaN(newValue)) {
-                    newValue = mod_newValue[operator](newValue);
-                }
-
-                if (attributeName.includes("show")) {
-                    return;
-                }
-
-                if (newValue === undefined || newValue === "" || newValue === 0) {
-                    return;
-                }
-
-                createObj("attribute", {
-                    name: attributeName,
-                    current: newValue,
-                    max: newValue,
-                    _characterid: characterId
-                });
-                debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
-            } else {
-                if (typeof operator !== "undefined" && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
-                    newValue = parseFloat(foundAttribute.get("current")) + parseFloat(mod_newValue[operator](newValue));
-                }
-
-                foundAttribute.set("current", newValue);
-                foundAttribute.set("max", newValue);
-                debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
-            }
-        } catch (err) {
-            debugLog("Error parsing " + attributeName);
-        }
-    };
 
     //Get or replace ability with specified ID
     let createAbility = function (name, pattern, id) {
@@ -370,10 +393,11 @@ var Guidance = Guidance || (function () {
             userGuide.set("notes", welcomeHandout());
         }
     });
+
     //</editor-fold>
 
     function identifyCharacterSheet(character) {
-        if(simpleSheetUsed) {
+        if (simpleSheetUsed) {
             let sheet = getAttribute(character.characterId, "character_sheet");
             if (sheet != null) {
                 if (sheet.get("current").startsWith("Starfinder v1")) {
@@ -513,7 +537,7 @@ var Guidance = Guidance || (function () {
                             speakAsGuidanceToGM("This does not appear to be a character statblock");
                             return;
                         }
-                        eraseCharacter(c)     ;
+                        eraseCharacter(c);
                         populateNPCData(gmNotes, c);
                         setToken(c.characterSheet, c.npcToken);
                     });
@@ -581,11 +605,11 @@ var Guidance = Guidance || (function () {
 
                     let spellText = formatSpellAsMacro(spell);
                     debugLog(spellText);
-                    let name = spellText.match(/(?<={{name=)(.*?)(?=}})/);
+                    let name = new StrUtils(spellText).firstMatch(/(?<={{name=)(.*?)(?=}})/);
 
                     if (c.characterId !== undefined) {
                         createObj("ability", {
-                            name: name[0] + " spell",
+                            name: name + " spell",
                             description: "",
                             action: spellText,
                             _characterid: c.characterId,
@@ -985,9 +1009,15 @@ var Guidance = Guidance || (function () {
         }
 
         let langs = getStringValue("Language", textToParse, "ECOLOGY");
+        if (langs.includes("Gear")) {
+            langs = langs.substring(0, langs.indexOf("Gear"));
+        }
+
         if (langs.startsWith("s ")) {
             langs = langs.substring(2);
         }
+
+
         if (simpleSheetUsed) {
             setAttribute(characterId, "languages-npc", langs);
         } else {
@@ -1185,7 +1215,9 @@ var Guidance = Guidance || (function () {
         } else {
             setAttribute(characterId, "npc-spells-show", 0);
         }
-        speakAsGuidanceToGM(guidanceMsg);
+        if (!guidanceMsg) {
+            speakAsGuidanceToGM(guidanceMsg);
+        }
     };
 
     //<editor-fold desc="Old Population Helpers">
@@ -1213,7 +1245,7 @@ var Guidance = Guidance || (function () {
             npcToken.set("showname", true);
         } catch (e) {
             debugLog("Caught exception: " + e);
-            speakAsGuidanceToGM("Check to make sure the token is linked and the character sheet is populated - 1211");
+            // speakAsGuidanceToGM("Check to make sure the token is linked and the character sheet is populated - 1211");
         }
     };
 
@@ -1507,20 +1539,32 @@ var Guidance = Guidance || (function () {
             debugLog("Problem parsing Weapons");
             return;
         }
-        setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-notes", attackToParse);
-        setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-name", weapon);
         let attackBonus = details[i];
-        setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-attack", attackBonus);
+
+        if (simpleSheetUsed) {
+            setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-notes", attackToParse);
+            setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-name", weapon);
+            setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-attack", attackBonus);
+        } else {
+            setAttribute(characterId, "repeating_attack_" + uuid + "_description", attackToParse);
+            setAttribute(characterId, "repeating_attack_" + uuid + "_name", weapon);
+            setAttribute(characterId, "repeating_attack_" + uuid + "_base_attack_bonus_base", attackBonus);
+            setAttribute(characterId, "repeating_attack_" + uuid + "_base_attack_bonus", 0);
+        }
         i++;
 
         let damage = details[i].replace(/\(/, "");
         let numDice = damage.split("d");
         let dnd = numDice[1].split("+");
-        setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-dice-num", numDice[0]);
-        setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-die", dnd[0]);
 
-        if (dnd[1] !== undefined) {
-            setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-damage", dnd[1]);
+        if (simpleSheetUsed) {
+            setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-dice-num", numDice[0]);
+            setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-damage-die", dnd[0]);
+            if (dnd[1] !== undefined) {
+                setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_npc-weapon-damage", dnd[1]);
+            }
+        } else {
+            setAttribute(characterId, "repeating_npc-weapon_" + uuid + "_damage_dice", damage);
         }
 
         i++;
