@@ -6,6 +6,14 @@ var Guidance = Guidance || (function () {
         "To learn more, I created a welcome guide in the journal section.";
     const debugMode = true;
 
+    // commands
+    const prefix = "!sf_";
+    const commandDebug = prefix + "debug";
+    const commandHelp = prefix + "help";
+    const commandToken = prefix + "token";
+    const commandClean = prefix + "clean";
+    const commandPopulate = prefix + "npc";
+
     //<editor-fold desc="Support Methods">
     class StrUtils extends String {
         constructor(s) {
@@ -173,7 +181,7 @@ var Guidance = Guidance || (function () {
     function getSelectedNPCs(selected) {
         let npcs = [];
         for (const t of selected) {
-            debugLog(t);
+            debugLog(t + "adding");
             let token = findObjs(t)[0];
             let cid = token.get("represents");
             npcs.push(new NPC(cid, token, findObjs({_id: cid, _type: "character"})[0]));
@@ -220,22 +228,23 @@ var Guidance = Guidance || (function () {
             return;
         }
 
+        let chatAPICommand = chatMessage.content;
+
         let selectedNPCs = getSelectedNPCs(chatMessage.selected);
 
         if (debugMode) {
-            debugLog(chatMessage.content);
+            debugLog(chatAPICommand);
         }
 
         try {
-            //<editor-fold desc="!sf_clean">
-            if (chatMessage.content.startsWith("!sf_clean")) {
-                let msg = chatMessage.content.replace("!sf_clean ", "");
+            //<editor-fold desc="commandClean - Erase All Information on a character sheet">
+            if (chatAPICommand.startsWith(commandClean)) {
                 if (selectedNPCs.length > 1) {
                     speakAsGuidanceToGM("Please do not select more than 1 NPC at a time. This command is potentially dangerous.");
                     return;
                 }
                 let selectedNPC = selectedNPCs[0];
-                if (msg.includes("CONFIRM")) {
+                if (chatAPICommand.includes("CONFIRM")) {
                     eraseCharacter(selectedNPC);
                     speakAsGuidanceToGM("Removed all properties for " + selectedNPC.characterSheet.get("name"));
                 } else {
@@ -245,8 +254,8 @@ var Guidance = Guidance || (function () {
             }
             //</editor-fold>
 
-            //<editor-fold desc="!sf_debug">
-            if (chatMessage.content.startsWith("!sf_debug")) {
+            //<editor-fold desc="commandDebug - Show Debug information for character linked to Token">
+            if (chatAPICommand.startsWith(commandDebug)) {
                 selectedNPCs.forEach(debugCharacterDetails);
 
                 let macros = findObjs({
@@ -256,8 +265,18 @@ var Guidance = Guidance || (function () {
                     debugLog(ab.get("name"));
                     debugLog(ab.get("action"));
                 }
+                return;
             }
             //</editor-fold>
+
+            //<editor-fold desc="commandToken - Configure Token linked to Sheet">
+            if (chatAPICommand.startsWith(commandToken)) {
+                debugLog(Array.isArray(selectedNPCs));
+                selectedNPCs.forEach(configureToken);
+                return;
+            }
+            //</editor-fold>
+
 
         } catch (err) {
             speakAsGuidanceToGM("I have encountered an error. If you can, please report this to the Script Creator.");
@@ -265,6 +284,33 @@ var Guidance = Guidance || (function () {
         }
     });
 
+    //<editor-fold desc="configureToken - link the token stats to the NPC sheet and show the name">
+    let configureToken = function (selectedNPC) {
+        try {
+            let characterId = selectedNPC.characterId;
+            let npcToken = selectedNPC.npcToken;
+            let hitPoints = getAttribute(characterId, "hit_points");
+            let armorClass = getAttribute(characterId, "ac");
+
+            if (debugMode) {
+                let characterObject = findObjs({
+                    _id: characterId,
+                    _type: "character",
+                })[0];
+                debugLog("Configuring token for " + characterId + " - " + characterObject.get("name"));
+            }
+
+            npcToken.set("bar3_link", armorClass.id);
+            npcToken.set("bar1_link", hitPoints.id);
+            npcToken.set("showname", true);
+        } catch (e) {
+            debugLog("Caught exception: " + e);
+            speakAsGuidanceToGM("Check to make sure the tokens are linked to the selected NPCs.");
+        }
+    };
+    //</editor-fold>
+
+    //<editor-fold desc="eraseCharacter - Remove all Attributes and Macros from the NPC sheet">
     let eraseCharacter = function (c) {
         for (const attribute of findObjs({_characterid: c.characterId, _type: "attribute"})) {
             debugLog("Removing " + attribute.get("name"));
@@ -279,5 +325,6 @@ var Guidance = Guidance || (function () {
             c.npcToken.set("bar" + i + "_max", "");
         }
     }
+    //</editor-fold>
 }
 ());
