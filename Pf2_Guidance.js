@@ -19,10 +19,11 @@ var Guidance = Guidance || (function () {
     class StrUtils extends String {
         constructor(s) {
             super(s);
+            this.str = s;
         }
 
         firstMatch(regex) {
-            let match = this.match(regex);
+            let match = this.str.match(regex);
             if (match == null || match.length === 0 || match[0] == null || !Array.isArray(match)) {
                 debugLog("firstItem: Not a valid array of strings");
                 return "";
@@ -30,12 +31,12 @@ var Guidance = Guidance || (function () {
             return match[0].trim();
         }
 
-        substringFrom(str) {
-            let index = this.indexOf(str);
+        substringFrom(delimit) {
+            let index = this.str.indexOf(delimit);
             if (index === -1) {
                 return "";
             }
-            return this.substr(index + str.length);
+            return this.substr(index + delimit.length);
         }
     }
 
@@ -198,8 +199,8 @@ var Guidance = Guidance || (function () {
     let cleanText = function (textToClean) {
         return textToClean
             .replace(/\s+/gm, " ")
-            .replaceAll("<span", "~<span")
-            .replaceAll("</span>", "~")
+            //.replaceAll("<span", "~<span")
+            //.replaceAll("</span>", "~")
             .replace(/(<([^>]+)>)/gi, " ")
             .replace(/&nbsp;|&amp;/gi, " ")
             .replace(/(Offense|Defense|Statistics)/gi, function (match) {
@@ -343,11 +344,22 @@ var Guidance = Guidance || (function () {
 
             npcToken.set("gmnotes", cleanNotes);
 
-            // Preparse the stat block
-            const elements = cleanNotes.split("~").map(e => e.trim()).filter(e => e !== ",").filter(Boolean);
+            let statBlock = new StrUtils(cleanNotes);
 
-            for (let element of elements) {
-                debugLog("element = " + element);
+            let current = statBlock.firstMatch(/.*(?=\s+Creature)/gm);
+            characterSheet.set("name", current);
+            setAttribute(characterId, "npc_type", "Creature");
+            statBlock = statBlock.substringFrom("Creature");
+            setAttribute(characterId, "sheet_type", "npc");
+
+            current = statBlock.firstMatch(/^(\-\d+|\d+)/gm);
+            setAttribute(characterId, "level", current);
+            statBlock = statBlock.substringFrom(current);
+
+            current = statBlock.firstMatch(/^(LG|NG|CG|LN|N|CN|LE|NE|CE)(?=\s+.*)/gm);
+            if (current) {
+                setAttribute(characterId, "alignment", current);
+                statBlock = statBlock.substringFrom(current);
             }
 
         } catch (e) {
