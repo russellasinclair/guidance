@@ -4,6 +4,7 @@ var Guidance = Guidance || (function () {
     const guidanceWelcome = "";
     const guidanceGreeting = "Greetings, I am Guidance. I am here to assist you working with your game. " +
         "To learn more, I created a welcome guide in the journal section.";
+
     const debugMode = true;
 
     // commands
@@ -99,7 +100,7 @@ var Guidance = Guidance || (function () {
         log(`${timestamp} ${stackTrace[2].trim()} ${text}`);
     };
 
-    function getAttribute(characterId, attributeName) {
+    let getAttribute = function (characterId, attributeName) {
         return findObjs({
             _characterid: characterId,
             _type: "attribute",
@@ -128,7 +129,7 @@ var Guidance = Guidance || (function () {
     };
 
     // borrowed from https://app.roll20.net/users/901082/invincible-spleen in the forums
-    function setAttribute(characterId, attributeName, newValue, operator) {
+    let setAttribute = function (characterId, attributeName, newValue, operator) {
         if (!attributeName || !newValue) {
             return;
         }
@@ -178,7 +179,7 @@ var Guidance = Guidance || (function () {
         }
     };
 
-    function getSelectedNPCs(selected) {
+    let getSelectedNPCs = function (selected) {
         let npcs = [];
         for (const t of selected) {
             debugLog(t + "adding");
@@ -192,6 +193,25 @@ var Guidance = Guidance || (function () {
     let speakAsGuidanceToGM = function (text) {
         text = "/w gm  &{template:default} {{name=Guidance}} {{" + text + "}}";
         sendChat("Guidance", text);
+    };
+
+    let cleanText = function (textToClean) {
+        return textToClean
+            .replace(/\s+/gm, " ")
+            .replaceAll("<span", "~<span")
+            .replaceAll("</span>", "~")
+            .replace(/(<([^>]+)>)/gi, " ")
+            .replace(/&nbsp;|&amp;/gi, " ")
+            .replace(/(Offense|Defense|Statistics)/gi, function (match) {
+                return match.toUpperCase() + " ";
+            })
+            .replace(/(Ecology|Special Abilities|Tactics)/gi, function (match) {
+                return match.toUpperCase() + " ";
+            })
+            .replace(/\b(Str|Dex|Con|Int|Wis|Cha)\b/gi, function (match) {
+                return match.toUpperCase() + " ";
+            })
+            .replace(/\s+/gm, " ");
     };
 
     // For Debugging purposes
@@ -230,6 +250,11 @@ var Guidance = Guidance || (function () {
 
         let chatAPICommand = chatMessage.content;
 
+        if (chatMessage.selected === undefined) {
+            speakAsGuidanceToGM("Please select a token representing a character for me to work with");
+            return;
+        }
+
         let selectedNPCs = getSelectedNPCs(chatMessage.selected);
 
         if (debugMode) {
@@ -237,6 +262,13 @@ var Guidance = Guidance || (function () {
         }
 
         try {
+            //<editor-fold desc="commandHelp - Show Help information for using Guidance">
+            if (chatAPICommand.startsWith(commandHelp)) {
+                speakAsGuidanceToGM(guidanceWelcome);
+                return;
+            }
+            //</editor-fold>
+
             //<editor-fold desc="commandClean - Erase All Information on a character sheet">
             if (chatAPICommand.startsWith(commandClean)) {
                 if (selectedNPCs.length > 1) {
@@ -271,12 +303,28 @@ var Guidance = Guidance || (function () {
 
             //<editor-fold desc="commandToken - Configure Token linked to Sheet">
             if (chatAPICommand.startsWith(commandToken)) {
-                debugLog(Array.isArray(selectedNPCs));
                 selectedNPCs.forEach(configureToken);
                 return;
             }
             //</editor-fold>
 
+            //<editor-fold desc="commandPopulate - Populate NPC Character Sheet">
+            if (chatAPICommand.startsWith(commandPopulate)) {
+                selectedNPCs.forEach(function (c) {
+                    c.characterSheet.get("gmnotes", function (gmNotes) {
+                        if (!gmNotes.includes("Will")
+                            && !gmNotes.includes("Fort")
+                            && !gmNotes.includes("Ref")) {
+                            speakAsGuidanceToGM("This does not appear to be a character statblock");
+                            return;
+                        }
+                        populateCharacterSheet(gmNotes, c);
+                        configureToken(c);
+                    });
+                });
+                return;
+            }
+            //</editor-fold>
 
         } catch (err) {
             speakAsGuidanceToGM("I have encountered an error. If you can, please report this to the Script Creator.");
@@ -284,28 +332,46 @@ var Guidance = Guidance || (function () {
         }
     });
 
+    let populateCharacterSheet = function (gmNotes, selectedNPC) {
+        try {
+            let characterId = selectedNPC.characterId;
+            let npcToken = selectedNPC.npcToken;
+            let characterSheet = selectedNPC.characterSheet;
+
+            let cleanNotes = cleanText(gmNotes);
+            debugLog(cleanNotes);
+
+            npcToken.set("gmnotes", cleanNotes);
+
+            // Preparse the stat block
+            const elements = cleanNotes.split("~").map(e => e.trim()).filter(e => e !== ",").filter(Boolean);
+
+            for (let element of elements) {
+                debugLog("element = " + element);
+            }
+
+        } catch (e) {
+            debugLog("Caught exception: " + e);
+            speakAsGuidanceToGM("NPC Sheet Population Error");
+        }
+    }
+
     //<editor-fold desc="configureToken - link the token stats to the NPC sheet and show the name">
     let configureToken = function (selectedNPC) {
         try {
             let characterId = selectedNPC.characterId;
             let npcToken = selectedNPC.npcToken;
+            let characterSheet = selectedNPC.characterSheet;
             let hitPoints = getAttribute(characterId, "hit_points");
             let armorClass = getAttribute(characterId, "ac");
 
-            if (debugMode) {
-                let characterObject = findObjs({
-                    _id: characterId,
-                    _type: "character",
-                })[0];
-                debugLog("Configuring token for " + characterId + " - " + characterObject.get("name"));
-            }
-
+            debugLog("Configuring token for " + characterId + " - " + characterSheet.get("name"));
+            npcToken.set("showname", true);
             npcToken.set("bar3_link", armorClass.id);
             npcToken.set("bar1_link", hitPoints.id);
-            npcToken.set("showname", true);
         } catch (e) {
             debugLog("Caught exception: " + e);
-            speakAsGuidanceToGM("Check to make sure the tokens are linked to the selected NPCs.");
+            speakAsGuidanceToGM("Token Configuration Error - Check to make sure the tokens are linked to the selected NPCs.");
         }
     };
     //</editor-fold>
