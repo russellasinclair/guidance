@@ -32,7 +32,7 @@ var Guidance = Guidance || (function () {
         }
 
         substringFrom(delimit) {
-            let index = this.str.indexOf(delimit);
+            let index = this.str.toLowerCase().indexOf(delimit.toLowerCase());
             if (index === -1) {
                 return "";
             }
@@ -196,11 +196,17 @@ var Guidance = Guidance || (function () {
         sendChat("Guidance", text);
     };
 
+    let toTitleCase = function (str) {
+        str = str.toLowerCase().split(' ');
+        for (let i = 0; i < str.length; i++) {
+            str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+        }
+        return str.join(' ');
+    }
+
     let cleanText = function (textToClean) {
         return textToClean
-            .replace(/\s+/gm, " ")
-            //.replaceAll("<span", "~<span")
-            //.replaceAll("</span>", "~")
+            .replaceAll("</p>", "~")
             .replace(/(<([^>]+)>)/gi, " ")
             .replace(/&nbsp;|&amp;/gi, " ")
             .replace(/(Offense|Defense|Statistics)/gi, function (match) {
@@ -209,10 +215,9 @@ var Guidance = Guidance || (function () {
             .replace(/(Ecology|Special Abilities|Tactics)/gi, function (match) {
                 return match.toUpperCase() + " ";
             })
-            .replace(/\b(Str|Dex|Con|Int|Wis|Cha)\b/gi, function (match) {
+            .replace(/(Str|Dex|Con|Int|Wis|Cha)/gi, function (match) {
                 return match.toUpperCase() + " ";
-            })
-            .replace(/\s+/gm, " ");
+            });
     };
 
     // For Debugging purposes
@@ -333,6 +338,18 @@ var Guidance = Guidance || (function () {
         }
     });
 
+    function populateStat(characterId, sb, stat, regex) {
+        debugLog("Populating " + stat + " for " + characterId);
+        debugLog(sb);
+        let statBlock = new StrUtils(sb);
+        let current = statBlock.firstMatch(regex);
+        if (current === "") {
+            return statBlock;
+        }
+        setAttribute(characterId, stat, current.trim());
+        return statBlock.substringFrom(current);
+    }
+
     let populateCharacterSheet = function (gmNotes, selectedNPC) {
         try {
             let characterId = selectedNPC.characterId;
@@ -346,22 +363,72 @@ var Guidance = Guidance || (function () {
 
             let statBlock = new StrUtils(cleanNotes);
 
-            let current = statBlock.firstMatch(/.*(?=\s+Creature)/gm);
+            let current = statBlock.firstMatch(/.*?(?=\s+Creature)/i);
             characterSheet.set("name", current);
             setAttribute(characterId, "npc_type", "Creature");
+
             statBlock = statBlock.substringFrom("Creature");
             setAttribute(characterId, "sheet_type", "npc");
 
-            current = statBlock.firstMatch(/^(\-\d+|\d+)/gm);
-            setAttribute(characterId, "level", current);
-            statBlock = statBlock.substringFrom(current);
+            statBlock = populateStat(characterId, statBlock, "level", /^(\-\d+|\d+)/si);
+            statBlock = populateStat(characterId, statBlock, "rarity", /^.*?(?=(LG|NG|CG|LN|N|CN|LE|NE|CE))/si);
+            statBlock = populateStat(characterId, statBlock, "alignment", /^.*?(LG|NG|CG|LN|N|CN|LE|NE|CE)/si);
+            statBlock = populateStat(characterId, statBlock, "size", /^.*?(Fine|Diminutive|Tiny|Small|Medium|Large|Huge|Gargantuan|Colossal)/si);
+            statBlock = populateStat(characterId, statBlock, "traits", /^.*?(?=Source|Perception)/si);
+            statBlock = populateStat(characterId, statBlock, "source", /^.*?(?=Perception)/si);
+            populateStat(characterId, statBlock, "perception", /(?<=Perception).*?(?=;)/si);
+            statBlock = populateStat(characterId, statBlock, "npc_perception", /(?<=Perception).*?(?=;)/si);
+            statBlock = populateStat(characterId, statBlock, "senses", /(?<=;\s).*?(?=\sSkills|\sLanguages)/si);
+            statBlock = populateStat(characterId, statBlock, "languages", /(?<=Languages\s).*?(?=\sSkills)/si);
+            statBlock = new StrUtils(statBlock).substringFrom("Skills");
 
-            current = statBlock.firstMatch(/^(LG|NG|CG|LN|N|CN|LE|NE|CE)(?=\s+.*)/gm);
-            if (current) {
-                setAttribute(characterId, "alignment", current);
-                statBlock = statBlock.substringFrom(current);
+            let argArray = ["Acrobatics", "Arcana", "Athletics", "Crafting", "Deception", "Diplomacy", "Intimidation",
+                "Lore", "Medicine", "Nature", "Occultism", "Performance", "Religion", "Society", "Stealth", "Survival",
+                "Thievery"];
+            argArray.forEach(skill => {
+                let re = new RegExp(`(?<=${skill}\\s).*?(?=,|\\sStr)`, 'gi');
+                populateStat(characterId, statBlock, skill.toLowerCase(), re);
+                statBlock = populateStat(characterId, statBlock, "npc_" + skill.toLowerCase(), re);
+            });
+
+            argArray = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
+            argArray.forEach(stat => {
+                let s = stat.substring(0, 3);
+                let re = new RegExp(`(?<=${s}\\s).*?(?=,|\\s+)`, 'gi');
+                statBlock = populateStat(characterId, statBlock, stat.toLowerCase() + "_modifier", re);
+            });
+
+            // Interaction Abilities
+            if (!statBlock.trim().startsWith("Items") && !statBlock.trim().startsWith("AC")) {
+                let interactionAbilities = new StrUtils(statBlock).firstMatch(/.*?(?=AC|Items)/si);
+                let interactionArray = [];
+
+                interactionArray.forEach(item => {
+                    let rowId = generateRowID();
+                    let attributeName = "repeating_interaction-abilities_-" + rowId + "_";
+                    setAttribute(characterId, attributeName + "_name", item.trim());
+                    setAttribute(characterId, attributeName + "_toggles", "display,");
+                });
             }
 
+            // Items
+            if (statBlock.trim().startsWith("Items")) {
+                let items = new StrUtils(statBlock).firstMatch(/(?<=Items\s+).*(?=\sAC)/si);
+                let itemsArray = items.split(",");
+
+                itemsArray.forEach(item => {
+                    let rowId = generateRowID();
+                    let attributeName = "repeating_items-worn_-" + rowId + "_";
+                    setAttribute(characterId, attributeName + "_worn_item", item.trim());
+                    setAttribute(characterId, attributeName + "_toggles", "display,");
+                });
+
+            }
+
+            statBlock = new StrUtils(statBlock).substringFrom("AC");
+
+
+            debugLog(statBlock);
         } catch (e) {
             debugLog("Caught exception: " + e);
             speakAsGuidanceToGM("NPC Sheet Population Error");
@@ -390,6 +457,7 @@ var Guidance = Guidance || (function () {
 
     //<editor-fold desc="eraseCharacter - Remove all Attributes and Macros from the NPC sheet">
     let eraseCharacter = function (c) {
+        c.characterSheet.set("name", "Erased Character");
         for (const attribute of findObjs({_characterid: c.characterId, _type: "attribute"})) {
             debugLog("Removing " + attribute.get("name"));
             attribute.remove();
