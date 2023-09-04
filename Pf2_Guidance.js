@@ -33,14 +33,6 @@ var Guidance = Guidance || (function () {
         return source.substr(index + delimit.length);
     }
 
-    let titleCase = function (str) {
-        let sentence = str.toLowerCase().split(" ");
-        for (let i = 0; i < sentence.length; i++) {
-            sentence[i] = sentence[i][0].toUpperCase() + sentence[i].slice(1);
-        }
-        return sentence.join(" ");
-    }
-
     /// Class that represents a NPC/Starship that is being worked on.
     class NPC {
         constructor(characterId, token, characterSheet) {
@@ -172,7 +164,8 @@ var Guidance = Guidance || (function () {
                 debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
             }
         } catch (err) {
-            debugLog("Error parsing " + attributeName);
+            debugLog(err);
+            debugLog(new Error().stack);
         }
     };
 
@@ -273,7 +266,6 @@ var Guidance = Guidance || (function () {
                 let selectedNPC = selectedNPCs[0];
                 if (chatAPICommand.includes("CONFIRM")) {
                     eraseCharacter(selectedNPC);
-                    speakAsGuidanceToGM("Removed all properties for " + selectedNPC.characterSheet.get("name"));
                 } else {
                     speakAsGuidanceToGM("Check usage for !sf_clean");
                 }
@@ -324,6 +316,7 @@ var Guidance = Guidance || (function () {
         } catch (err) {
             speakAsGuidanceToGM("I have encountered an error. If you can, please report this to the Script Creator.");
             debugLog(err);
+            debugLog(new Error().stack);
         }
     });
 
@@ -405,19 +398,34 @@ var Guidance = Guidance || (function () {
             });
 
             removeLeadingDelimiters(statBlock);
-            let interactionAbilities = firstMatch(statBlock, /.*?(?=AC\s\d+)/).trim();
+            let interactionAbilities = firstMatch(statBlock, /.*?(?=AC\s+\d+)/).trim();
             interactionAbilities = interactionAbilities.replace(/Items.*?~/, "").trim();
             interactionAbilities = removeLeadingDelimiters(interactionAbilities);
-            //speakAsGuidanceToGM(interactionAbilities);
-
-            if (interactionAbilities.length > 0) {
-                let interactionArray = [];
-
+            let interactionArray = interactionAbilities.replace(/\.\s*~/, ".~").split(".~");
+            if (interactionArray.length > 0) {
+                interactionArray = interactionArray.filter(item => item.trim() !== "");
                 interactionArray.forEach(item => {
+                    let words = item.split(' ');
+                    let itemName = words[0];
+
+                    for (let i = 0; i < words.length; i++) {
+                        if (words[i + 1][0] === words[i + 1][0].toUpperCase() && words[i + 1][0] !== '(') {
+                            itemName = itemName + " " + words[i];
+                        } else {
+                            break;
+                        }
+                    }
+                    item = item.replace(itemName.trim(), "");
+                    item = item.replaceAll("~", "").trim();
+                    let repTraits = firstMatch(item, /^\s*\(.+?\)/);
+                    item = item.replace(repTraits, "").trim();
                     let rowId = generateRowID();
-                    let attributeName = "repeating_interaction-abilities_-" + rowId + "_";
-                    setAttribute(characterId, attributeName + "_name", item.trim());
-                    setAttribute(characterId, attributeName + "_toggles", "display,");
+                    let attributeName = "repeating_interaction-abilities_" + rowId + "_";
+                    setAttribute(characterId, attributeName + "name", itemName);
+                    setAttribute(characterId, attributeName + "npc_description", item);
+                    setAttribute(characterId, attributeName + "description", item);
+                    setAttribute(characterId, attributeName + "rep_traits", repTraits);
+                    setAttribute(characterId, attributeName + "toggles", "display,");
                 });
             }
 
@@ -445,9 +453,10 @@ var Guidance = Guidance || (function () {
             statBlock = populateStat(characterId, statBlock, /(?<=Speed).*?(?=~)/, "speed", "speed_base", "speed_notes");
 
             speakAsGuidanceToGM(npcName + " has been imported.");
-        } catch (e) {
-            debugLog("Caught exception: " + e);
+        } catch (err) {
             speakAsGuidanceToGM("NPC Sheet Population Error");
+            debugLog(err)
+            debugLog(new Error().stack);
         }
     }
 
@@ -464,16 +473,16 @@ var Guidance = Guidance || (function () {
             npcToken.set("showname", true);
             npcToken.set("bar3_link", armorClass.id);
             npcToken.set("bar1_link", hitPoints.id);
-        } catch (e) {
-            debugLog("Caught exception: " + e);
+        } catch (err) {
             speakAsGuidanceToGM("Token Configuration Error - Check to make sure the tokens are linked to the selected NPCs.");
+            debugLog(err);
+            debugLog(new Error().stack);
         }
     };
     //</editor-fold>
 
     //<editor-fold desc="eraseCharacter - Remove all Attributes and Macros from the NPC sheet">
     let eraseCharacter = function (c) {
-        c.characterSheet.set("name", "Erased Character");
         for (const attribute of findObjs({_characterid: c.characterId, _type: "attribute"})) {
             debugLog("Removing " + attribute.get("name"));
             attribute.remove();
@@ -486,6 +495,9 @@ var Guidance = Guidance || (function () {
             c.npcToken.set("bar" + i + "_value", "");
             c.npcToken.set("bar" + i + "_max", "");
         }
+
+        speakAsGuidanceToGM("Removed all properties for " + c.characterSheet.get("name"));
+        c.characterSheet.set("name", "Erased Character");
     }
     //</editor-fold>
 }
