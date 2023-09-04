@@ -48,11 +48,6 @@ var Guidance = Guidance || (function () {
             this.npcToken = token;
             this.characterSheet = characterSheet;
         }
-
-        showContents() {
-            debugLog("Character ID = " + this.characterId);
-            debugLog("npcToken = " + this.npcToken);
-        }
     }
 
     // Based on code from https://app.roll20.net/users/104025/the-aaron
@@ -333,7 +328,6 @@ var Guidance = Guidance || (function () {
     });
 
     function populateStat(characterId, statBlock, regex, ...stats) {
-        debugLog(statBlock);
         let current = firstMatch(statBlock, regex);
         if (current === "") {
             return statBlock;
@@ -342,11 +336,14 @@ var Guidance = Guidance || (function () {
 
         if (Array.isArray(stats)) {
             stats.forEach(stat => {
+                debugLog(stat + " - " + current);
                 setAttribute(characterId, stat, current);
             });
         } else {
+            debugLog(stats + " - " + current);
             setAttribute(characterId, stats, current);
         }
+        debugLog(statBlock);
 
         statBlock = substringFrom(statBlock, current).trim();
         statBlock = removeLeadingDelimiters(statBlock);
@@ -372,35 +369,32 @@ var Guidance = Guidance || (function () {
 
             let statBlock = cleanText(gmNotes);
 
-            debugLog(gmNotes);
-            debugLog(statBlock);
             npcToken.set("gmnotes", statBlock);
-
-            let current = firstMatch(statBlock, /.*?(?=\s+Creature)/i);
-            characterSheet.set("name", titleCase(current));
             setAttribute(characterId, "npc_type", "Creature");
-
-            statBlock = substringFrom(statBlock, "Creature");
             setAttribute(characterId, "sheet_type", "npc");
 
-            statBlock = populateStat(characterId, statBlock, /.+?(?=~|\s+)/s, "level");
-            statBlock = populateStat(characterId, statBlock, /(?<=.*)(Common|Uncommon|Rare|Unique)?(?=(LG|NG|CG|LN|N|CN|LE|NE|CE))/si, "rarity");
-            statBlock = populateStat(characterId, statBlock, /.*?(LG|NG|CG|LN|N|CN|LE|NE|CE)/s, "alignment");
-            statBlock = populateStat(characterId, statBlock, /.*?(Fine|Diminutive|Tiny|Small|Medium|Large|Huge|Gargantuan|Colossal)?(?=~|\s+)/si, "size");
+            let current = firstMatch(statBlock, /.*?(?=(Creature|Level).*\d+)/im);
+            characterSheet.set("name", toTitleCase(current));
+            npcToken.set("name", toTitleCase(current));
+            let npcName = toTitleCase(current);
+
+            statBlock = populateStat(characterId, statBlock, /(?<=(Creature|Level)\s+).+?(?=~|\s+)/si, "level");
+            statBlock = populateStat(characterId, statBlock, /(?<=.*)(LG|NG|CG|LN|N|CN|LE|NE|CE)(?=\s+)/s, "alignment");
+            statBlock = populateStat(characterId, statBlock, /(?<=.*)(Fine|Diminutive|Tiny|Small|Medium|Large|Huge|Gargantuan|Colossal)(?=\s+)/si, "size");
             statBlock = populateStat(characterId, statBlock, /.*?(?=Source|Perception)/s, "traits");
             statBlock = populateStat(characterId, statBlock, /.*?(?=Perception)/s, "source");
             statBlock = populateStat(characterId, statBlock, /(?<=.*Perception).*?(?=;)/s, "npc_perception", "perception");
-            statBlock = populateStat(characterId, statBlock, /(?<=;\s).*?(?=\sSkills|\sLanguages)/s, "senses");
-            statBlock = populateStat(characterId, statBlock, /(?<=Languages\s).*?(?=Skills|~)/s, "languages");
+            statBlock = populateStat(characterId, statBlock, /.*?(?=~|Skills|Languages)/s, "senses");
+            statBlock = populateStat(characterId, statBlock, /(?<=Languages).*?(?=Skills|~)/s, "languages");
             statBlock = substringFrom(statBlock, "Skills");
 
             let argArray = ["Acrobatics", "Arcana", "Athletics", "Crafting", "Deception", "Diplomacy", "Intimidation",
                 "Lore", "Medicine", "Nature", "Occultism", "Performance", "Religion", "Society", "Stealth", "Survival",
                 "Thievery"];
             argArray.forEach(skill => {
-                let re = new RegExp(`(?<=${skill}\\s).*?(?=[,~])`, 'gi');
+                let re = new RegExp(`(?<=${skill}\\s).*?(?=\\s*[,~])`, 'gi');
                 populateStat(characterId, statBlock, re, skill.toLowerCase());
-                statBlock = populateStat(characterId, statBlock, re, "npc_" + skill.toLowerCase());
+                populateStat(characterId, statBlock, re, "npc_" + skill.toLowerCase());
             });
 
             argArray = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
@@ -410,11 +404,11 @@ var Guidance = Guidance || (function () {
                 statBlock = populateStat(characterId, statBlock, re, stat.toLowerCase() + "_modifier");
             });
 
-            // Interaction Abilities
-            //
-            let interactionAbilities = firstMatch(statBlock, /(?<=Cha.*\d+).*?(?=AC\s\d+)/);
+            removeLeadingDelimiters(statBlock);
+            let interactionAbilities = firstMatch(statBlock, /.*?(?=AC\s\d+)/).trim();
             interactionAbilities = interactionAbilities.replace(/Items.*?~/, "").trim();
             interactionAbilities = removeLeadingDelimiters(interactionAbilities);
+            //speakAsGuidanceToGM(interactionAbilities);
 
             if (interactionAbilities.length > 0) {
                 let interactionArray = [];
@@ -444,10 +438,13 @@ var Guidance = Guidance || (function () {
             statBlock = populateStat(characterId, statBlock, /(?<=Fort).*?(?=,)/, "npc_saving_throws_fortitude", "saving_throws_fortitude");
             statBlock = populateStat(characterId, statBlock, /(?<=Ref).*?(?=,)/, "npc_saving_throws_reflex", "saving_throws_reflex");
             statBlock = populateStat(characterId, statBlock, /(?<=Will).*?(?=~)/, "npc_saving_throws_will", "saving_throws_will");
-            statBlock = populateStat(characterId, statBlock, /(?<=HP).*?(?=~)/, "npc_hit_points", "hit_points");
+            statBlock = populateStat(characterId, statBlock, /(?<=HP).*?(?=[~;])/, "npc_hit_points", "hit_points");
+            populateStat(characterId, statBlock, /(?<=Immunities).*?(?=[~;])/, "immunities");
+            populateStat(characterId, statBlock, /(?<=Weaknesses).*?(?=[~;])/, "weaknesses");
+            populateStat(characterId, statBlock, /(?<=Resistances).*?(?=[~;])/, "resistances");
             statBlock = populateStat(characterId, statBlock, /(?<=Speed).*?(?=~)/, "speed", "speed_base", "speed_notes");
 
-            debugLog(statBlock);
+            speakAsGuidanceToGM(npcName + " has been imported.");
         } catch (e) {
             debugLog("Caught exception: " + e);
             speakAsGuidanceToGM("NPC Sheet Population Error");
