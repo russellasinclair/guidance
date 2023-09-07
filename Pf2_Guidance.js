@@ -16,11 +16,14 @@ var Guidance = Guidance || (function () {
     const commandPopulate = prefix + "npc";
 
     //<editor-fold desc="Support Methods">
-    let firstMatch = function (source, regex) {
+    let firstMatch = function (source, regex, ignoreEmpty) {
         let match = source.match(regex);
         if (match == null || match.length === 0 || match[0] == null || !Array.isArray(match)) {
             debugLog("firstItem: Not a valid array of strings");
-            return "";
+            if (ignoreEmpty == undefined) {
+                return "";
+            }
+            return source;
         }
         return match[0].trim();
     }
@@ -322,6 +325,7 @@ var Guidance = Guidance || (function () {
 
     function populateStat(characterId, statBlock, regex, ...stats) {
         let current = firstMatch(statBlock, regex);
+
         if (current === "") {
             return statBlock;
         }
@@ -329,14 +333,14 @@ var Guidance = Guidance || (function () {
 
         if (Array.isArray(stats)) {
             stats.forEach(stat => {
-                debugLog(stat + " - " + current);
+                //    debugLog(stat + " - " + current);
                 setAttribute(characterId, stat, current);
             });
         } else {
-            debugLog(stats + " - " + current);
+            // debugLog(stats + " - " + current);
             setAttribute(characterId, stats, current);
         }
-        debugLog(statBlock);
+//        debugLog(statBlock);
 
         statBlock = substringFrom(statBlock, current).trim();
         statBlock = removeLeadingDelimiters(statBlock);
@@ -359,7 +363,6 @@ var Guidance = Guidance || (function () {
             let characterId = selectedNPC.characterId;
             let npcToken = selectedNPC.npcToken;
             let characterSheet = selectedNPC.characterSheet;
-
             let statBlock = cleanText(gmNotes);
 
             npcToken.set("gmnotes", statBlock);
@@ -429,8 +432,9 @@ var Guidance = Guidance || (function () {
                 });
             }
 
-            if (statBlock.trim().startsWith("Items")) {
-                let items = firstMatch(statBlock, /(?<=Items\s*).*?(?=~)/si);
+            let hasItems = firstMatch(statBlock, /.*?(?=AC\s+\d+)/).trim();
+            if (hasItems.includes("Items")) {
+                let items = firstMatch(hasItems, /(?<=Items\s*).*?(?=~)/si, true).trim();
                 let itemsArray = items.split(",");
 
                 itemsArray.forEach(item => {
@@ -451,6 +455,92 @@ var Guidance = Guidance || (function () {
             populateStat(characterId, statBlock, /(?<=Weaknesses).*?(?=[~;])/, "weaknesses");
             populateStat(characterId, statBlock, /(?<=Resistances).*?(?=[~;])/, "resistances");
             statBlock = populateStat(characterId, statBlock, /(?<=Speed).*?(?=~)/, "speed", "speed_base", "speed_notes");
+
+            statBlock = statBlock.replaceAll("~", "");
+            statBlock = statBlock.replaceAll("Damage", "damage");
+            statBlock = statBlock.replaceAll("Cantrip", "cantrip");
+            let tokens = statBlock.split(" ");
+            let abilities = [];
+            let item = "";
+            let start = true;
+            let isCapital = new RegExp(/[A-Z][a-z]\S*/);
+            tokens.forEach(t => {
+                t = removeLeadingDelimiters(t);
+                if (isCapital.test(t)) {
+                    if (!start && !item.endsWith(")")) {
+                        abilities.push(item);
+                        item = "";
+                        start = true;
+                    }
+                } else {
+                    start = false;
+                }
+                item = item + " " + t;
+            });
+            abilities.push(item);
+            abilities.forEach(ability => {
+                debugLog(ability)
+            });
+            // Melee
+
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon\",\"current\":\"Claw\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_roll_critical_damage_npc\",\"current\":\"@{damage_critical_roll_npc}\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_map2\",\"current\":\"@{strikes_map2}\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_map3\",\"current\":\"@{strikes_map3}\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_npc_weapon_strike\",\"current\":\"+4\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_strike\",\"current\":\"4\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_traits\",\"current\":\"Traits\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_npc_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_strike_damage_type\",\"current\":\"Slashion\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_strike_damage_additional\",\"current\":\"[[1d6]] Acide\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_npc_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
+            // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_toggles\",\"current\":\"display,\",\"max\":\"\"}"
+
+
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon\",\"current\":\"Bow\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_roll_critical_damage_npc\",\"current\":\"@{damage_critical_roll_npc}\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_map2\",\"current\":\"@{strikes_agile_map2}\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_map3\",\"current\":\"@{strikes_agile_map3}\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_strike\",\"current\":\"+4\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike\",\"current\":\"4\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_traits\",\"current\":\"Traits\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_agile\",\"current\":\"1\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage_type\",\"current\":\"Piercing\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage_additional\",\"current\":\"[[1d6]] Acid\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_range\",\"current\":\"100 Ft\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_toggles\",\"current\":\"display,\",\"max\":\"\"}"
+
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon\",\"current\":\"Bow\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_roll_critical_damage_npc\",\"current\":\"@{damage_critical_roll_npc}\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_map2\",\"current\":\"@{strikes_map2}\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_map3\",\"current\":\"@{strikes_map3}\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_strike\",\"current\":\"+4\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike\",\"current\":\"4\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_traits\",\"current\":\"Traits\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_agile\",\"current\":\"0\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage_type\",\"current\":\"Piercing\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage_additional\",\"current\":\"[[1d6]] Acid\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_range\",\"current\":\"100 Ft\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
+            // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_toggles\",\"current\":\"display,\",\"max\":\"\"}"
+
+            // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_toggles\",\"current\":\"display,\",\"max\":\"\"}"
+            // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_name\",\"current\":\"Precision Edge\",\"max\":\"\"}"
+            // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_actions\",\"current\":\"\",\"max\":\"\"}"
+            // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_rep_traits\",\"current\":\"\",\"max\":\"\"}"
+            // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_source\",\"current\":\"\",\"max\":\"\"}"
+            // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_npc_description\",\"current\":\"The first time the bounty hunter hits their hunted prey in a round, they deal an additional [[1d8]] (1d8) precision damage.\",\"max\":\"\"}"
+            // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_description\",\"current\":\"The first time the bounty hunter hits their hunted prey in a round, they deal an additional [[1d8]] (1d8) precision damage.\",\"max\":\"\"}"
+
 
             speakAsGuidanceToGM(npcName + " has been imported.");
         } catch (err) {
