@@ -586,11 +586,12 @@ var Guidance = Guidance || (function () {
             let npcToken = selectedNPC.npcToken;
             let characterSheet = selectedNPC.characterSheet;
             let hitPoints = getAttribute(characterId, "hit_points");
-            let armorClass = getAttribute(characterId, "ac");
+            let armorClass = getAttribute(characterId, "armor_class");
 
             debugLog("Configuring token for " + characterId + " - " + characterSheet.get("name"));
             npcToken.set("showname", true);
-            npcToken.set("bar3_link", armorClass.id);
+            npcToken.set("bar3_value", "AC " + armorClass.get("current"));
+            npcToken.set("bar3_max", "-0");
             npcToken.set("bar1_link", hitPoints.id);
         } catch (err) {
             speakAsGuidanceToGM("Token Configuration Error - Check to make sure the tokens are linked to the selected NPCs.");
