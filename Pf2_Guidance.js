@@ -197,12 +197,12 @@ var Guidance = Guidance || (function () {
     }
 
     let cleanText = function (textToClean) {
-        return textToClean
-            .replaceAll("</p>", "~")
-            .replaceAll("<br", "~<br")
-            .replace(/(<([^>]+)>)/gi, " ")
-            .replace(/&nbsp;|&amp;/gi, " ")
-            .replace(/\s+/g, " ");
+        let cleaned = textToClean.replaceAll("</p>", "~");
+        cleaned = cleaned.replaceAll("<br", "~<br")
+        cleaned = cleaned.replace(/(<([^>]+)>)/gi, " ");
+        cleaned = cleaned.replace(/&nbsp;|&amp;/gi, " ");
+        cleaned = cleaned.replace(/\s+/g, " ");
+        return cleaned;
     };
 
     // For Debugging purposes
@@ -333,14 +333,11 @@ var Guidance = Guidance || (function () {
 
         if (Array.isArray(stats)) {
             stats.forEach(stat => {
-                //    debugLog(stat + " - " + current);
                 setAttribute(characterId, stat, current);
             });
         } else {
-            // debugLog(stats + " - " + current);
             setAttribute(characterId, stats, current);
         }
-//        debugLog(statBlock);
 
         statBlock = substringFrom(statBlock, current).trim();
         statBlock = removeLeadingDelimiters(statBlock);
@@ -458,7 +455,7 @@ var Guidance = Guidance || (function () {
 
             statBlock = statBlock.replaceAll("Damage", "damage");
             statBlock = statBlock.replaceAll("Cantrip", "cantrip");
-            let tokens = statBlock.split("~");
+            let tokens = statBlock.split(" ");
             let abilities = [];
             let item = "";
             let isCapital = new RegExp(/[A-Z][a-z]\S*/);
@@ -494,34 +491,44 @@ var Guidance = Guidance || (function () {
         const regexActionType = /\[\w+-\w+\]/;
         const regexWeaponName = /(?<=Melee\s\[.*\]\s).*?(?=\s(\+|\-))/;
         const regexAttackBonus = /(\+|\-)(\d+)/;
-        const regexAttackRolls = /\[\s*\+\d+\/\+\d+\s*\]/;
+        //const regexAttackRolls = /\[\s*\+\d+\/\+\d+\s*\]/;
         const regexTraits = /\((.+)\)/;
-        const regexDamage = /(?<=Damage\s+)(\d+d\d+\+\d+\s+\w+(\s+plus\s+\w+)*)/;
+        const regexDamage = /(?<=damage\s+)(\d+d\d+\+\d+\s+\w+(\s+plus\s+\w+.*)*)/;
 
         const weaponName = ability.match(regexActionType)[0] + " " + ability.match(regexWeaponName)[0];
         const attackBonusMatch = ability.match(regexAttackBonus)[0];
-        const attackRollsMatch = ability.match(regexAttackRolls)[0];
+        //const attackRollsMatch = ability.match(regexAttackRolls)[0];
         const traits = ability.match(regexTraits)[1];
         const damageMatch = ability.match(regexDamage)[0];
 
         let rowId = generateRowID();
         let attributeName = "repeating_melee-strikes_" + rowId + "_";
-        setAttribute(characterId, attributeName + "weapon", weaponName);
-        setAttribute(characterId, attributeName + "traits", traits);
-        setAttribute(characterId, attributeName + "npc_weapon_strike", attackBonusMatch);
+        if (traits.includes("agile")) {
+            setAttribute(characterId, attributeName + "weapon_agile", "1");
+        }
+        setAttribute(characterId, attributeName + "weapon", weaponName.trim());
+        setAttribute(characterId, attributeName + "weapon_traits", traits.trim());
+        setAttribute(characterId, attributeName + "npc_weapon_strike", attackBonusMatch.trim());
         setAttribute(characterId, attributeName + "weapon_strike", attackBonusMatch.replace("+", ""));
-        setAttribute(characterId, attributeName + "npc_weapon_notes", ability);
-        setAttribute(characterId, attributeName + "_weapon_map2", "@{strikes_map2}");
-        setAttribute(characterId, attributeName + "_weapon_map3", "@{strikes_map3}");
+        setAttribute(characterId, attributeName + "weapon_map2", "@{strikes_map2}");
+        setAttribute(characterId, attributeName + "weapon_map3", "@{strikes_map3}");
 
-
-        // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon\",\"current\":\"Claw\",\"max\":\"\"}"
-        // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_roll_critical_damage_npc\",\"current\":\"@{damage_critical_roll_npc}\",\"max\":\"\"}"
-        // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
+        let damage = damageMatch.trim().split(" ");
+        setAttribute(characterId, attributeName + "npc_weapon_strike_damage", damage[0]);
+        setAttribute(characterId, attributeName + "weapon_strike_damage", damage[0]);
+        setAttribute(characterId, attributeName + "weapon_strike_damage_type", damage[1]);
+        if (damage[2] != undefined) {
+            let extra = "";
+            for (let i = 2; i < damage.length; i++) {
+                if (/\d+d\d+(\+\d+)*/.test(damage[i])) {
+                    extra = extra + " [[" + damage[i] + "]]";
+                } else {
+                    extra = extra + " " + damage[i];
+                }
+            }
+            setAttribute(characterId, attributeName + "weapon_strike_damage_additional", extra);
+        }
         // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
-        // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_npc_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
-        // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_strike_damage_type\",\"current\":\"Slashion\",\"max\":\"\"}"
-        // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_strike_damage_additional\",\"current\":\"[[1d6]] Acide\",\"max\":\"\"}"
         setAttribute(characterId, attributeName + "toggles", "display,");
     }
 
