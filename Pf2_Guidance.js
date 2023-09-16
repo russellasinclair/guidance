@@ -458,7 +458,7 @@ var Guidance = Guidance || (function () {
             let tokens = statBlock.split(" ");
             let abilities = [];
             let item = "";
-            let isCapital = new RegExp(/[A-Z][a-z]\S*/);
+            const isCapital = new RegExp(/[A-Z][a-z]\S*/);
             tokens.forEach(t => {
                 t = t.trim();
                 if (isCapital.test(t) && item.length > 0) {
@@ -475,6 +475,8 @@ var Guidance = Guidance || (function () {
                     parseAttackAbility(characterId, ability, "Melee",);
                 } else if (ability.startsWith("Ranged")) {
                     parseAttackAbility(characterId, ability, "Ranged");
+                } else if (ability.includes("Spells") && ability.includes("DC")) {
+                    parseSpells(characterId, ability);
                 } else {
                     parseSpecialAbility(characterId, ability);
                 }
@@ -488,19 +490,13 @@ var Guidance = Guidance || (function () {
     }
 
     let parseAttackAbility = function (characterId, ability, attackType) {
-        const regexActionType = /\[\w+-\w+\]/;
-        const regexWeaponName = /(?<=${attackType}\s\[.*\]\s).*?(?=\s(\+|\-))/;
-        const regexAttackBonus = /(\+|\-)(\d+)/;
-        const regexTraits = /\((.+)\)/;
-        const regexDamage = /(?<=damage\s+)(\d+d\d+\+\d+\s+\w+(\s+plus\s+\w+.*)*)/;
+        const weaponName = ability.match(/\[\w+-\w+\]/)[0] + " " + ability.match(/(?<=${attackType}\s\[.*\]\s).*?(?=\s(\+|\-))/)[0];
+        const attackBonusMatch = ability.match(/(\+|\-)(\d+)/)[0];
+        const traits = ability.match(/\((.+)\)/)[1];
+        const damageMatch = ability.match(/(?<=damage\s+)(\d+d\d+\+\d+\s+\w+(\s+plus\s+\w+.*)*)/)[0];
 
-        const weaponName = ability.match(regexActionType)[0] + " " + ability.match(regexWeaponName)[0];
-        const attackBonusMatch = ability.match(regexAttackBonus)[0];
-        const traits = ability.match(regexTraits)[1];
-        const damageMatch = ability.match(regexDamage)[0];
-
-        let rowId = generateRowID();
-        let attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + rowId + "_";
+        const rowId = generateRowID();
+        const attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + rowId + "_";
         if (traits.includes("agile")) {
             setAttribute(characterId, attributeName + "weapon_agile", "1");
         }
@@ -526,6 +522,17 @@ var Guidance = Guidance || (function () {
             }
             setAttribute(characterId, attributeName + "weapon_strike_damage_additional", extra);
         }
+        setAttribute(characterId, attributeName + "toggles", "display,");
+    }
+
+    let parseSpells = function (characterId, ability) {
+        const rowId = generateRowID();
+        const attributeName = "repeating_actions-activities_" + rowId + "_";
+        const spells = ability.match(/.*Spells/);
+        const theRest = ability.match(/(?<=Spells\s+).*/);
+        setAttribute(characterId, attributeName + "name", spells.trim());
+        setAttribute(characterId, attributeName + "npc_description", theRest.trim());
+        setAttribute(characterId, attributeName + "description", theRest.trim());
         setAttribute(characterId, attributeName + "toggles", "display,");
     }
 
