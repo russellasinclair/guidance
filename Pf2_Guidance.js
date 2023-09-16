@@ -156,7 +156,7 @@ var Guidance = Guidance || (function () {
                     max: newValue,
                     _characterid: characterId
                 });
-                debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
+                //    debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
             } else {
                 if (typeof operator !== "undefined" && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
                     newValue = parseFloat(foundAttribute.get("current")) + parseFloat(mod_newValue[operator](newValue));
@@ -164,7 +164,7 @@ var Guidance = Guidance || (function () {
 
                 foundAttribute.set("current", newValue);
                 foundAttribute.set("max", newValue);
-                debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
+                //     debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
             }
         } catch (err) {
             debugLog(err);
@@ -451,34 +451,32 @@ var Guidance = Guidance || (function () {
             populateStat(characterId, statBlock, /(?<=Resistances).*?(?=[~;])/, "resistances");
             statBlock = populateStat(characterId, statBlock, /(?<=Speed).*?(?=~)/, "speed", "speed_base", "speed_notes");
 
-            statBlock = statBlock.replaceAll("Damage", "damage");
-            statBlock = statBlock.replaceAll("Cantrip", "cantrip");
-            let tokens = statBlock.split(" ");
-            let abilities = [];
-            let item = "";
-            const isCapital = new RegExp(/[A-Z][a-z]\S*/);
-            tokens.forEach(t => {
-                t = t.trim();
-                if (isCapital.test(t) && item.length > 0) {
-                    abilities.push(item);
-                    item = "";
-                }
-                item = item + " " + t;
-                item = item.trim();
+            const matchMelee = new RegExp(/Melee.*?(?=(Melee|([A-Z][a-z]+\s)*Spells|Ranged|$))/gm);
+            const matchRanged = new RegExp(/Ranged.*?(?=(Melee|([A-Z][a-z]+\s)*Spells|Ranged|$))/gm);
+            const matchSpells = new RegExp(/([A-Z][a-z]+\s)*Spells.*?(?=(Melee|([A-Z][a-z]+\s)+|Ranged|$))/gm);
+            const matchSneakyOnes = new RegExp(/(?<=\.\s*)([A-Z][a-z]+\s){2,}.*?(?=\.\s*(([A-Z][a-z]+\s){2,})|$)/gm);
+            const matchTheRest = new RegExp(/(([A-Z][a-z]+\s(\w+\s)*)+\[).*?((?=(([A-Z][a-z]+\s(\w+\s)*)+\[))|$)/gm);
+
+            let meleeAttacks = statBlock.match(matchMelee) || [];
+            meleeAttacks.forEach(ability => parseAttackAbility(characterId, ability, "Melee"));
+            statBlock = statBlock.replace(matchMelee, "");
+
+            let rangedAttacks = statBlock.match(matchRanged) || [];
+            rangedAttacks.forEach(ability => parseAttackAbility(characterId, ability, "Ranged"));
+            statBlock = statBlock.replace(matchRanged, "");
+
+            let spells = statBlock.match(matchSpells) || [];
+            spells.forEach(ability => parseSpells(characterId, ability));
+            statBlock = statBlock.replace(matchSpells, "");
+
+            let theRest = statBlock.match(matchTheRest) || [];
+            theRest.forEach(ability => {
+                let sneaky = ability.match(matchSneakyOnes) || [];
+                sneaky.forEach(miniAbility => parseSpecialAbility(characterId, miniAbility));
+                ability = ability.replace(matchSneakyOnes, "");
+                parseSpecialAbility(characterId, ability);
             });
-            abilities.push(item);
-            abilities.forEach(ability => {
-                debugLog(ability)
-                if (ability.startsWith("Melee")) {
-                    parseAttackAbility(characterId, ability, "Melee",);
-                } else if (ability.startsWith("Ranged")) {
-                    parseAttackAbility(characterId, ability, "Ranged");
-                } else if (ability.includes("Spells") && ability.includes("DC")) {
-                    parseSpells(characterId, ability);
-                } else {
-                    parseSpecialAbility(characterId, ability);
-                }
-            });
+
             speakAsGuidanceToGM(npcName + " has been imported.");
         } catch (err) {
             speakAsGuidanceToGM("NPC Sheet Population Error");
@@ -488,10 +486,10 @@ var Guidance = Guidance || (function () {
     }
 
     let parseAttackAbility = function (characterId, ability, attackType) {
-        const weaponName = ability.match(/\[\w+-\w+\]/)[0] + " " + ability.match(/(?<=${attackType}\s\[.*\]\s).*?(?=\s(\+|\-))/)[0];
+        const weaponName = ability.match(/\[\w+-\w+\]/)[0] + " " + ability.match(/(?<=[Melee|Ranged]\s\[.*\]\s).*?(?=\s(\+|\-))/)[0];
         const attackBonusMatch = ability.match(/(\+|\-)(\d+)/)[0];
-        const traits = ability.match(/\((.+)\)/)[1];
-        const damageMatch = ability.match(/(?<=damage\s+)(\d+d\d+\+\d+\s+\w+(\s+plus\s+\w+.*)*)/)[0];
+        const traits = ability.match(/\((.+?)\)/)[1];
+        const damageMatch = ability.match(/(?<=Damage\s+)(\d+d\d+\+\d+\s+\w+(\s+plus\s+\w+.*)*)/)[0];
 
         const attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + generateRowID() + "_";
         if (traits.includes("agile")) {
@@ -524,24 +522,29 @@ var Guidance = Guidance || (function () {
 
     let parseSpells = function (characterId, ability) {
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
-        const spells = ability.match(/.*Spells/);
-        const theRest = ability.match(/(?<=Spells\s+).*/);
-        setAttribute(characterId, attributeName + "name", spells.trim());
-        setAttribute(characterId, attributeName + "npc_description", theRest.trim());
-        setAttribute(characterId, attributeName + "description", theRest.trim());
+        const spells = ability.match(/.*Spells/)[0].trim();
+        const theRest = ability.match(/(?<=Spells\s+).*/)[0].trim();
+        setAttribute(characterId, attributeName + "name", spells);
+        setAttribute(characterId, attributeName + "npc_description", theRest);
+        setAttribute(characterId, attributeName + "description", theRest);
         setAttribute(characterId, attributeName + "toggles", "display,");
     }
 
     let parseSpecialAbility = function (characterId, ability) {
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
-        setAttribute(characterId, attributeName + "toggles", "display,");
+        const name = ability.match(/.*(?=\[)/)[0].trim();
+        const actions = ability.match(/(?<=\[\s*).*(?=\])/)[0].trim();
+        const theRest = ability.match(/(?<=\)\s+).*/)[0].trim();
+        const traits = ability.match(/(?<=\(\s+).*?(?=\))/)[0].trim();
 
-        // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_name\",\"current\":\"Precision Edge\",\"max\":\"\"}"
-        // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_actions\",\"current\":\"\",\"max\":\"\"}"
-        // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_rep_traits\",\"current\":\"\",\"max\":\"\"}"
+        setAttribute(characterId, attributeName + "toggles", "display,");
+        setAttribute(characterId, attributeName + "name", name);
+        setAttribute(characterId, attributeName + "actions", actions);
+        setAttribute(characterId, attributeName + "npc_description", theRest);
+        setAttribute(characterId, attributeName + "description", theRest);
+        setAttribute(characterId, attributeName + "rep_traits", traits);
+
         // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_source\",\"current\":\"\",\"max\":\"\"}"
-        // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_npc_description\",\"current\":\"The first time the bounty hunter hits their hunted prey in a round, they deal an additional [[1d8]] (1d8) precision damage.\",\"max\":\"\"}"
-        // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_description\",\"current\":\"The first time the bounty hunter hits their hunted prey in a round, they deal an additional [[1d8]] (1d8) precision damage.\",\"max\":\"\"}"
     }
 
     //<editor-fold desc="configureToken - link the token stats to the NPC sheet and show the name">
