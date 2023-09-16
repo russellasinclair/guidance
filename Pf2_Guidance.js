@@ -472,11 +472,11 @@ var Guidance = Guidance || (function () {
             abilities.forEach(ability => {
                 debugLog(ability)
                 if (ability.startsWith("Melee")) {
-                    parseMeleeAbility(characterId, ability);
+                    parseAttackAbility(characterId, ability, "Melee",);
                 } else if (ability.startsWith("Ranged")) {
-                    parseRangedAbility(ability);
+                    parseAttackAbility(characterId, ability, "Ranged");
                 } else {
-                    parseSpecialAbility(ability);
+                    parseSpecialAbility(characterId, ability);
                 }
             });
             speakAsGuidanceToGM(npcName + " has been imported.");
@@ -487,22 +487,20 @@ var Guidance = Guidance || (function () {
         }
     }
 
-    let parseMeleeAbility = function (characterId, ability) {
+    let parseAttackAbility = function (characterId, ability, attackType) {
         const regexActionType = /\[\w+-\w+\]/;
-        const regexWeaponName = /(?<=Melee\s\[.*\]\s).*?(?=\s(\+|\-))/;
+        const regexWeaponName = /(?<=${attackType}\s\[.*\]\s).*?(?=\s(\+|\-))/;
         const regexAttackBonus = /(\+|\-)(\d+)/;
-        //const regexAttackRolls = /\[\s*\+\d+\/\+\d+\s*\]/;
         const regexTraits = /\((.+)\)/;
         const regexDamage = /(?<=damage\s+)(\d+d\d+\+\d+\s+\w+(\s+plus\s+\w+.*)*)/;
 
         const weaponName = ability.match(regexActionType)[0] + " " + ability.match(regexWeaponName)[0];
         const attackBonusMatch = ability.match(regexAttackBonus)[0];
-        //const attackRollsMatch = ability.match(regexAttackRolls)[0];
         const traits = ability.match(regexTraits)[1];
         const damageMatch = ability.match(regexDamage)[0];
 
         let rowId = generateRowID();
-        let attributeName = "repeating_melee-strikes_" + rowId + "_";
+        let attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + rowId + "_";
         if (traits.includes("agile")) {
             setAttribute(characterId, attributeName + "weapon_agile", "1");
         }
@@ -528,48 +526,10 @@ var Guidance = Guidance || (function () {
             }
             setAttribute(characterId, attributeName + "weapon_strike_damage_additional", extra);
         }
-        // "{\"name\":repeating_melee-strikes_-NdaKKvOzuoOaJ2pgtKh_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
         setAttribute(characterId, attributeName + "toggles", "display,");
     }
 
-
-    let parseRangedAbility = function (ability) {
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon\",\"current\":\"Bow\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_roll_critical_damage_npc\",\"current\":\"@{damage_critical_roll_npc}\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_map2\",\"current\":\"@{strikes_agile_map2}\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_map3\",\"current\":\"@{strikes_agile_map3}\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_strike\",\"current\":\"+4\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike\",\"current\":\"4\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_traits\",\"current\":\"Traits\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_agile\",\"current\":\"1\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage_type\",\"current\":\"Piercing\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage_additional\",\"current\":\"[[1d6]] Acid\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_range\",\"current\":\"100 Ft\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_toggles\",\"current\":\"display,\",\"max\":\"\"}"
-
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon\",\"current\":\"Bow\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_roll_critical_damage_npc\",\"current\":\"@{damage_critical_roll_npc}\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_map2\",\"current\":\"@{strikes_map2}\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_map3\",\"current\":\"@{strikes_map3}\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_strike\",\"current\":\"+4\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike\",\"current\":\"4\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_traits\",\"current\":\"Traits\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_agile\",\"current\":\"0\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_strike_damage\",\"current\":\"1d6\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage_type\",\"current\":\"Piercing\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_strike_damage_additional\",\"current\":\"[[1d6]] Acid\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_weapon_range\",\"current\":\"100 Ft\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_npc_weapon_notes\",\"current\":\"Other effects\",\"max\":\"\"}"
-        // "{\"name\":repeating_ranged-strikes_-NdaL53pK5sH1LaTrvHJ_toggles\",\"current\":\"display,\",\"max\":\"\"}"
-    }
-
-    let parseSpecialAbility = function (ability) {
+    let parseSpecialAbility = function (characterId, ability) {
         // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_toggles\",\"current\":\"display,\",\"max\":\"\"}"
         // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_name\",\"current\":\"Precision Edge\",\"max\":\"\"}"
         // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_actions\",\"current\":\"\",\"max\":\"\"}"
