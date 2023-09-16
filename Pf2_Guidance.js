@@ -197,12 +197,12 @@ var Guidance = Guidance || (function () {
     }
 
     let cleanText = function (textToClean) {
-        let cleaned = textToClean.replaceAll("</p>", "~");
-        cleaned = cleaned.replaceAll("<br", "~<br")
-        cleaned = cleaned.replace(/(<([^>]+)>)/gi, " ");
-        cleaned = cleaned.replace(/&nbsp;|&amp;/gi, " ");
-        cleaned = cleaned.replace(/\s+/g, " ");
-        return cleaned;
+        return textToClean
+            .replaceAll("</p>", "~")
+            .replaceAll("<br", "~<br")
+            .replace(/(<([^>]+)>)/gi, " ")
+            .replace(/&nbsp;|&amp;/gi, " ")
+            .replace(/\s+/g, " ");
     };
 
     // For Debugging purposes
@@ -419,8 +419,7 @@ var Guidance = Guidance || (function () {
                     item = item.replaceAll("~", "").trim();
                     let repTraits = firstMatch(item, /^\s*\(.+?\)/);
                     item = item.replace(repTraits, "").trim();
-                    let rowId = generateRowID();
-                    let attributeName = "repeating_interaction-abilities_" + rowId + "_";
+                    let attributeName = "repeating_interaction-abilities_" + generateRowID() + "_";
                     setAttribute(characterId, attributeName + "name", itemName);
                     setAttribute(characterId, attributeName + "npc_description", item);
                     setAttribute(characterId, attributeName + "description", item);
@@ -435,8 +434,7 @@ var Guidance = Guidance || (function () {
                 let itemsArray = items.split(",");
 
                 itemsArray.forEach(item => {
-                    let rowId = generateRowID();
-                    let attributeName = "repeating_items-worn_-" + rowId + "_";
+                    let attributeName = "repeating_items-worn_-" + generateRowID() + "_";
                     setAttribute(characterId, attributeName + "worn_item", item.trim());
                     setAttribute(characterId, attributeName + "worn_misc", item.trim());
                     setAttribute(characterId, attributeName + "toggles", "display,");
@@ -495,8 +493,7 @@ var Guidance = Guidance || (function () {
         const traits = ability.match(/\((.+)\)/)[1];
         const damageMatch = ability.match(/(?<=damage\s+)(\d+d\d+\+\d+\s+\w+(\s+plus\s+\w+.*)*)/)[0];
 
-        const rowId = generateRowID();
-        const attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + rowId + "_";
+        const attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + generateRowID() + "_";
         if (traits.includes("agile")) {
             setAttribute(characterId, attributeName + "weapon_agile", "1");
         }
@@ -526,8 +523,7 @@ var Guidance = Guidance || (function () {
     }
 
     let parseSpells = function (characterId, ability) {
-        const rowId = generateRowID();
-        const attributeName = "repeating_actions-activities_" + rowId + "_";
+        const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
         const spells = ability.match(/.*Spells/);
         const theRest = ability.match(/(?<=Spells\s+).*/);
         setAttribute(characterId, attributeName + "name", spells.trim());
@@ -537,7 +533,9 @@ var Guidance = Guidance || (function () {
     }
 
     let parseSpecialAbility = function (characterId, ability) {
-        // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_toggles\",\"current\":\"display,\",\"max\":\"\"}"
+        const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
+        setAttribute(characterId, attributeName + "toggles", "display,");
+
         // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_name\",\"current\":\"Precision Edge\",\"max\":\"\"}"
         // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_actions\",\"current\":\"\",\"max\":\"\"}"
         // "{\"name\":repeating_actions-activities_-NdaMBK3YWjc4dEz7vuk_rep_traits\",\"current\":\"\",\"max\":\"\"}"
