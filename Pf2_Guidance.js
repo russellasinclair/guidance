@@ -457,6 +457,8 @@ var Guidance = Guidance || (function () {
             const matchSneakyOnes = new RegExp(/(?<=\.\s*)([A-Z][a-z]+\s){2,}.*?(?=\.\s*(([A-Z][a-z]+\s){2,})|$)/gm);
             const matchTheRest = new RegExp(/(([A-Z][a-z]+\s(\w+\s)*)+\[).*?((?=(([A-Z][a-z]+\s(\w+\s)*)+\[))|$)/gm);
 
+            statBlock = statBlock.replaceAll("~", "");
+
             let meleeAttacks = statBlock.match(matchMelee) || [];
             meleeAttacks.forEach(ability => parseAttackAbility(characterId, ability, "Melee"));
             statBlock = statBlock.replace(matchMelee, "");
@@ -486,7 +488,7 @@ var Guidance = Guidance || (function () {
     }
 
     let parseAttackAbility = function (characterId, ability, attackType) {
-        const weaponName = ability.match(/\[\w+-\w+\]/)[0] + " " + ability.match(/(?<=[Melee|Ranged]\s\[.*\]\s).*?(?=\s(\+|\-))/)[0];
+        const weaponName = ability.match(/\[\w+-\w+\]/)[0] + " " + ability.match(/(?<=(Melee|Ranged)\s\[.*\]\s).*?(?=\s(\+|\-))/)[0];
         const attackBonusMatch = ability.match(/(\+|\-)(\d+)/)[0];
         const traits = ability.match(/\((.+?)\)/)[1];
         const damageMatch = ability.match(/(?<=Damage\s+)(\d+d\d+\+\d+\s+\w+(\s+plus\s+\w+.*)*)/)[0];
@@ -524,10 +526,62 @@ var Guidance = Guidance || (function () {
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
         const spells = ability.match(/.*Spells/)[0].trim();
         const theRest = ability.match(/(?<=Spells\s+).*/)[0].trim();
+        const matchSpellDC = new RegExp(/(?<=DC\s)\d+/);
+        const matchAttack = new RegExp(/(?<=,\sattack\s)(\+|\-)\d+?(?=;)/);
         setAttribute(characterId, attributeName + "name", spells);
         setAttribute(characterId, attributeName + "npc_description", theRest);
         setAttribute(characterId, attributeName + "description", theRest);
         setAttribute(characterId, attributeName + "toggles", "display,");
+        let spellDC = "";
+        let attackBonus = "";
+
+        if (matchSpellDC.test(theRest)) {
+            spellDC = theRest.match(matchSpellDC)[0];
+        }
+        if (matchAttack.test(theRest)) {
+            attackBonus = theRest.match(matchAttack)[0];
+        }
+
+        const argArray = ["10th", "9th", "8th", "7th", "6th", "5th", "4th", "3rd", "2nd", "1st", "Cantrips"];
+
+        argArray.forEach(spellsInLevel => {
+            let re = new RegExp(`(?<=${spellsInLevel}\\s).*?(?=;\\s*([0-9]|Cantrips|$))`, 'gm');
+            let level = ability.match(re)[0];
+
+            let slots, spellLevel;
+            try {
+                spellLevel = level.match(/(^\d+)/)[0];
+
+                if (/\(\d+\sslots\)/.test(level)) {
+                    slots = level.match(/(?<=\()\d+?(?=\sslots\))/)[0];
+                    level = level.replace(/\(\d+\sslots\)/, "");
+                }
+                setAttribute(characterId, "level_" + spellLevel + "_per_day", slots);
+            } catch (e) {
+                spellLevel = "Cantrip";
+            }
+
+            let spellList = level.split(",");
+            spellList.forEach(spellName => {
+                let attributeName;
+                if (spellsInLevel.includes("Cantrip")) {
+                    attributeName = "repeating_cantrip_" + generateRowID() + "_";
+                } else {
+                    attributeName = "repeating_normalspells_" + generateRowID() + "_";
+                }
+                setAttribute(characterId, attributeName + "toggles", "display,");
+                setAttribute(characterId, attributeName + "name", spellName);
+                setAttribute(characterId, attributeName + "spelllevel", spellLevel);
+                setAttribute(characterId, attributeName + "description", "Unable to populate due to Roll20 limitations");
+                try {
+                    setAttribute(characterId, attributeName + "spell_dc", spellDC);
+                    setAttribute(characterId, attributeName + "spellattack", attackBonus);
+                    setAttribute(characterId, attributeName + "spellattack_final", attackBonus);
+                } catch (e) {
+                    debugLog("No Spell DC/Attack Bonus");
+                }
+            });
+        });
     }
 
     let parseSpecialAbility = function (characterId, ability) {
