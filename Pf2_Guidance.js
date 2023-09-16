@@ -156,7 +156,7 @@ var Guidance = Guidance || (function () {
                     max: newValue,
                     _characterid: characterId
                 });
-                //    debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
+                debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
             } else {
                 if (typeof operator !== "undefined" && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
                     newValue = parseFloat(foundAttribute.get("current")) + parseFloat(mod_newValue[operator](newValue));
@@ -164,7 +164,7 @@ var Guidance = Guidance || (function () {
 
                 foundAttribute.set("current", newValue);
                 foundAttribute.set("max", newValue);
-                //     debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
+                debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
             }
         } catch (err) {
             debugLog(err);
@@ -532,55 +532,83 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, attributeName + "npc_description", theRest);
         setAttribute(characterId, attributeName + "description", theRest);
         setAttribute(characterId, attributeName + "toggles", "display,");
+
+        let toggles = getAttribute(characterId, "toggles");
+        if (toggles == undefined) {
+            setAttribute(characterId, "toggles", toggles + "color:default,focus,cantrips,normalspells,npcspellcasters");
+        } else {
+            let t = toggles.get("current");
+            if (!t.includes("npcspellcasters")) {
+                setAttribute(characterId, "toggles", t + ",npcspellcasters");
+            }
+        }
+
         let spellDC = "";
         let attackBonus = "";
 
         if (matchSpellDC.test(theRest)) {
             spellDC = theRest.match(matchSpellDC)[0];
+            setAttribute(characterId, "npc_spell_dc", spellDC);
         }
         if (matchAttack.test(theRest)) {
             attackBonus = theRest.match(matchAttack)[0];
+            setAttribute(characterId, "npc_spell_attack", attackBonus);
         }
 
         const argArray = ["10th", "9th", "8th", "7th", "6th", "5th", "4th", "3rd", "2nd", "1st", "Cantrips"];
 
         argArray.forEach(spellsInLevel => {
-            let re = new RegExp(`(?<=${spellsInLevel}\\s).*?(?=;\\s*([0-9]|Cantrips|$))`, 'gm');
-            let level = ability.match(re)[0];
+            let re = new RegExp(`(?<=${spellsInLevel}).*?(?=(;|$))`)
+            let levelArray = ability.match(re) || [];
 
-            let slots, spellLevel;
-            try {
-                spellLevel = level.match(/(^\d+)/)[0];
+            if (levelArray.length > 0) {
+                let level = levelArray[0];
+                let slots, spellLevel;
+                if (!spellsInLevel.includes("Cantrip")) {
+                    spellLevel = spellsInLevel.match(/(^\d+)/)[0];
 
-                if (/\(\d+\sslots\)/.test(level)) {
-                    slots = level.match(/(?<=\()\d+?(?=\sslots\))/)[0];
-                    level = level.replace(/\(\d+\sslots\)/, "");
-                }
-                setAttribute(characterId, "level_" + spellLevel + "_per_day", slots);
-            } catch (e) {
-                spellLevel = "Cantrip";
-            }
-
-            let spellList = level.split(",");
-            spellList.forEach(spellName => {
-                let attributeName;
-                if (spellsInLevel.includes("Cantrip")) {
-                    attributeName = "repeating_cantrip_" + generateRowID() + "_";
+                    if (/\(\d+\sslots\)/.test(level)) {
+                        slots = level.match(/(?<=\()\d+?(?=\sslots\))/)[0];
+                        level = level.replace(/\(\d+\sslots\)/, "");
+                    }
+                    setAttribute(characterId, "level_" + spellLevel.trim() + "_per_day", slots);
                 } else {
-                    attributeName = "repeating_normalspells_" + generateRowID() + "_";
+                    spellLevel = "Cantrip";
                 }
-                setAttribute(characterId, attributeName + "toggles", "display,");
-                setAttribute(characterId, attributeName + "name", spellName);
-                setAttribute(characterId, attributeName + "spelllevel", spellLevel);
-                setAttribute(characterId, attributeName + "description", "Unable to populate due to Roll20 limitations");
-                try {
-                    setAttribute(characterId, attributeName + "spell_dc", spellDC);
-                    setAttribute(characterId, attributeName + "spellattack", attackBonus);
-                    setAttribute(characterId, attributeName + "spellattack_final", attackBonus);
-                } catch (e) {
-                    debugLog("No Spell DC/Attack Bonus");
+
+                let spellList = level.split(",");
+                for (let i = 0; i < spellList.length; i++) {
+                    if (spellList[i].includes(")") && !spellList[i].includes("(")) {
+                        spellList[i - 1] = spellList[i - 1] + ", " + spellList[i];
+                        spellList[i] = "";
+                    }
                 }
-            });
+
+                spellList = spellList.filter(n => n);
+
+                spellList.forEach(spellName => {
+                    let attributeName;
+                    if (spellLevel.includes("Cantrip")) {
+                        attributeName = "repeating_cantrip_" + generateRowID() + "_";
+                    } else {
+                        attributeName = "repeating_normalspells_" + generateRowID() + "_";
+                        setAttribute(characterId, attributeName + "spelllevel", spellLevel);
+                        setAttribute(characterId, attributeName + "current_level", spellLevel);
+                    }
+                    setAttribute(characterId, attributeName + "toggles", "display,");
+                    setAttribute(characterId, attributeName + "name", spellName.trim());
+                    setAttribute(characterId, attributeName + "description", "Unable to populate due to Roll20 limitations");
+                    setAttribute(characterId, attributeName + "cast_actions", "other");
+
+                    try {
+                        setAttribute(characterId, attributeName + "spell_dc", spellDC);
+                        setAttribute(characterId, attributeName + "spellattack", attackBonus);
+                        setAttribute(characterId, attributeName + "spellattack_final", attackBonus);
+                    } catch (e) {
+                        debugLog("No Spell DC/Attack Bonus");
+                    }
+                });
+            }
         });
     }
 
