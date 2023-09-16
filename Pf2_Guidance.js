@@ -16,16 +16,24 @@ var Guidance = Guidance || (function () {
     const commandPopulate = prefix + "npc";
 
     //<editor-fold desc="Support Methods">
-    let firstMatch = function (source, regex, ignoreEmpty) {
-        let match = source.match(regex);
-        if (match == null || match.length === 0 || match[0] == null || !Array.isArray(match)) {
-            debugLog("firstItem: Not a valid array of strings");
+    let getFirstMatchingElement = function (source, regex, ignoreEmpty) {
+        let match = getMatchingArray(source, regex, ignoreEmpty);
+        if (match[0] == null) {
             if (ignoreEmpty == undefined) {
                 return "";
             }
             return source;
         }
         return match[0].trim();
+    }
+
+    let getMatchingArray = function (source, regex) {
+        let match = source.match(regex);
+        if (match == null || match.length === 0 || !Array.isArray(match)) {
+            debugLog("source=" + source + ", regex=" + regex + " didn't return an array");
+            return [];
+        }
+        return match;
     }
 
     let substringFrom = function (source, delimit) {
@@ -324,7 +332,7 @@ var Guidance = Guidance || (function () {
     });
 
     function populateStat(characterId, statBlock, regex, ...stats) {
-        let current = firstMatch(statBlock, regex);
+        let current = getFirstMatchingElement(statBlock, regex);
 
         if (current === "") {
             return statBlock;
@@ -366,7 +374,7 @@ var Guidance = Guidance || (function () {
             setAttribute(characterId, "npc_type", "Creature");
             setAttribute(characterId, "sheet_type", "npc");
 
-            let current = firstMatch(statBlock, /.*?(?=(Creature|Level).*\d+)/im);
+            let current = getFirstMatchingElement(statBlock, /.*?(?=(Creature|Level).*\d+)/im);
             characterSheet.set("name", toTitleCase(current));
             npcToken.set("name", toTitleCase(current));
             let npcName = toTitleCase(current);
@@ -397,40 +405,46 @@ var Guidance = Guidance || (function () {
                 statBlock = populateStat(characterId, statBlock, re, stat.toLowerCase() + "_modifier");
             });
 
-            removeLeadingDelimiters(statBlock);
-            let interactionAbilities = firstMatch(statBlock, /.*?(?=AC\s+\d+)/).trim();
-            interactionAbilities = interactionAbilities.replace(/Items.*?~/, "").trim();
+            let interactionAbilities =
+                getFirstMatchingElement(statBlock, /(?<=Cha\s.*?\d+).*?(?=(AC\s\d+;|Items))/).trim();
             interactionAbilities = removeLeadingDelimiters(interactionAbilities);
-            let interactionArray = interactionAbilities.replace(/\.\s*~/, ".~").split(".~");
-            if (interactionArray.length > 0) {
-                interactionArray = interactionArray.filter(item => item.trim() !== "");
-                interactionArray.forEach(item => {
-                    let words = item.split(' ');
-                    let itemName = words[0];
+            let interactionArray = interactionAbilities
+                .replace(/\.\s+~/, ".~")
+                .split(".~")
+                .map(function (item) {
+                    return item.trim();
+                })
+                .filter(n => n);
 
-                    for (let i = 0; i < words.length; i++) {
-                        if (words[i + 1][0] === words[i + 1][0].toUpperCase() && words[i + 1][0] !== '(') {
-                            itemName = itemName + " " + words[i];
-                        } else {
-                            break;
-                        }
+            interactionArray.forEach(item => {
+                let words = item.split(' ');
+                let itemName = words[0];
+
+                for (let i = 0; i < words.length; i++) {
+                    if (words[i + 1][0] === words[i + 1][0].toUpperCase() && words[i + 1][0] !== '(') {
+                        itemName = itemName + " " + words[i];
+                    } else {
+                        break;
                     }
-                    item = item.replace(itemName.trim(), "");
-                    item = item.replaceAll("~", "").trim();
-                    let repTraits = firstMatch(item, /^\s*\(.+?\)/);
-                    item = item.replace(repTraits, "").trim();
-                    let attributeName = "repeating_interaction-abilities_" + generateRowID() + "_";
-                    setAttribute(characterId, attributeName + "name", itemName);
-                    setAttribute(characterId, attributeName + "npc_description", item);
-                    setAttribute(characterId, attributeName + "description", item);
-                    setAttribute(characterId, attributeName + "rep_traits", repTraits);
-                    setAttribute(characterId, attributeName + "toggles", "display,");
-                });
-            }
+                }
 
-            let hasItems = firstMatch(statBlock, /.*?(?=AC\s+\d+)/).trim();
+                item = item.replace(itemName.trim(), "");
+                item = item.replaceAll("~", "").trim();
+                let repTraits = getFirstMatchingElement(item, /^\s*\(.+?\)/);
+
+                item = item.replace(repTraits, "").trim();
+                let attributeName = "repeating_interaction-abilities_" + generateRowID() + "_";
+                setAttribute(characterId, attributeName + "name", itemName);
+                setAttribute(characterId, attributeName + "npc_description", item);
+                setAttribute(characterId, attributeName + "description", item);
+                setAttribute(characterId, attributeName + "rep_traits", repTraits);
+                setAttribute(characterId, attributeName + "toggles", "display,");
+            });
+
+            debugLog("Items")
+            let hasItems = getFirstMatchingElement(statBlock, /.*?(?=AC\s+\d+)/).trim();
             if (hasItems.includes("Items")) {
-                let items = firstMatch(hasItems, /(?<=Items\s*).*?(?=~)/si, true).trim();
+                let items = getFirstMatchingElement(hasItems, /(?<=Items\s*).*?(?=~)/si, true).trim();
                 let itemsArray = items.split(",");
 
                 itemsArray.forEach(item => {
@@ -459,21 +473,21 @@ var Guidance = Guidance || (function () {
 
             statBlock = statBlock.replaceAll("~", "");
 
-            let meleeAttacks = statBlock.match(matchMelee) || [];
+            let meleeAttacks = getMatchingArray(statBlock, matchMelee);
             meleeAttacks.forEach(ability => parseAttackAbility(characterId, ability, "Melee"));
             statBlock = statBlock.replace(matchMelee, "");
 
-            let rangedAttacks = statBlock.match(matchRanged) || [];
+            let rangedAttacks = getMatchingArray(statBlock, matchRanged);
             rangedAttacks.forEach(ability => parseAttackAbility(characterId, ability, "Ranged"));
             statBlock = statBlock.replace(matchRanged, "");
 
-            let spells = statBlock.match(matchSpells) || [];
+            let spells = getMatchingArray(statBlock, matchSpells);
             spells.forEach(ability => parseSpells(characterId, ability));
             statBlock = statBlock.replace(matchSpells, "");
 
-            let theRest = statBlock.match(matchTheRest) || [];
+            let theRest = getMatchingArray(statBlock, matchTheRest);
             theRest.forEach(ability => {
-                let sneaky = ability.match(matchSneakyOnes) || [];
+                let sneaky = getMatchingArray(ability, matchSneakyOnes);
                 sneaky.forEach(miniAbility => parseSpecialAbility(characterId, miniAbility));
                 ability = ability.replace(matchSneakyOnes, "");
                 parseSpecialAbility(characterId, ability);
@@ -488,10 +502,11 @@ var Guidance = Guidance || (function () {
     }
 
     let parseAttackAbility = function (characterId, ability, attackType) {
-        const weaponName = ability.match(/\[\w+-\w+\]/)[0] + " " + ability.match(/(?<=(Melee|Ranged)\s\[.*\]\s).*?(?=\s(\+|\-))/)[0];
-        const attackBonusMatch = ability.match(/(\+|\-)(\d+)/)[0];
-        const traits = ability.match(/\((.+?)\)/)[1];
-        const damageMatch = ability.match(/(?<=Damage\s+)(\d+d\d+\+\d+\s+\w+(\s+plus\s+\w+.*)*)/)[0];
+        const weaponName = getFirstMatchingElement(ability, /\[\w+-\w+\]/) + " " +
+            getFirstMatchingElement(ability, /(?<=(Melee|Ranged)\s\[.*\]\s).*?(?=\s(\+|\-))/);
+        const attackBonusMatch = getFirstMatchingElement(ability, /(\+|\-)(\d+)/);
+        const traits = getMatchingArray(ability, /\((.+?)\)/)[1];
+        const damageMatch = getFirstMatchingElement(ability, /(?<=Damage\s+)(\d+d\d+\+\d+\s+\w+(\s+plus\s+\w+.*)*)/);
 
         const attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + generateRowID() + "_";
         if (traits.includes("agile")) {
@@ -524,8 +539,8 @@ var Guidance = Guidance || (function () {
 
     let parseSpells = function (characterId, ability) {
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
-        const spells = ability.match(/.*Spells/)[0].trim();
-        const theRest = ability.match(/(?<=Spells\s+).*/)[0].trim();
+        const spells = getFirstMatchingElement(ability, /.*Spells/);
+        const theRest = getFirstMatchingElement(ability, /(?<=Spells\s+).*/);
         const matchSpellDC = new RegExp(/(?<=DC\s)\d+/);
         const matchAttack = new RegExp(/(?<=,\sattack\s)(\+|\-)\d+?(?=;)/);
         setAttribute(characterId, attributeName + "name", spells);
@@ -547,11 +562,11 @@ var Guidance = Guidance || (function () {
         let attackBonus = "";
 
         if (matchSpellDC.test(theRest)) {
-            spellDC = theRest.match(matchSpellDC)[0];
+            spellDC = getFirstMatchingElement(theRest, matchSpellDC);
             setAttribute(characterId, "npc_spell_dc", spellDC);
         }
         if (matchAttack.test(theRest)) {
-            attackBonus = theRest.match(matchAttack)[0];
+            attackBonus = getFirstMatchingElement(theRest, matchAttack);
             setAttribute(characterId, "npc_spell_attack", attackBonus);
         }
 
@@ -559,16 +574,16 @@ var Guidance = Guidance || (function () {
 
         argArray.forEach(spellsInLevel => {
             let re = new RegExp(`(?<=${spellsInLevel}).*?(?=(;|$))`)
-            let levelArray = ability.match(re) || [];
+            let levelArray = getMatchingArray(ability, re);
 
             if (levelArray.length > 0) {
                 let level = levelArray[0];
                 let slots, spellLevel;
                 if (!spellsInLevel.includes("Cantrip")) {
-                    spellLevel = spellsInLevel.match(/(^\d+)/)[0];
+                    spellLevel = getFirstMatchingElement(spellsInLevel, /(^\d+)/);
 
                     if (/\(\d+\sslots\)/.test(level)) {
-                        slots = level.match(/(?<=\()\d+?(?=\sslots\))/)[0];
+                        slots = getFirstMatchingElement(level, /(?<=\()\d+?(?=\sslots\))/);
                         level = level.replace(/\(\d+\sslots\)/, "");
                     }
                     setAttribute(characterId, "level_" + spellLevel.trim() + "_per_day", slots);
@@ -614,10 +629,10 @@ var Guidance = Guidance || (function () {
 
     let parseSpecialAbility = function (characterId, ability) {
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
-        const name = ability.match(/.*(?=\[)/)[0].trim();
-        const actions = ability.match(/(?<=\[\s*).*(?=\])/)[0].trim();
-        const theRest = ability.match(/(?<=\)\s+).*/)[0].trim();
-        const traits = ability.match(/(?<=\(\s+).*?(?=\))/)[0].trim();
+        const name = getFirstMatchingElement(ability, /.*(?=\[)/);
+        const actions = getFirstMatchingElement(ability, /(?<=\[\s*).*(?=\])/);
+        const theRest = getFirstMatchingElement(ability, /(?<=\)\s+).*/);
+        const traits = getFirstMatchingElement(ability, /(?<=\(\s+).*?(?=\))/);
 
         setAttribute(characterId, attributeName + "toggles", "display,");
         setAttribute(characterId, attributeName + "name", name);
