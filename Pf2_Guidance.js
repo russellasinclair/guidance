@@ -36,12 +36,12 @@ var Guidance = Guidance || (function () {
         return match;
     }
 
-    let substringFrom = function (source, delimit) {
+    let getSubstringStartingFrom = function (source, delimit) {
         let index = source.toLowerCase().indexOf(delimit.toLowerCase());
         if (index === -1) {
             return "";
         }
-        return source.substr(index + delimit.length);
+        return source.substr(index + delimit.length).trim();
     }
 
     /// Class that represents a NPC/Starship that is being worked on.
@@ -212,16 +212,6 @@ var Guidance = Guidance || (function () {
             .replace(/&nbsp;|&amp;/gi, " ")
             .replace(/\s+/g, " ");
     };
-
-    // For Debugging purposes
-    let isNullOrUndefined = function (v) {
-        if (v == null) { // null or undefined
-            debugLog(v === null ? "null" : "undefined");
-            debugLog(new Error().stack);
-            return true;
-        }
-        return false;
-    };
     //</editor-fold>
 
     //<editor-fold desc="on(ready) event">
@@ -337,7 +327,7 @@ var Guidance = Guidance || (function () {
         if (current === "") {
             return statBlock;
         }
-        current = current.trim().replaceAll("~", "").trim();
+        current = current.replaceAll("~", "").trim();
 
         if (Array.isArray(stats)) {
             stats.forEach(stat => {
@@ -347,7 +337,7 @@ var Guidance = Guidance || (function () {
             setAttribute(characterId, stats, current);
         }
 
-        statBlock = substringFrom(statBlock, current).trim();
+        statBlock = getSubstringStartingFrom(statBlock, current);
         statBlock = removeLeadingDelimiters(statBlock);
         return statBlock;
     }
@@ -355,10 +345,10 @@ var Guidance = Guidance || (function () {
     function removeLeadingDelimiters(source) {
         source = source.trim();
         if (source.startsWith(";")) {
-            source = substringFrom(source, ";").trim();
+            source = getSubstringStartingFrom(source, ";");
         }
         if (source.startsWith("~")) {
-            source = substringFrom(source, "~").trim();
+            source = getSubstringStartingFrom(source, "~");
         }
         return source;
     }
@@ -402,7 +392,7 @@ var Guidance = Guidance || (function () {
             statBlock = populateStat(characterId, statBlock, /(?<=.*Perception).*?(?=;)/s, "npc_perception", "perception");
             statBlock = populateStat(characterId, statBlock, /.*?(?=~|Skills|Languages)/s, "senses");
             statBlock = populateStat(characterId, statBlock, /(?<=Languages).*?(?=Skills|~)/s, "languages");
-            statBlock = substringFrom(statBlock, "Skills");
+            statBlock = getSubstringStartingFrom(statBlock, "Skills");
 
             ["Acrobatics", "Arcana", "Athletics", "Crafting", "Deception", "Diplomacy", "Intimidation",
                 "Lore", "Medicine", "Nature", "Occultism", "Performance", "Religion", "Society", "Stealth", "Survival",
@@ -419,8 +409,7 @@ var Guidance = Guidance || (function () {
             });
 
             let interactionAbilities =
-                getFirstMatchingElement(statBlock, /(?<=Cha\s.*?\d+).*?(?=(AC\s\d+;|Items))/);
-            interactionAbilities = removeLeadingDelimiters(interactionAbilities);
+                removeLeadingDelimiters(getFirstMatchingElement(statBlock, /(?<=Cha\s.*?\d+).*?(?=(AC\s\d+;|Items))/));
 
             getMatchingArray(interactionAbilities, matchAbilities).forEach(item => {
                 parseInteractionAbility(item, characterId);
@@ -487,8 +476,8 @@ var Guidance = Guidance || (function () {
             getFirstMatchingElement(ability, /(?<=(Melee|Ranged)\s\[.*\]\s).*?(?=\s(\+|\-))/);
         const attackBonusMatch = getFirstMatchingElement(ability, /(\+|\-)(\d+)/);
         let traits = getFirstMatchingElement(ability, /(?<=\()(.+?)(?=\))/);
-        let damages = getMatchingArray(ability, /\d+d\d+(\+\d+)*/gm);
-        damages.forEach(n => ability = ability.replaceAll(n, "[[" + n + "]]"));
+        getMatchingArray(ability, /\d+d\d+(\+\d+)*/gm)
+            .forEach(n => ability = ability.replaceAll(n, "[[" + n + "]]"));
 
         const attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + generateRowID() + "_";
         if (traits.includes("agile")) {
@@ -520,8 +509,8 @@ var Guidance = Guidance || (function () {
         const matchAttack = new RegExp(/(?<=,\sattack\s)(\+|\-)\d+?(?=;)/);
         setAttribute(characterId, attributeName + "name", spells);
 
-        let damages = getMatchingArray(theRest, /\d+d\d+(\+\d+)*/gm);
-        damages.forEach(n => theRest = theRest.replaceAll(n, "[[" + n + "]]"));
+        getMatchingArray(theRest, /\d+d\d+(\+\d+)*/gm)
+            .forEach(n => theRest = theRest.replaceAll(n, "[[" + n + "]]"));
 
         setAttribute(characterId, attributeName + "npc_description", theRest);
         setAttribute(characterId, attributeName + "description", theRest);
@@ -549,9 +538,7 @@ var Guidance = Guidance || (function () {
             setAttribute(characterId, "npc_spell_attack", attackBonus);
         }
 
-        const argArray = ["10th", "9th", "8th", "7th", "6th", "5th", "4th", "3rd", "2nd", "1st", "Cantrips"];
-
-        argArray.forEach(spellsInLevel => {
+        ["10th", "9th", "8th", "7th", "6th", "5th", "4th", "3rd", "2nd", "1st", "Cantrips"].forEach(spellsInLevel => {
             let re = new RegExp(`(?<=${spellsInLevel}).*?(?=(;|$))`)
             let levelArray = getMatchingArray(ability, re);
 
@@ -614,8 +601,8 @@ var Guidance = Guidance || (function () {
         let theRest = getFirstMatchingElement(ability, /(?<=(\)|\])\s+).*/);
         const traits = getFirstMatchingElement(ability, /(?<=\(\s+).*?(?=\))/);
 
-        let damages = getMatchingArray(theRest, /\d+d\d+(\+\d+)*/gm);
-        damages.forEach(n => theRest = theRest.replaceAll(n, "[[" + n + "]]"));
+        getMatchingArray(theRest, /\d+d\d+(\+\d+)*/gm)
+            .forEach(n => theRest = theRest.replaceAll(n, "[[" + n + "]]"));
 
         setAttribute(characterId, attributeName + "toggles", "display,");
         setAttribute(characterId, attributeName + "name", name);
