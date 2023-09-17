@@ -353,19 +353,49 @@ var Guidance = Guidance || (function () {
         return source;
     }
 
-    function parseInteractionAbility(item, characterId) {
-        let itemName = getFirstMatchingElement(item, /([A-Z][a-z]*\s)+(?=(\(|\[))/).trim();
-        item = item.replace(itemName, "");
-        item = item.replaceAll("~", "");
-        let repTraits = getFirstMatchingElement(item, /^\s*\(.+?\)/);
-        item = item.replace(repTraits, "");
-        let attributeName = "repeating_interaction-abilities_" + generateRowID() + "_";
-        setAttribute(characterId, attributeName + "name", itemName);
-        setAttribute(characterId, attributeName + "npc_description", item);
-        setAttribute(characterId, attributeName + "description", item);
-        setAttribute(characterId, attributeName + "rep_traits", repTraits);
-        setAttribute(characterId, attributeName + "toggles", "display,");
+    //<editor-fold desc="configureToken - link the token stats to the NPC sheet and show the name">
+    let configureToken = function (selectedNPC) {
+        try {
+            let characterId = selectedNPC.characterId;
+            let npcToken = selectedNPC.npcToken;
+            let characterSheet = selectedNPC.characterSheet;
+            let hitPoints = getAttribute(characterId, "hit_points");
+            let armorClass = getAttribute(characterId, "armor_class");
+
+            debugLog("Configuring token for " + characterId + " - " + characterSheet.get("name"));
+            npcToken.set("showname", true);
+            npcToken.set("bar3_value", "AC " + armorClass.get("current"));
+            npcToken.set("bar3_max", "-0");
+            npcToken.set("bar1_link", hitPoints.id);
+        } catch (err) {
+            speakAsGuidanceToGM("Token Configuration Error - Check to make sure the tokens are linked to the selected NPCs.");
+            debugLog(err);
+            debugLog(new Error().stack);
+        }
+    };
+    //</editor-fold>
+
+    //<editor-fold desc="eraseCharacter - Remove all Attributes and Macros from the NPC sheet">
+    let eraseCharacter = function (c) {
+        for (const attribute of findObjs({_characterid: c.characterId, _type: "attribute"})) {
+            debugLog("Removing " + attribute.get("name"));
+            attribute.remove();
+        }
+        for (const ability of findObjs({_characterid: c.characterId, _type: "ability"})) {
+            debugLog("Removing " + ability.get("name"));
+            ability.remove();
+        }
+        for (let i = 1; i < 4; i++) {
+            c.npcToken.set("bar" + i + "_value", "");
+            c.npcToken.set("bar" + i + "_max", "");
+        }
+
+        speakAsGuidanceToGM("Removed all properties for " + c.characterSheet.get("name"));
+        c.characterSheet.set("name", "Erased Character");
     }
+    //</editor-fold>
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     let populateCharacterSheet = function (gmNotes, selectedNPC) {
         try {
@@ -373,7 +403,7 @@ var Guidance = Guidance || (function () {
             const npcToken = selectedNPC.npcToken;
             const characterSheet = selectedNPC.characterSheet;
             let statBlock = cleanText(gmNotes).replaceAll("Damage", "damage");
-            const parseAbilityRegex = /((([A-Z][a-z]+\s(\w+\s)*)+(\[|Spells))|(\.\s*~\s*([A-Z][a-z]+\s)+)|Melee|Ranged).*?(?=((([A-Z][a-z]+\s(\w+\s)*)+(\[|Spells))|(\.\s*~\s*([A-Z][a-z]+\s)+))|$|Melee|Ranged)/gm;
+            const parseAbilityRegex = /((([A-Z][a-z]+\s(\w+\s)*)+(\[|Spells))|(\.\s*~\s*([A-Z][a-z]+\s)+)|Melee|Ranged|(([A-Z][a-z]+\s)+\()).*?(?=((([A-Z][a-z]+\s(\w+\s)*)+(\[|Spells))|(\.\s*~\s*([A-Z][a-z]+\s)+))|$|Melee|Ranged|(([A-Z][a-z]+\s)+\())/;
             const matchAbilities = new RegExp(parseAbilityRegex, "gm");
 
             npcToken.set("gmnotes", statBlock);
@@ -443,14 +473,18 @@ var Guidance = Guidance || (function () {
             populateStat(characterId, statBlock, /(?<=Weaknesses).*?(?=[~;])/, "weaknesses");
             populateStat(characterId, statBlock, /(?<=Resistances).*?(?=[~;])/, "resistances");
 
-            getMatchingArray(statBlock, /((([A-Z][a-z]+\s(\w+\s)*)+(\[))).*?(?=\s*\~\sSpeed)/).forEach(item => {
+            getMatchingArray(statBlock, /((([A-Z][a-z]+\s(\w+\s)*)+(\[))).*?(?=\s*\~\sSpeed)/gm).forEach(item => {
                 parseInteractionAbility(item, characterId);
             });
 
             statBlock = populateStat(characterId, statBlock, /(?<=Speed).*?(?=~)/, "speed", "speed_base", "speed_notes");
             statBlock = statBlock.replaceAll("~", "");
 
+            statBlock = statBlock.replace(/and/i, "and")
+                .replace(/grab/i, "grab");
             getMatchingArray(statBlock, matchAbilities).forEach(a => {
+                getMatchingArray(a, /[^\[]\d+d\d+(\+\d+)*/gm)
+                    .forEach(n => a = a.replaceAll(n, " [[" + n.trim() + "]]"));
                 if (a.startsWith("Melee")) {
                     parseAttackAbility(characterId, a, "Melee");
                 } else if (a.startsWith("Ranged")) {
@@ -470,14 +504,29 @@ var Guidance = Guidance || (function () {
         }
     }
 
+    let parseInteractionAbility = function (item, characterId) {
+        let itemName = getFirstMatchingElement(item, /([A-Z][a-z]*\s)+(?=(\(|\[))/).trim();
+        item = item.replace(itemName, "");
+        item = item.replaceAll("~", "");
+        let repTraits = getFirstMatchingElement(item, /^\s*\(.+?\)/);
+        item = item.replace(repTraits, "");
+        let attributeName = "repeating_interaction-abilities_" + generateRowID() + "_";
+        getMatchingArray(item, /[^\[]\d+d\d+(\+\d+)*/gm)
+            .forEach(n => item = item.replaceAll(n, " [[" + n.trim() + "]]"));
+        setAttribute(characterId, attributeName + "name", itemName);
+        setAttribute(characterId, attributeName + "npc_description", item);
+        setAttribute(characterId, attributeName + "description", item);
+        setAttribute(characterId, attributeName + "rep_traits", repTraits);
+        setAttribute(characterId, attributeName + "toggles", "display,");
+    }
+
     let parseAttackAbility = function (characterId, ability, attackType) {
         debugLog("Parsing = " + ability);
         const weaponName = getFirstMatchingElement(ability, /\[\w+-\w+\]/) + " " +
             getFirstMatchingElement(ability, /(?<=(Melee|Ranged)\s\[.*\]\s).*?(?=\s(\+|\-))/);
         const attackBonusMatch = getFirstMatchingElement(ability, /(\+|\-)(\d+)/);
         let traits = getFirstMatchingElement(ability, /(?<=\()(.+?)(?=\))/);
-        getMatchingArray(ability, /\d+d\d+(\+\d+)*/gm)
-            .forEach(n => ability = ability.replaceAll(n, "[[" + n + "]]"));
+        let effect = getFirstMatchingElement(ability, /Effect.*/);
 
         const attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + generateRowID() + "_";
         if (traits.includes("agile")) {
@@ -489,6 +538,7 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, attributeName + "weapon_strike", attackBonusMatch.replace("+", ""));
         setAttribute(characterId, attributeName + "weapon_map2", "@{strikes_map2}");
         setAttribute(characterId, attributeName + "weapon_map3", "@{strikes_map3}");
+        setAttribute(characterId, attributeName + "npc_weapon_notes", effect);
 
         let damage = getFirstMatchingElement(ability, /(?<=damage\s)\[+\d+d\d+(\+\d+)*?\]+/);
         let damageType = getFirstMatchingElement(ability, /(?<=damage\s\[+\d+d\d+(\+\d+)*?\]+\s)\w+/);
@@ -508,23 +558,16 @@ var Guidance = Guidance || (function () {
         const matchSpellDC = new RegExp(/(?<=DC\s)\d+/);
         const matchAttack = new RegExp(/(?<=,\sattack\s)(\+|\-)\d+?(?=;)/);
         setAttribute(characterId, attributeName + "name", spells);
-
-        getMatchingArray(theRest, /\d+d\d+(\+\d+)*/gm)
-            .forEach(n => theRest = theRest.replaceAll(n, "[[" + n + "]]"));
-
         setAttribute(characterId, attributeName + "npc_description", theRest);
         setAttribute(characterId, attributeName + "description", theRest);
         setAttribute(characterId, attributeName + "toggles", "display,");
 
-        let toggles = getAttribute(characterId, "toggles");
-        if (toggles == undefined) {
-            setAttribute(characterId, "toggles", toggles + "color:default,focus,cantrips,normalspells,npcspellcasters");
-        } else {
-            let t = toggles.get("current");
-            if (!t.includes("npcspellcasters")) {
-                setAttribute(characterId, "toggles", t + ",npcspellcasters");
-            }
+        let toggles = "color:default.normalspells";
+        if (ability.includes("Cantrip")) {
+            toggles = toggles + ",cantrips"
         }
+        toggles = toggles + ",npcspellcasters";
+        setAttribute(characterId, "toggles", toggles);
 
         let spellDC = "";
         let attackBonus = "";
@@ -596,13 +639,10 @@ var Guidance = Guidance || (function () {
     let parseSpecialAbility = function (characterId, ability) {
         debugLog("Parsing = " + ability);
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
-        const name = getFirstMatchingElement(ability, /.*(?=\[)/);
-        const actions = getFirstMatchingElement(ability, /(?<=\[\s*).*(?=\])/);
+        const name = getFirstMatchingElement(ability, /.*?(?=\[)/);
+        const actions = getFirstMatchingElement(ability, /(?<=\[\s*).*?(?=\])/);
         let theRest = getFirstMatchingElement(ability, /(?<=(\)|\])\s+).*/);
         const traits = getFirstMatchingElement(ability, /(?<=\(\s+).*?(?=\))/);
-
-        getMatchingArray(theRest, /\d+d\d+(\+\d+)*/gm)
-            .forEach(n => theRest = theRest.replaceAll(n, "[[" + n + "]]"));
 
         setAttribute(characterId, attributeName + "toggles", "display,");
         setAttribute(characterId, attributeName + "name", name);
@@ -611,47 +651,5 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, attributeName + "description", theRest);
         setAttribute(characterId, attributeName + "rep_traits", traits);
     }
-
-    //<editor-fold desc="configureToken - link the token stats to the NPC sheet and show the name">
-    let configureToken = function (selectedNPC) {
-        try {
-            let characterId = selectedNPC.characterId;
-            let npcToken = selectedNPC.npcToken;
-            let characterSheet = selectedNPC.characterSheet;
-            let hitPoints = getAttribute(characterId, "hit_points");
-            let armorClass = getAttribute(characterId, "armor_class");
-
-            debugLog("Configuring token for " + characterId + " - " + characterSheet.get("name"));
-            npcToken.set("showname", true);
-            npcToken.set("bar3_value", "AC " + armorClass.get("current"));
-            npcToken.set("bar3_max", "-0");
-            npcToken.set("bar1_link", hitPoints.id);
-        } catch (err) {
-            speakAsGuidanceToGM("Token Configuration Error - Check to make sure the tokens are linked to the selected NPCs.");
-            debugLog(err);
-            debugLog(new Error().stack);
-        }
-    };
-    //</editor-fold>
-
-    //<editor-fold desc="eraseCharacter - Remove all Attributes and Macros from the NPC sheet">
-    let eraseCharacter = function (c) {
-        for (const attribute of findObjs({_characterid: c.characterId, _type: "attribute"})) {
-            debugLog("Removing " + attribute.get("name"));
-            attribute.remove();
-        }
-        for (const ability of findObjs({_characterid: c.characterId, _type: "ability"})) {
-            debugLog("Removing " + ability.get("name"));
-            ability.remove();
-        }
-        for (let i = 1; i < 4; i++) {
-            c.npcToken.set("bar" + i + "_value", "");
-            c.npcToken.set("bar" + i + "_max", "");
-        }
-
-        speakAsGuidanceToGM("Removed all properties for " + c.characterSheet.get("name"));
-        c.characterSheet.set("name", "Erased Character");
-    }
-    //</editor-fold>
 }
 ());
