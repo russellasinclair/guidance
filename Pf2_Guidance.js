@@ -1,4 +1,4 @@
-var Guidance = Guidance || (function () {
+var Guidance = Guidance || function () {
     "use strict";
 
     const guidanceWelcome = "";
@@ -438,7 +438,7 @@ var Guidance = Guidance || (function () {
 
             let senseAbilities = getFirstMatchingElement(statBlock, /^.*?(?=(AC\s|Items))/)
                 .replaceAll("~", "").trim();
-            let newRegex = new RegExp(/(((([A-Z][a-z]+\s)+[\[\(])|([A-Z][a-z]+\s){2,})).*?(?=\.\s(([A-Z][a-z]+\s)+[\[\(])|$|([A-Z][a-z]+\s){3,})/, "gm");
+            let newRegex = new RegExp(/((([A-Z][a-z]+\s)+[\[\(])|([A-Z][a-z]+\s){2,}).*?(?=\.\s(([A-Z][a-z]+\s)+[\[\(])|$|([A-Z][a-z]+\s){3,})/, "gm");
             abilityHandler(characterId, senseAbilities, newRegex, parseInteractionAbility);
 
             let hasItems = getFirstMatchingElement(statBlock, /.*?(?=AC\s+\d+)/).trim();
@@ -470,8 +470,8 @@ var Guidance = Guidance || (function () {
             populateStat(characterId, statBlock, /(?<=Resistances).*?(?=[~;])/, "resistances");
 
             // Defensive Abilities
-            let defenseAbilities = getFirstMatchingElement(statBlock, /(?<=HP\s\d+[\s\;]).*?(?=Speed)/);
-            newRegex = new RegExp(/(((([A-Z][a-z]+\s)+(\[|\())|([A-Z][a-z]+\s){2,})).*?(?=\.\s(([A-Z][a-z]+\s)+(\[|())|$|([A-Z][a-z]+\s){3,}))/, "gm");
+            let defenseAbilities = getFirstMatchingElement(statBlock, /(?<=HP\s\d+[\s;]).*?(?=Speed)/);
+            newRegex = new RegExp(/((([A-Z][a-z]+\s)+([\[(]))|([A-Z][a-z]+\s){2,}).*?(?=\.\s(([A-Z][a-z]+\s)+([\[(]))|$|([A-Z][a-z]+\s){3,})/, "gm");
             abilityHandler(characterId, defenseAbilities, newRegex, parseAutomaticAbility);
 
             statBlock = populateStat(characterId, statBlock, /(?<=Speed).*?(?=~)/, "speed", "speed_base", "speed_notes");
@@ -598,7 +598,7 @@ var Guidance = Guidance || (function () {
         const spells = getFirstMatchingElement(ability, /.*Spells/);
         let theRest = getFirstMatchingElement(ability, /(?<=Spells\s+).*/);
         const matchSpellDC = new RegExp(/(?<=DC\s)\d+/);
-        const matchAttack = new RegExp(/(?<=,\sattack\s)(\+|\-)\d+?(?=;)/);
+        const matchAttack = new RegExp(/(?<=,\sattack\s)([+\-])\d+?(?=;)/);
         setAttribute(characterId, attributeName + "name", spells);
         setAttribute(characterId, attributeName + "npc_description", theRest);
         setAttribute(characterId, attributeName + "description", theRest);
@@ -681,9 +681,9 @@ var Guidance = Guidance || (function () {
     let parseSpecialAbility = function (characterId, ability) {
         debugLog("Parsing = " + ability);
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
-        const name = getFirstMatchingElement(ability, /.*?(?=(\[|\())/);
+        const name = getFirstMatchingElement(ability, /.*?(?=([\[(]))/);
         const actions = getFirstMatchingElement(ability, /(?<=\[\s*).*?(?=\])/);
-        let theRest = getFirstMatchingElement(ability, /(?<=(\)|\])\s+).*/);
+        let theRest = getFirstMatchingElement(ability, /(?<=([)\]])\s+).*/);
         const traits = getFirstMatchingElement(ability, /(?<=\(\s+).*?(?=\))/);
 
         setAttribute(characterId, attributeName + "toggles", "display,");
@@ -694,4 +694,4 @@ var Guidance = Guidance || (function () {
         setAttribute(characterId, attributeName + "rep_traits", traits);
     }
 }
-());
+();
