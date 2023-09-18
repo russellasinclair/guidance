@@ -445,7 +445,7 @@ var Guidance = Guidance || function () {
 
             let hasItems = getFirstMatchingElement(statBlock, /.*?(?=AC\s+\d+)/).trim();
             if (hasItems.includes("Items")) {
-                let items = getFirstMatchingElement(hasItems, /(?<=Items\s*).*?(?=(AC|~|$))/si, true).trim();
+                let items = getFirstMatchingElement(hasItems, /(?<=Items\W*).*?(?=(AC|~|$))/s, true).trim();
                 let itemsArray = items.split(",");
 
                 itemsArray.forEach(item => {
@@ -472,8 +472,8 @@ var Guidance = Guidance || function () {
             populateStat(characterId, statBlock, /(?<=Resistances).*?(?=[~;])/, "resistances");
 
             // Defensive Abilities
-            let defenseAbilities = getFirstMatchingElement(statBlock, /(?<=HP\s\d+[\s;]).*?(?=Speed)/);
-            newRegex = new RegExp(/((([A-Z][a-z]+\s)+([\[(]))|([A-Z][a-z]+\s){2,}).*?(?=\.\s(([A-Z][a-z]+\s)+([\[(]))|$|([A-Z][a-z]+\s){2,})/, "gm");
+            let defenseAbilities = getFirstMatchingElement(statBlock, /(?<=HP\s\d+).*?(?=Speed)/);
+            newRegex = new RegExp(/((([A-Z][a-z]+\W)+([\[(]))|([A-Z][a-z]+\W){2,}).*?(?=\.\s(([A-Z][a-z]+\W)+([\[(]))|$|([A-Z][a-z]+\W){2,})/, "gm");
             defenseAbilities = massageTheDataForAbilityParsing(defenseAbilities);
             abilityHandler(characterId, defenseAbilities, newRegex, parseAutomaticAbility);
 
@@ -484,13 +484,13 @@ var Guidance = Guidance || function () {
             getMatchingArray(statBlock, /[^\[]\d+d\d+(\+\d+)*/gm)
                 .forEach(n => statBlock = statBlock.replaceAll(n, " [[" + n.trim() + "]]"));
 
-            newRegex = new RegExp(/Melee.*?(?=((([A-Z][a-z]+\s(\w+\s)*)+(\[|Spells))|(\.\s*~\s*([A-Z][a-z]+\s)+))|$|Melee|Ranged|(([A-Z][a-z]+\s)+\())/, "gm");
+            newRegex = new RegExp(/Melee.*?(?=((([A-Z][a-z]+\W(\w+\W)*)+(\[|Spells))|(\.\W*([A-Z][a-z]+\s)+))|$|Melee|Ranged|(([A-Z][a-z]+\W)+\())/, "gm");
             statBlock = abilityHandler(characterId, statBlock, newRegex, parseAttackAbility);
 
             newRegex = new RegExp(/Ranged.*?(?=((([A-Z][a-z]+\s(\w+\s)*)+(\[|Spells))|(\.\s*~\s*([A-Z][a-z]+\s)+))|$|Ranged|(([A-Z][a-z]+\s)+\())/, "gm");
             statBlock = abilityHandler(characterId, statBlock, newRegex, parseAttackAbility);
 
-            newRegex = new RegExp(/(([A-Z][a-z]+\s(\w+\s)*)+(Spells)).*?(?=((([A-Z][a-z]+\s(\w+\s)*)+(\[|Spells))|(\.\s*~\s*([A-Z][a-z]+\s)+))|$|(([A-Z][a-z]+\s)+\())/, "gm");
+            newRegex = new RegExp(/(([A-Z][a-z]+\s(\w+\s)*)+(Spells)).*?(?=$|([A-Z][a-z]+\s)+)/, "gm");
             statBlock = abilityHandler(characterId, statBlock, newRegex, parseSpells);
 
             newRegex = new RegExp(/(([A-Z][a-z]+\s){2,}|(([A-Z][a-z]+\s+)+[\[(])).*?[\.\)]\s*(?=(([A-Z][a-z]+\s){2,})|(([A-Z][a-z]+\s+)+[\[(])|$)/, "gm");
@@ -511,7 +511,8 @@ var Guidance = Guidance || function () {
             .replaceAll("Grab", "grab")
             .replaceAll("Hit Points", "hit points")
             .replaceAll("Saving Throw", "saving throw")
-            .replace(/[A-Z][a-z]*\s(of|to)\s[A-Z][a-z]/, function (match) {
+            .replaceAll("Cantrip", "cantrip")
+            .replace(/[A-Z][a-z]+\W(of|to)\W[A-Z][a-z]+/, function (match) {
                 return toTitleCase(match);
             })
             .replaceAll("Effect", "effect")
@@ -615,6 +616,7 @@ var Guidance = Guidance || function () {
         setAttribute(characterId, attributeName + "weapon_map2", "@{strikes_map2}");
         setAttribute(characterId, attributeName + "weapon_map3", "@{strikes_map3}");
         setAttribute(characterId, attributeName + "npc_weapon_notes", effect);
+        setAttribute(characterId, attributeName + "weapon_notes", effect);
 
         let damage = getFirstMatchingElement(ability, /(?<=damage\s)\[+\d+d\d+(\+\d+)*?\]+/);
         let damageType = getFirstMatchingElement(ability, /(?<=damage\s\[+\d+d\d+(\+\d+)*?\]+\s)\w+/);
@@ -639,7 +641,7 @@ var Guidance = Guidance || function () {
         setAttribute(characterId, attributeName + "toggles", "display,");
 
         let toggles = "color:default.normalspells";
-        if (ability.includes("Cantrip")) {
+        if (ability.includes("cantrip")) {
             toggles = toggles + ",cantrips"
         }
         toggles = toggles + ",npcspellcasters";
@@ -657,14 +659,14 @@ var Guidance = Guidance || function () {
             setAttribute(characterId, "npc_spell_attack", attackBonus);
         }
 
-        ["10th", "9th", "8th", "7th", "6th", "5th", "4th", "3rd", "2nd", "1st", "Cantrips"].forEach(spellsInLevel => {
+        ["10th", "9th", "8th", "7th", "6th", "5th", "4th", "3rd", "2nd", "1st", "cantrips"].forEach(spellsInLevel => {
             let re = new RegExp(`(?<=${spellsInLevel}).*?(?=(;|$))`)
             let levelArray = getMatchingArray(ability, re);
 
             if (levelArray.length > 0) {
                 let level = levelArray[0];
                 let slots, spellLevel;
-                if (!spellsInLevel.includes("Cantrip")) {
+                if (!spellsInLevel.includes("cantrip")) {
                     spellLevel = getFirstMatchingElement(spellsInLevel, /(^\d+)/);
 
                     if (/\(\d+\sslots\)/.test(level)) {
@@ -674,6 +676,8 @@ var Guidance = Guidance || function () {
                     setAttribute(characterId, "level_" + spellLevel.trim() + "_per_day", slots);
                 } else {
                     spellLevel = "Cantrip";
+                    let cantripLevel = getFirstMatchingElement(spellsInLevel, /(?<=cantrips\W\()\d+?(?=.*\))/, "gm");
+                    setAttribute(characterId, "cantrips_per_day", cantripLevel);
                 }
 
                 let spellList = level.split(",");
@@ -688,7 +692,7 @@ var Guidance = Guidance || function () {
 
                 spellList.forEach(spellName => {
                     let attributeName;
-                    if (spellLevel.includes("Cantrip")) {
+                    if (spellLevel.includes("cantrip")) {
                         attributeName = "repeating_cantrip_" + generateRowID() + "_";
                     } else {
                         attributeName = "repeating_normalspells_" + generateRowID() + "_";
@@ -715,13 +719,23 @@ var Guidance = Guidance || function () {
     let parseSpecialAbility = function (characterId, ability) {
         debugLog("parseSpecialAbility = " + ability);
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
-        let name = getFirstMatchingElement(ability, /.*?(?=([\[(]))/);
+        let name = getFirstMatchingElement(ability, /^.*(?=([A-Z][a-z]+\s)+[a-z])/);
+        let hasBrace = false;
+        if (name.includes("[") || name.includes("(")) {
+            name = getFirstMatchingElement(name, /^.*?(\[|\()/);
+            hasBrace = true;
+        }
+
         let actions = getFirstMatchingElement(ability, /(?<=\[\s*).*action?(?=\])/);
-        let theRest = getFirstMatchingElement(ability, /(?<=([)\]])\s+).*/);
-        let traits = getFirstMatchingElement(ability, /(?<=\(\s+).*?(?=\))/);
+        let theRest;
+        if (hasBrace) {
+            theRest = getFirstMatchingElement(ability, /(?<=([)\]])\s+).*/);
+        } else {
+            theRest = ability.replaceAll(name, "");
+        }
+        let traits = getFirstMatchingElement(ability, /(?<=\().*?(?=\))/);
         let trigger = getFirstMatchingElement(ability, /(?<=trigger\s).*?(?=(effect|$))/);
         if (theRest === "") {
-            name = getFirstMatchingElement(ability, /([A-Z][a-z]*\s)+?(?=[A-Z][a-z]*)/);
             theRest = ability.replaceAll(name, "");
         }
 
