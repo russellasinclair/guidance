@@ -1,0 +1,34 @@
+<p>Welcome to Guidance! This tool assists Pathfinder 2e GMs in Roll20. It has the ability to read a statblock from the
+    GMNotes section of a selected character and fill out the NPC section of the charactersheet. Statblocks from Archives
+    of Nethys and PDFs are supported.</p> <p>&nbsp;</p><h2>THE MAIN COMMANDS</h2> <p>&nbsp;</p> <p>
+    <em><strong>!pf_npc</strong></em></p> <p>This imports a statblock from the GM Notes section of a character sheet and
+    will out the NPC section of the Pathfinder character sheet. Furthermore, it configures the token's hit points and
+    give AC indicators.</p> <p><em>How to:</em></p>
+<ol>
+    <li>Select and copy a stat block and paste it into the "GM Notes" section of a Character sheet. (Don't worry about
+        removing any formatting)
+    </li>
+    <li>Click Save.</li>
+    <li>Select the token that you have<a href="https://wiki.roll20.net/Linking_Tokens_to_Journals"> linked to the
+        character sheet</a>.
+    </li>
+    <li>Type !pf_npc. The script attempts to use the statblock to fill out the NPC section of the Starfinder (Simple)
+        character sheet.
+    </li>
+</ol> <p>The script supports character statblocks from the <a href="https://2e.aonprd.com/">Archives of Nethys</a> and
+    <span style="font-style: italic;">Society PDFs. Double check the results after importing a statblock. From time to time, abilities of various types MAY include text from another ability. IF THIS HAPPENS, you can add the @ at the end of an ability that has text from the next ability included.</span>
+</p> <p>&nbsp;</p><p><em><strong>!pf_clean</strong></em></p> <p>I've included this for completeness, but be warned -
+    this command will <span style="text-decoration: underline;"><strong>PERMANENTLY ERASE</strong></span> things from
+    the character sheet so use with caution. As above, this command requires selecting a token that has been <a
+            href="https://wiki.roll20.net/Linking_Tokens_to_Journals">linked to the character sheet</a>.</p> <p><em>How
+    to:</em></p> <p style="padding-left: 40px;"><em><strong>!pf_clean CONFIRM</strong></em> - This will erase ALL stats
+    from the character sheet AND remove ALL formatting from the token. It will not touch the GM Notes section of the
+    character sheet so it can be reimported using !pf_npc.</p><p style="padding-left: 40px;"><strong><em>!pf_clean
+    ABILITIES</em></strong> - This will rease ALL macros from the character sheet.</p> <p>&nbsp;</p><h3>OTHER USEFUL
+    FEATURES</h3> <p><em><strong>!pf_addspell</strong></em></p> <p>This adds a spell to the NPC character sheet as a
+    macro. Similar to pf_ability, when you run the macro to call this, a box appears allowing you to paste the full text
+    of the spell. The script formats the spellblock. Afterwards, I recommend manually editing the macro in the
+    "description" tag to tailor the results of the macro for use in play.</p> <p>&nbsp;</p> <p>Find other details on the
+    wiki <a href="https://wiki.roll20.net/Script:Starfinder_-_Guidance_Tools_for_Starfinder_(Simple)_Character_sheet">HERE</a>.
+</p> <p>Feel free to reach out to me if you find any bug or have any suggestions <a
+        href="https://app.roll20.net/users/927625/kahn265">HERE</a>.</p>
