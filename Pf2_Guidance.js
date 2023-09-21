@@ -1,6 +1,6 @@
 var Guidance = Guidance || function () {
     "use strict";
-
+// Rarity - Common Rare Uncommon Unique
     const guidanceWelcome = "<p>Welcome to Guidance! This tool assists Pathfinder 2e GMs in Roll20. It has the ability to read a statblock from the GMNotes section of a selected character and fill out the NPC section of the charactersheet. Statblocks from Archives of Nethys and PDFs are supported.</p> <p>&nbsp;</p><h2>THE MAIN COMMANDS</h2> <p>&nbsp;</p> <p><em><strong>!pf_npc</strong></em></p> <p>This imports a statblock from the GM Notes section of a character sheet and will out the NPC section of the Pathfinder character sheet. Furthermore, it configures the token's hit points and give AC indicators.</p> <p><em>How to:</em></p><ol> <li>Select and copy a stat block and paste it into the \"GM Notes\" section of a Character sheet. (Don't worry about removing any formatting) </li> <li>Click Save.</li> <li>Select the token that you have<a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\"> linked to the character sheet</a>. </li> <li>Type !pf_npc. The script attempts to use the statblock to fill out the NPC section of the Starfinder (Simple) character sheet. </li></ol> <p>The script supports character statblocks from the <a href=\"https://2e.aonprd.com/\">Archives of Nethys</a> and <span style=\"font-style: italic;\">Society PDFs. Double check the results after importing a statblock. From time to time, abilities of various types MAY include text from another ability. IF THIS HAPPENS, you can add the @ at the end of an ability that has text from the next ability included.</span></p> <p>&nbsp;</p><p><em><strong>!pf_clean</strong></em></p> <p>I've included this for completeness, but be warned - this command will <span style=\"text-decoration: underline;\"><strong>PERMANENTLY ERASE</strong></span> things from the character sheet so use with caution. As above, this command requires selecting a token that has been <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked to the character sheet</a>.</p> <p><em>How to:</em></p> <p style=\"padding-left: 40px;\"><em><strong>!pf_clean CONFIRM</strong></em> - This will erase ALL stats from the character sheet AND remove ALL formatting from the token. It will not touch the GM Notes section of the character sheet so it can be reimported using !pf_npc.</p><p style=\"padding-left: 40px;\"><strong><em>!pf_clean ABILITIES</em></strong> - This will rease ALL macros from the character sheet.</p> <p>&nbsp;</p><h3>OTHER USEFUL FEATURES</h3> <p> <em><strong>!pf_addspell</strong></em></p> <p>This adds a spell to the NPC character sheet as a macro. Similar to pf_ability, when you run the macro to call this, a box appears allowing you to paste the full text of the spell. The script formats the spellblock. Afterwards, I recommend manually editing the macro in the \"description\" tag to tailor the results of the macro for use in play.</p> <p>&nbsp;</p> <p>Find other details on the wiki <a href=\"https://wiki.roll20.net/Script:Starfinder_-_Guidance_Tools_for_Starfinder_(Simple)_Character_sheet\">HERE</a>.</p> <p>Feel free to reach out to me if you find any bug or have any suggestions <a href=\"https://app.roll20.net/users/927625/kahn265\">HERE</a>.</p>";
     const guidanceGreeting = "Greetings, I am Guidance. I am here to assist you working with your game. " +
         "To learn more, I created a welcome guide in the journal section.";
@@ -14,6 +14,7 @@ var Guidance = Guidance || function () {
     const commandToken = prefix + "token";
     const commandClean = prefix + "clean";
     const commandPopulate = prefix + "npc";
+    const allTraits = ["Aftermath", "All Ancestries", "Archetype", "Attack", "Aura", "Cantrip", "Charm", "Class", "Concentrate", "Consecration", "Contingency", "Curse", "Darkness", "Death", "Dedication", "Detection", "Deviant", "Disease", "Downtime", "Emotion", "Experiment", "Exploration", "Extradimensional", "Fear", "Flourish", "Focus", "Fortune", "General", "Healing", "Incapacitation", "Incarnate", "Legacy", "Light", "Lineage", "Linguistic", "Magical", "Manipulate", "Mental", "Metamagic", "Mindshift", "Minion", "Misfortune", "Morph", "Move", "Multiclass", "Open", "Polymorph", "Possession", "Prediction", "Press", "Radiation", "Reckless", "Revelation", "Scrying", "Secret", "Skill", "Sleep", "Spellshape", "Splash", "Summoned", "Tech", "Telepathy", "Teleportation", "Varies", "Virulent", "Vocal", "Chaotic", "Evil", "Good", "Lawful", "Aasimar", "Anadi", "Android", "Aphorite", "Ardande", "Automaton", "Azarketi", "Beastkin", "Catfolk", "Changeling", "Conrasu", "Dhampir", "Duskwalker", "Dwarf", "Elf", "Fetchling", "Fleshwarp", "Ganzi", "Geniekin", "Ghoran", "Gnoll", "Gnome", "Goblin", "Goloma", "Grippli", "Half-Elf", "Halfling", "Half-Orc", "Hobgoblin", "Human", "Ifrit", "Kashrishi", "Kitsune", "Kobold", "Leshy", "Lizardfolk", "Nagaji", "Orc", "Oread", "Poppet", "Ratfolk", "Reflection", "Shisk", "Shoony", "Skeleton", "Sprite", "Strix", "Suli", "Sylph", "Talos", "Tengu", "Tiefling", "Undine", "Vanara", "Vishkanya", "Adjusted", "Aquadynamic", "Bulwark", "Comfort", "Flexible", "Hindering", "Inscribed", "Laminar", "Noisy", "Ponderous", "Alchemist", "Barbarian", "Bard", "Champion", "Cleric", "Druid", "Fighter", "Gunslinger", "Inventor", "Investigator", "Kineticist", "Magus", "Monk", "Oracle", "Psychic", "Ranger", "Rogue", "Sorcerer", "Summoner", "Swashbuckler", "Thaumaturge", "Witch", "Wizard", "Additive", "Amp", "Composite", "Composition", "Cursebound", "Eidolon", "Esoterica", "Evolution", "Finisher", "Hex", "Impulse", "Infused", "Infusion", "Litany", "Modification", "Oath", "Overflow", "Psyche", "Rage", "Social", "Spellshot", "Stance", "Tandem", "Unstable", "Vigilante", "Aberration", "Animal", "Astral", "Beast", "Celestial", "Construct", "Dragon", "Dream", "Elemental", "Ethereal", "Fey", "Fiend", "Fungus", "Giant", "Humanoid", "Monitor", "Negative", "Ooze", "Petitioner", "Plant", "Positive", "Spirit", "Time", "Undead", "Air", "Earth", "Fire", "Metal", "Water", "Wood", "Acid", "Cold", "Electricity", "Force", "Sonic", "Vitality", "Void", "Adjustment", "Alchemical", "Apex", "Artifact", "Barding", "Bomb", "Bottled", "Breath", "Catalyst", "Censer", "Clockwork", "Coda", "Companion", "Consumable", "Contract", "Cursed", "Drug", "Elixir", "Entrench", "Expandable", "Figurehead", "Focused", "Fulu", "Gadget", "Grimoire", "Intelligent", "Invested", "Lozenge", "Mechanical", "Missive", "Mutagen", "Oil", "Potion", "Precious", "Processed", "Relic", "Saggorak", "Scroll", "Snare", "Spellgun", "Spellheart", "Staff", "Steam", "Structure", "Talisman", "Tattoo", "Trap", "Wand", "Complex", "Environmental", "Haunt", "Weather", "Aeon", "Aesir", "Agathion", "Amphibious", "Angel", "Anugobu", "Aquatic", "Arcane", "Archon", "Asura", "Azata", "Boggard", "Caligni", "Charau-ka", "Couatl", "Daemon", "Darvakka", "Demon", "Dero", "Devil", "Dinosaur", "Div", "Drow", "Duergar", "Formian", "Genie", "Ghost", "Ghoul", "Ghul", "Golem", "Gremlin", "Grioth", "Hag", "Hantu", "Herald", "Ikeshti", "Illusion", "Incorporeal", "Inevitable", "Kaiju", "Kami", "Kovintus", "Lilu", "Locathah", "Merfolk", "Mindless", "Morlock", "Mortic", "Mummy", "Munavri", "Mutant", "Nymph", "Oni", "Paaridar", "Phantom", "Protean", "Psychopomp", "Qlippoth", "Rakshasa", "Ratajin", "Sahkil", "Samsaran", "Sea Devil", "Serpentfolk", "Seugathi", "Shabti", "Shapechanger", "Siktempora", "Skelm", "Skulk", "Soulbound", "Sporeborn", "Spriggan", "Stheno", "Swarm", "Tane", "Tanggal", "Titan", "Troll", "Troop", "Urdefhan", "Vampire", "Velstrac", "Wayang", "Werecreature", "Wight", "Wild Hunt", "Wraith", "Wyrwood", "Xulgath", "Zombie", "Erratic", "Finite", "Flowing", "High Gravity", "Immeasurable", "Low Gravity", "Metamorphic", "Microgravity", "Sentient", "Shadow", "Static", "Strange Gravity", "Subjective Gravity", "Timeless", "Unbounded", "Contact", "Ingested", "Inhaled", "Injury", "Poison", "Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Necromancy", "Transmutation", "Auditory", "Olfactory", "Visual", "Deflecting", "Foldaway", "Harnessed", "Hefty", "Integrated", "Launching", "Shield Throw", "Divine", "Occult", "Primal", "Agile", "Attached", "Backstabber", "Backswing", "Brace", "Brutal", "Capacity", "Climbing", "Cobbled", "Combination", "Concealable", "Concussive", "Critical Fusion", "Deadly", "Disarm", "Double", "Barrel", "Fatal", "Fatal Aim", "Finesse", "Forceful", "Free-Hand", "Grapple", "Hampering", "Injection", "Jousting", "Kickback", "Modular", "Mounted", "Nonlethal", "Parry", "Portable", "Propulsive", "Range", "Ranged Trip", "Razing", "Reach", "Recovery", "Reload", "Repeating", "Resonant", "Scatter", "Shove", "Sweep", "Tethered", "Thrown", "Training", "Trip", "Twin", "Two-Hand", "Unarmed", "Vehicular", "Versatile", "Volley"];
 
     //<editor-fold desc="Support Methods">
     let getFirstMatchingElement = function (source, regex, ignoreEmpty) {
@@ -208,6 +209,7 @@ var Guidance = Guidance || function () {
 
     let cleanText = function (textToClean) {
         return textToClean
+            .replaceAll(/<span\s*class="\w+-*hanging-indent/g, "~<span class=\"")
             .replaceAll("</p>", "~")
             .replaceAll("<br", "~<br")
             .replace(/(<([^>]+)>)/gi, " ")
@@ -231,10 +233,12 @@ var Guidance = Guidance || function () {
         } else {
             userGuide = objs[0];
         }
-        let settings = userGuide.get("gmnotes");
-        if (settings.includes("debug")) {
-            debugMode = true;
-        }
+        userGuide.get("gmnotes", function (gmNotes) {
+            if (gmNotes.indexOf("debug")) {
+                debugMode = true;
+                speakAsGuidanceToGM("Debug Mode has been enabled");
+            }
+        });
     });
     //</editor-fold>
 
@@ -251,10 +255,6 @@ var Guidance = Guidance || function () {
         }
 
         let selectedNPCs = getSelectedNPCs(chatMessage.selected);
-
-        if (debugMode) {
-            debugLog(chatAPICommand);
-        }
 
         try {
             //<editor-fold desc="commandHelp - Show Help information for using Guidance">
@@ -344,19 +344,15 @@ var Guidance = Guidance || function () {
         }
 
         statBlock = getSubstringStartingFrom(statBlock, current);
-        statBlock = removeLeadingDelimiters(statBlock);
+        while (statBlock.startsWith(";") || statBlock.startsWith("~")) {
+            if (statBlock.startsWith(";")) {
+                statBlock = getSubstringStartingFrom(statBlock, ";");
+            }
+            if (statBlock.startsWith("~")) {
+                statBlock = getSubstringStartingFrom(statBlock, "~");
+            }
+        }
         return statBlock;
-    }
-
-    function removeLeadingDelimiters(source) {
-        source = source.trim();
-        if (source.startsWith(";")) {
-            source = getSubstringStartingFrom(source, ";");
-        }
-        if (source.startsWith("~")) {
-            source = getSubstringStartingFrom(source, "~");
-        }
-        return source;
     }
 
     //<editor-fold desc="configureToken - link the token stats to the NPC sheet and show the name">
@@ -406,7 +402,7 @@ var Guidance = Guidance || function () {
         const characterSheet = selectedNPC.characterSheet;
         let statBlock = cleanText(gmNotes).replaceAll("Damage", "DAMAGE");
         try {
-            if (debugMode === true) {
+            if (debugMode) {
                 npcToken.set("gmnotes", statBlock);
             }
             setAttribute(characterId, "npc_type", "Creature");
@@ -443,7 +439,7 @@ var Guidance = Guidance || function () {
             let senseAbilities = getFirstMatchingElement(statBlock, /^.*?(?=(AC\s|Items))/);
             senseAbilities = massageTheDataForAbilityParsing(senseAbilities);
             if (senseAbilities.length > 0) {
-                let newRegex = new RegExp(/((([A-Z][a-z]+\s)+[\[\(])|([A-Z][a-z]+\s){2,}).*?(?=\.\s(([A-Z][a-z]+\s)+[\[\(])|$|([A-Z][a-z]+\s){3,})/, "gm");
+                let newRegex = new RegExp(/((([A-Z][a-z]+\s)+[\[\(])|([A-Z][a-z]+\s){2,}).*?(?=\s*((~\s*[A-Z][a-z]*\s+)|$))/, "g"); // (?=\.\s(([A-Z][a-z]+\s)+[\[\(])|$|([A-Z][a-z]+\s){3,})/, "gm");
                 abilityHandler(characterId, senseAbilities, newRegex, parseInteractionAbility);
             }
 
@@ -479,7 +475,7 @@ var Guidance = Guidance || function () {
             let defenseAbilities = getFirstMatchingElement(statBlock, /(?<=HP\s\d+).*?(?=Speed)/);
             defenseAbilities = massageTheDataForAbilityParsing(defenseAbilities);
             if (defenseAbilities.length > 0) {
-                let newRegex = new RegExp(/((([A-Z][a-z]+\W)+([\[(]))|([A-Z][a-z]+\W){2,}).*?(?=\.\s(([A-Z][a-z]+\W)+([\[(]))|$|([A-Z][a-z]+\W){2,})/, "gm");
+                let newRegex = new RegExp(/((([A-Z][a-z]+\W)+([\[(]))|([A-Z][a-z]+\W){2,}).*?(?=\s*((~\s*[A-Z][a-z]*\s+)|$))/, "g"); // \.\s(([A-Z][a-z]+\W)+([\[(]))|$|([A-Z][a-z]+\W){2,})/, "gm");
                 abilityHandler(characterId, defenseAbilities, newRegex, parseAutomaticAbility);
             }
 
@@ -487,22 +483,22 @@ var Guidance = Guidance || function () {
             statBlock = massageTheDataForAbilityParsing(statBlock);
 
             if (statBlock.startsWith("Melee")) {
-                let newRegex = new RegExp(/Melee.*?(?=((([A-Z][a-z]+\W(\w+\W)*)+(\[|Spells|Ritual))|(\.\W*([A-Z][a-z]+\s)+))|$|Melee|Ranged|(([A-Z][a-z]+\W)+\())/, "gm");
+                let newRegex = new RegExp(/Melee.*?(?=\s*((~\s*[A-Z][a-z]*\s+)|Melee|Ranged|$))/, "g"); // ((([A-Z][a-z]+\W(\w+\W)*)+(\[|Spells|Ritual))|(\.\W*([A-Z][a-z]+\s)+))|$|Melee|Ranged|(([A-Z][a-z]+\W)+\())/, "gm");
                 statBlock = abilityHandler(characterId, statBlock, newRegex, parseAttackAbility);
             }
 
             if (statBlock.startsWith("Ranged")) {
-                let newRegex = new RegExp(/Ranged.*?(?=((([A-Z][a-z]+\s(\w+\s)*)+(\[|Spells|Rituals))|(\.\s*~\s*([A-Z][a-z]+\s)+))|$|Ranged|(([A-Z][a-z]+\s)+\())/, "gm");
+                let newRegex = new RegExp(/Ranged.*?(?=\s*((~\s*[A-Z][a-z]*\s+)|Melee|Ranged|$))/, "g"); // (?=((([A-Z][a-z]+\s(\w+\s)*)+(\[|Spells|Rituals))|(\.\s*~\s*([A-Z][a-z]+\s)+))|$|Ranged|(([A-Z][a-z]+\s)+\())/, "gm");
                 statBlock = abilityHandler(characterId, statBlock, newRegex, parseAttackAbility);
             }
 
             if (statBlock.includes("Spells") || statBlock.includes("Rituals")) {
-                let newRegex = new RegExp(/(([A-Z][a-z]+\s(\w+\s)*)+(Spells|Rituals)).*?(?=$|([A-Z][a-z]+\s)+)/, "gm");
+                let newRegex = new RegExp(/(([A-Z][a-z]+\s(\w+\s)*)+(Spells|Rituals)).*?(?=\s*((~\s*[A-Z][a-z]*\s+)|Melee|Ranged|$))/, "g"); // (?=$|([A-Z][a-z]+\s)+)/, "gm");
                 statBlock = statBlock.replaceAll("Constant", "CONSTANT");
                 statBlock = abilityHandler(characterId, statBlock, newRegex, parseSpells);
             }
 
-            let newRegex = new RegExp(/(([A-Z][a-z]+\s){2,}|(([A-Z][a-z]+\s+)+[\[(])).*?[\.\)]\s*(?=(([A-Z][a-z]+\s){2,})|(([A-Z][a-z]+\s+)+[\[(])|$)/, "gm");
+            let newRegex = new RegExp(/(([A-Z][a-z]+\s){2,}|(([A-Z][a-z]+\s+)+[\[(])).*?(?=\s*((~\s*[A-Z][a-z]*\s+)|Melee|Ranged|$))/, "g"); // [\.\)]\s*(?=(([A-Z][a-z]+\s){2,})|(([A-Z][a-z]+\s+)+[\[(])|$)/, "gm");
             statBlock = statBlock.replaceAll("Requirement", "REQUIREMENT");
             statBlock = abilityHandler(characterId, statBlock, newRegex, parseSpecialAbility);
 
@@ -516,7 +512,7 @@ var Guidance = Guidance || function () {
 
     // I hate this method, I wish I had better delimiters
     let massageTheDataForAbilityParsing = function (data) {
-        return data.replaceAll("~", "")
+        return data //.replaceAll("~", "")
             .replaceAll("And", "and")
             .replaceAll("Grab", "grab")
             .replaceAll("Hit Points", "hit points")
@@ -591,15 +587,16 @@ var Guidance = Guidance || function () {
         const weaponName = getFirstMatchingElement(ability, /\[\w+-\w+\]/) + " " +
             getFirstMatchingElement(ability, /(?<=(Melee|Ranged)\s\[.*\]\s).*?(?=\s[+\-])/);
         const attackBonusMatch = getFirstMatchingElement(ability, /[+\-](\d+)/);
-        let traits = getFirstMatchingElement(ability, /(?<=\()(.+?)(?=\))/);
+        let repTraits = getTraits(ability);
+
         let effect = getFirstMatchingElement(ability, /EFFECT\s.*/);
 
         const attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + generateRowID() + "_";
-        if (traits.includes("agile")) {
+        if (repTraits.includes("agile")) {
             setAttribute(characterId, attributeName + "weapon_agile", "1");
         }
         setAttribute(characterId, attributeName + "weapon", weaponName.trim());
-        setAttribute(characterId, attributeName + "weapon_traits", traits.trim());
+        setAttribute(characterId, attributeName + "weapon_traits", repTraits.trim());
         setAttribute(characterId, attributeName + "npc_weapon_strike", attackBonusMatch.trim());
         setAttribute(characterId, attributeName + "weapon_strike", attackBonusMatch.replace("+", ""));
         setAttribute(characterId, attributeName + "weapon_map2", "@{strikes_map2}");
@@ -719,13 +716,19 @@ var Guidance = Guidance || function () {
         return ability;
     }
 
+    let getTraits = function (ability) {
+        let found = "";
+        let candidates = getMatchingArray(ability, /(?<=(\(|\,)\s)\w+?(?=(\,|\)))/);
+        candidates.forEach(candidate => {
+            if (allTraits.includes(candidate)) {
+                found = found + ", " + candidate
+            }
+        });
+        return found;
+    }
+
     let enterOtherAbility = function (characterId, attributeName, abilityName, ability, actions) {
-        let repTraits = getFirstMatchingElement(ability, /\s*\(.+?\)/);
-        if (/\d+d\d+(\+\d+)/.test(repTraits)) {
-            repTraits = "";
-        } else {
-            ability = ability.replace(repTraits, "");
-        }
+        let repTraits = getTraits(ability);
 
         let trigger = getFirstMatchingElement(ability, /(?<=TRIGGER\s).*?(?=(EFFECT\s|$))/);
         let effect = getFirstMatchingElement(ability, /\sEFFECT\s.*/)
@@ -733,7 +736,7 @@ var Guidance = Guidance || function () {
             ability = ability.replace(/TRIGGER\s.*?(?=(EFFECT\s|$))/, "");
         }
 
-        ability = ability.replaceAll(abilityName, "");
+        ability = ability.replace(abilityName, "");
         ability = formatDamageDiceIfPresent(ability);
 
         setAttribute(characterId, attributeName + "name", abilityName);
