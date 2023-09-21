@@ -14,7 +14,7 @@ var Guidance = Guidance || function () {
     const commandToken = prefix + "token";
     const commandClean = prefix + "clean";
     const commandPopulate = prefix + "npc";
-    const allTraits = ["Aftermath", "All Ancestries", "Archetype", "Attack", "Aura", "Cantrip", "Charm", "Class", "Concentrate", "Consecration", "Contingency", "Curse", "Darkness", "Death", "Dedication", "Detection", "Deviant", "Disease", "Downtime", "Emotion", "Experiment", "Exploration", "Extradimensional", "Fear", "Flourish", "Focus", "Fortune", "General", "Healing", "Incapacitation", "Incarnate", "Legacy", "Light", "Lineage", "Linguistic", "Magical", "Manipulate", "Mental", "Metamagic", "Mindshift", "Minion", "Misfortune", "Morph", "Move", "Multiclass", "Open", "Polymorph", "Possession", "Prediction", "Press", "Radiation", "Reckless", "Revelation", "Scrying", "Secret", "Skill", "Sleep", "Spellshape", "Splash", "Summoned", "Tech", "Telepathy", "Teleportation", "Varies", "Virulent", "Vocal", "Chaotic", "Evil", "Good", "Lawful", "Aasimar", "Anadi", "Android", "Aphorite", "Ardande", "Automaton", "Azarketi", "Beastkin", "Catfolk", "Changeling", "Conrasu", "Dhampir", "Duskwalker", "Dwarf", "Elf", "Fetchling", "Fleshwarp", "Ganzi", "Geniekin", "Ghoran", "Gnoll", "Gnome", "Goblin", "Goloma", "Grippli", "Half-Elf", "Halfling", "Half-Orc", "Hobgoblin", "Human", "Ifrit", "Kashrishi", "Kitsune", "Kobold", "Leshy", "Lizardfolk", "Nagaji", "Orc", "Oread", "Poppet", "Ratfolk", "Reflection", "Shisk", "Shoony", "Skeleton", "Sprite", "Strix", "Suli", "Sylph", "Talos", "Tengu", "Tiefling", "Undine", "Vanara", "Vishkanya", "Adjusted", "Aquadynamic", "Bulwark", "Comfort", "Flexible", "Hindering", "Inscribed", "Laminar", "Noisy", "Ponderous", "Alchemist", "Barbarian", "Bard", "Champion", "Cleric", "Druid", "Fighter", "Gunslinger", "Inventor", "Investigator", "Kineticist", "Magus", "Monk", "Oracle", "Psychic", "Ranger", "Rogue", "Sorcerer", "Summoner", "Swashbuckler", "Thaumaturge", "Witch", "Wizard", "Additive", "Amp", "Composite", "Composition", "Cursebound", "Eidolon", "Esoterica", "Evolution", "Finisher", "Hex", "Impulse", "Infused", "Infusion", "Litany", "Modification", "Oath", "Overflow", "Psyche", "Rage", "Social", "Spellshot", "Stance", "Tandem", "Unstable", "Vigilante", "Aberration", "Animal", "Astral", "Beast", "Celestial", "Construct", "Dragon", "Dream", "Elemental", "Ethereal", "Fey", "Fiend", "Fungus", "Giant", "Humanoid", "Monitor", "Negative", "Ooze", "Petitioner", "Plant", "Positive", "Spirit", "Time", "Undead", "Air", "Earth", "Fire", "Metal", "Water", "Wood", "Acid", "Cold", "Electricity", "Force", "Sonic", "Vitality", "Void", "Adjustment", "Alchemical", "Apex", "Artifact", "Barding", "Bomb", "Bottled", "Breath", "Catalyst", "Censer", "Clockwork", "Coda", "Companion", "Consumable", "Contract", "Cursed", "Drug", "Elixir", "Entrench", "Expandable", "Figurehead", "Focused", "Fulu", "Gadget", "Grimoire", "Intelligent", "Invested", "Lozenge", "Mechanical", "Missive", "Mutagen", "Oil", "Potion", "Precious", "Processed", "Relic", "Saggorak", "Scroll", "Snare", "Spellgun", "Spellheart", "Staff", "Steam", "Structure", "Talisman", "Tattoo", "Trap", "Wand", "Complex", "Environmental", "Haunt", "Weather", "Aeon", "Aesir", "Agathion", "Amphibious", "Angel", "Anugobu", "Aquatic", "Arcane", "Archon", "Asura", "Azata", "Boggard", "Caligni", "Charau-ka", "Couatl", "Daemon", "Darvakka", "Demon", "Dero", "Devil", "Dinosaur", "Div", "Drow", "Duergar", "Formian", "Genie", "Ghost", "Ghoul", "Ghul", "Golem", "Gremlin", "Grioth", "Hag", "Hantu", "Herald", "Ikeshti", "Illusion", "Incorporeal", "Inevitable", "Kaiju", "Kami", "Kovintus", "Lilu", "Locathah", "Merfolk", "Mindless", "Morlock", "Mortic", "Mummy", "Munavri", "Mutant", "Nymph", "Oni", "Paaridar", "Phantom", "Protean", "Psychopomp", "Qlippoth", "Rakshasa", "Ratajin", "Sahkil", "Samsaran", "Sea Devil", "Serpentfolk", "Seugathi", "Shabti", "Shapechanger", "Siktempora", "Skelm", "Skulk", "Soulbound", "Sporeborn", "Spriggan", "Stheno", "Swarm", "Tane", "Tanggal", "Titan", "Troll", "Troop", "Urdefhan", "Vampire", "Velstrac", "Wayang", "Werecreature", "Wight", "Wild Hunt", "Wraith", "Wyrwood", "Xulgath", "Zombie", "Erratic", "Finite", "Flowing", "High Gravity", "Immeasurable", "Low Gravity", "Metamorphic", "Microgravity", "Sentient", "Shadow", "Static", "Strange Gravity", "Subjective Gravity", "Timeless", "Unbounded", "Contact", "Ingested", "Inhaled", "Injury", "Poison", "Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Necromancy", "Transmutation", "Auditory", "Olfactory", "Visual", "Deflecting", "Foldaway", "Harnessed", "Hefty", "Integrated", "Launching", "Shield Throw", "Divine", "Occult", "Primal", "Agile", "Attached", "Backstabber", "Backswing", "Brace", "Brutal", "Capacity", "Climbing", "Cobbled", "Combination", "Concealable", "Concussive", "Critical Fusion", "Deadly", "Disarm", "Double", "Barrel", "Fatal", "Fatal Aim", "Finesse", "Forceful", "Free-Hand", "Grapple", "Hampering", "Injection", "Jousting", "Kickback", "Modular", "Mounted", "Nonlethal", "Parry", "Portable", "Propulsive", "Range", "Ranged Trip", "Razing", "Reach", "Recovery", "Reload", "Repeating", "Resonant", "Scatter", "Shove", "Sweep", "Tethered", "Thrown", "Training", "Trip", "Twin", "Two-Hand", "Unarmed", "Vehicular", "Versatile", "Volley"];
+    const allTraits = "Aftermath,All Ancestries,Archetype,Attack,Aura,Cantrip,Charm,Class,Concentrate,Consecration,Contingency,Curse,Darkness,Death,Dedication,Detection,Deviant,Disease,Downtime,Emotion,Experiment,Exploration,Extradimensional,Fear,Flourish,Focus,Fortune,General,Healing,Incapacitation,Incarnate,Legacy,Light,Lineage,Linguistic,Magical,Manipulate,Mental,Metamagic,Mindshift,Minion,Misfortune,Morph,Move,Multiclass,Open,Polymorph,Possession,Prediction,Press,Radiation,Reckless,Revelation,Scrying,Secret,Skill,Sleep,Spellshape,Splash,Summoned,Tech,Telepathy,Teleportation,Varies,Virulent,Vocal,Chaotic,Evil,Good,Lawful,Aasimar,Anadi,Android,Aphorite,Ardande,Automaton,Azarketi,Beastkin,Catfolk,Changeling,Conrasu,Dhampir,Duskwalker,Dwarf,Elf,Fetchling,Fleshwarp,Ganzi,Geniekin,Ghoran,Gnoll,Gnome,Goblin,Goloma,Grippli,Half-Elf,Halfling,Half-Orc,Hobgoblin,Human,Ifrit,Kashrishi,Kitsune,Kobold,Leshy,Lizardfolk,Nagaji,Orc,Oread,Poppet,Ratfolk,Reflection,Shisk,Shoony,Skeleton,Sprite,Strix,Suli,Sylph,Talos,Tengu,Tiefling,Undine,Vanara,Vishkanya,Adjusted,Aquadynamic,Bulwark,Comfort,Flexible,Hindering,Inscribed,Laminar,Noisy,Ponderous,Alchemist,Barbarian,Bard,Champion,Cleric,Druid,Fighter,Gunslinger,Inventor,Investigator,Kineticist,Magus,Monk,Oracle,Psychic,Ranger,Rogue,Sorcerer,Summoner,Swashbuckler,Thaumaturge,Witch,Wizard,Additive,Amp,Composite,Composition,Cursebound,Eidolon,Esoterica,Evolution,Finisher,Hex,Impulse,Infused,Infusion,Litany,Modification,Oath,Overflow,Psyche,Rage,Social,Spellshot,Stance,Tandem,Unstable,Vigilante,Aberration,Animal,Astral,Beast,Celestial,Construct,Dragon,Dream,Elemental,Ethereal,Fey,Fiend,Fungus,Giant,Humanoid,Monitor,Negative,Ooze,Petitioner,Plant,Positive,Spirit,Time,Undead,Air,Earth,Fire,Metal,Water,Wood,Acid,Cold,Electricity,Force,Sonic,Vitality,Void,Adjustment,Alchemical,Apex,Artifact,Barding,Bomb,Bottled,Breath,Catalyst,Censer,Clockwork,Coda,Companion,Consumable,Contract,Cursed,Drug,Elixir,Entrench,Expandable,Figurehead,Focused,Fulu,Gadget,Grimoire,Intelligent,Invested,Lozenge,Mechanical,Missive,Mutagen,Oil,Potion,Precious,Processed,Relic,Saggorak,Scroll,Snare,Spellgun,Spellheart,Staff,Steam,Structure,Talisman,Tattoo,Trap,Wand,Complex,Environmental,Haunt,Weather,Aeon,Aesir,Agathion,Amphibious,Angel,Anugobu,Aquatic,Arcane,Archon,Asura,Azata,Boggard,Caligni,Charau-ka,Couatl,Daemon,Darvakka,Demon,Dero,Devil,Dinosaur,Div,Drow,Duergar,Formian,Genie,Ghost,Ghoul,Ghul,Golem,Gremlin,Grioth,Hag,Hantu,Herald,Ikeshti,Illusion,Incorporeal,Inevitable,Kaiju,Kami,Kovintus,Lilu,Locathah,Merfolk,Mindless,Morlock,Mortic,Mummy,Munavri,Mutant,Nymph,Oni,Paaridar,Phantom,Protean,Psychopomp,Qlippoth,Rakshasa,Ratajin,Sahkil,Samsaran,Sea Devil,Serpentfolk,Seugathi,Shabti,Shapechanger,Siktempora,Skelm,Skulk,Soulbound,Sporeborn,Spriggan,Stheno,Swarm,Tane,Tanggal,Titan,Troll,Troop,Urdefhan,Vampire,Velstrac,Wayang,Werecreature,Wight,Wild Hunt,Wraith,Wyrwood,Xulgath,Zombie,Erratic,Finite,Flowing,High Gravity,Immeasurable,Low Gravity,Metamorphic,Microgravity,Sentient,Shadow,Static,Strange Gravity,Subjective Gravity,Timeless,Unbounded,Contact,Ingested,Inhaled,Injury,Poison,Abjuration,Conjuration,Divination,Enchantment,Evocation,Necromancy,Transmutation,Auditory,Olfactory,Visual,Deflecting,Foldaway,Harnessed,Hefty,Integrated,Launching,Shield Throw,Divine,Occult,Primal,Agile,Attached,Backstabber,Backswing,Brace,Brutal,Capacity,Climbing,Cobbled,Combination,Concealable,Concussive,Critical Fusion,Deadly,Disarm,Double,Barrel,Fatal,Fatal Aim,Finesse,Forceful,Free-Hand,Grapple,Hampering,Injection,Jousting,Kickback,Modular,Mounted,Nonlethal,Parry,Portable,Propulsive,Range,Ranged Trip,Razing,Reach,Recovery,Reload,Repeating,Resonant,Scatter,Shove,Sweep,Tethered,Thrown,Training,Trip,Twin,Two-Hand,Unarmed,Vehicular,Versatile,Volley";
 
     //<editor-fold desc="Support Methods">
     let getFirstMatchingElement = function (source, regex, ignoreEmpty) {
@@ -344,6 +344,11 @@ var Guidance = Guidance || function () {
         }
 
         statBlock = getSubstringStartingFrom(statBlock, current);
+        return removeStartingDelimiters(statBlock);
+    }
+
+    let removeStartingDelimiters = function (statBlock) {
+        statBlock = statBlock.trim();
         while (statBlock.startsWith(";") || statBlock.startsWith("~")) {
             if (statBlock.startsWith(";")) {
                 statBlock = getSubstringStartingFrom(statBlock, ";");
@@ -439,7 +444,7 @@ var Guidance = Guidance || function () {
             let senseAbilities = getFirstMatchingElement(statBlock, /^.*?(?=(AC\s|Items))/);
             senseAbilities = massageTheDataForAbilityParsing(senseAbilities);
             if (senseAbilities.length > 0) {
-                let newRegex = new RegExp(/((([A-Z][a-z]+\s)+[\[\(])|([A-Z][a-z]+\s){2,}).*?(?=\s*((~\s*[A-Z][a-z]*\s+)|$))/, "g"); // (?=\.\s(([A-Z][a-z]+\s)+[\[\(])|$|([A-Z][a-z]+\s){3,})/, "gm");
+                let newRegex = new RegExp(/((([A-Z][a-z]+\s)+[\[\(])|([A-Z][a-z]+\s){2,}).*?(?=(~\s*[A-Z][a-z]*\s+)|$)/, "g");
                 abilityHandler(characterId, senseAbilities, newRegex, parseInteractionAbility);
             }
 
@@ -475,30 +480,34 @@ var Guidance = Guidance || function () {
             let defenseAbilities = getFirstMatchingElement(statBlock, /(?<=HP\s\d+).*?(?=Speed)/);
             defenseAbilities = massageTheDataForAbilityParsing(defenseAbilities);
             if (defenseAbilities.length > 0) {
-                let newRegex = new RegExp(/((([A-Z][a-z]+\W)+([\[(]))|([A-Z][a-z]+\W){2,}).*?(?=\s*((~\s*[A-Z][a-z]*\s+)|$))/, "g"); // \.\s(([A-Z][a-z]+\W)+([\[(]))|$|([A-Z][a-z]+\W){2,})/, "gm");
+                let newRegex = new RegExp(/((([A-Z][a-z]+\W)+([\[(]))|([A-Z][a-z]+\W){2,}).*?(?=(~\s*[A-Z][a-z]*\s+)|$)/, "gm");
                 abilityHandler(characterId, defenseAbilities, newRegex, parseAutomaticAbility);
             }
 
             statBlock = populateStat(characterId, statBlock, /(?<=Speed).*?(?=~)/, "speed", "speed_base", "speed_notes");
             statBlock = massageTheDataForAbilityParsing(statBlock);
 
+            statBlock = removeStartingDelimiters(statBlock);
             if (statBlock.startsWith("Melee")) {
-                let newRegex = new RegExp(/Melee.*?(?=\s*((~\s*[A-Z][a-z]*\s+)|Melee|Ranged|$))/, "g"); // ((([A-Z][a-z]+\W(\w+\W)*)+(\[|Spells|Ritual))|(\.\W*([A-Z][a-z]+\s)+))|$|Melee|Ranged|(([A-Z][a-z]+\W)+\())/, "gm");
+                let newRegex = new RegExp(/Melee.*?(?=(~\s*[A-Z][a-z]+\s+)|Melee|Ranged|$)/, "g");
                 statBlock = abilityHandler(characterId, statBlock, newRegex, parseAttackAbility);
             }
 
+            statBlock = removeStartingDelimiters(statBlock);
             if (statBlock.startsWith("Ranged")) {
-                let newRegex = new RegExp(/Ranged.*?(?=\s*((~\s*[A-Z][a-z]*\s+)|Melee|Ranged|$))/, "g"); // (?=((([A-Z][a-z]+\s(\w+\s)*)+(\[|Spells|Rituals))|(\.\s*~\s*([A-Z][a-z]+\s)+))|$|Ranged|(([A-Z][a-z]+\s)+\())/, "gm");
+                let newRegex = new RegExp(/Ranged.*?(?=(~\s*[A-Z][a-z]+\s+)|Melee|Ranged|$)/, "g");
                 statBlock = abilityHandler(characterId, statBlock, newRegex, parseAttackAbility);
             }
 
+            statBlock = removeStartingDelimiters(statBlock);
             if (statBlock.includes("Spells") || statBlock.includes("Rituals")) {
-                let newRegex = new RegExp(/(([A-Z][a-z]+\s(\w+\s)*)+(Spells|Rituals)).*?(?=\s*((~\s*[A-Z][a-z]*\s+)|Melee|Ranged|$))/, "g"); // (?=$|([A-Z][a-z]+\s)+)/, "gm");
+                let newRegex = new RegExp(/(([A-Z][a-z]+\s(\w+\s)*)+(Spells|Rituals)).*?(?=(~\s*[A-Z][a-z]+\s+)|Melee|Ranged|$)/, "g");
                 statBlock = statBlock.replaceAll("Constant", "CONSTANT");
                 statBlock = abilityHandler(characterId, statBlock, newRegex, parseSpells);
             }
 
-            let newRegex = new RegExp(/(([A-Z][a-z]+\s){2,}|(([A-Z][a-z]+\s+)+[\[(])).*?(?=\s*((~\s*[A-Z][a-z]*\s+)|Melee|Ranged|$))/, "g"); // [\.\)]\s*(?=(([A-Z][a-z]+\s){2,})|(([A-Z][a-z]+\s+)+[\[(])|$)/, "gm");
+            statBlock = removeStartingDelimiters(statBlock);
+            let newRegex = new RegExp(/(([A-Z][a-z]+\s){2,}|(([A-Z][a-z]+\s+)+[\[(])).*?(?=(~\s*[A-Z][a-z]+\s+)|Melee|Ranged|$)/, "g");
             statBlock = statBlock.replaceAll("Requirement", "REQUIREMENT");
             statBlock = abilityHandler(characterId, statBlock, newRegex, parseSpecialAbility);
 
@@ -546,7 +555,8 @@ var Guidance = Guidance || function () {
         // Roll20 complains about infinite loops.
         let safety = 0;
         while (ability !== "" && safety++ < 100) {
-            processor(characterId, ability, temp);
+            debugLog("Ability: " + ability);
+            processor(characterId, ability.replaceAll("~", ""), temp);
             source = source.replaceAll(ability.trim(), "").trim();
             ability = getFirstMatchingElement(source, regex);
             if (ability.includes("@")) {
@@ -557,10 +567,17 @@ var Guidance = Guidance || function () {
         return source.trim();
     }
 
+    let getAbilityName = function (ability) {
+        if (ability.includes(".")) {
+            return getFirstMatchingElement(ability, /([A-Z][a-z]*\s)+(?=([\(\[])|([A-Z][a-z]*))/).trim();
+        }
+        return getFirstMatchingElement(ability, /([A-Z][a-z]*\s)+/).trim();
+    }
+
     let parseAutomaticAbility = function (characterId, ability) {
         debugLog("parseAutomaticAbility: " + ability);
         let attributeName = "repeating_free-actions-reactions_" + generateRowID() + "_";
-        let abilityName = getFirstMatchingElement(ability, /([A-Z][a-z]*\s)+(?=([\(\[])|([A-Z][a-z]*))/).trim();
+        let abilityName = getAbilityName(ability);
 
         if (/\[\s*free.action\s*\]/.test(ability)) {
             setAttribute(characterId, attributeName + "free_action", "free action");
@@ -576,27 +593,39 @@ var Guidance = Guidance || function () {
 
     let parseInteractionAbility = function (characterId, ability) {
         debugLog("parseInteractionAbility = " + ability);
-        let abilityName = getFirstMatchingElement(ability, /([A-Z][a-z]*\s)+(?=([\(\[])|([A-Z][a-z]*))/).trim();
+        let abilityName = getAbilityName(ability);
         let attributeName = "repeating_interaction-abilities_" + generateRowID() + "_";
 
         enterOtherAbility(characterId, attributeName, abilityName, ability);
     }
 
     let parseAttackAbility = function (characterId, ability, attackType) {
-        debugLog("parseAttackAbility = " + ability);
-        const weaponName = getFirstMatchingElement(ability, /\[\w+-\w+\]/) + " " +
-            getFirstMatchingElement(ability, /(?<=(Melee|Ranged)\s\[.*\]\s).*?(?=\s[+\-])/);
+        if (ability.startsWith("Melee")) {
+            ability = ability.replaceAll("Melee", "").trim();
+        } else {
+            ability = ability.replaceAll("Ranged", "").trim();
+        }
+        const weaponName = getFirstMatchingElement(ability, /(?<=\[.*\]\s).*?(?=\s[+\-])/g);
         const attackBonusMatch = getFirstMatchingElement(ability, /[+\-](\d+)/);
         let repTraits = getTraits(ability);
+        ability = ability.replace(repTraits, "");
 
-        let effect = getFirstMatchingElement(ability, /EFFECT\s.*/);
+        let effect;
+        if (ability.includes("EFFECT")) {
+            effect = getFirstMatchingElement(ability, /EFFECT\s.*/);
+        } else {
+            effect = ability;
+        }
+
+        const actions = getFirstMatchingElement(ability, /\[.*action\w*\]/);
+        effect = effect + actions;
 
         const attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + generateRowID() + "_";
         if (repTraits.includes("agile")) {
             setAttribute(characterId, attributeName + "weapon_agile", "1");
         }
         setAttribute(characterId, attributeName + "weapon", weaponName.trim());
-        setAttribute(characterId, attributeName + "weapon_traits", repTraits.trim());
+        setAttribute(characterId, attributeName + "weapon_traits", repTraits);
         setAttribute(characterId, attributeName + "npc_weapon_strike", attackBonusMatch.trim());
         setAttribute(characterId, attributeName + "weapon_strike", attackBonusMatch.replace("+", ""));
         setAttribute(characterId, attributeName + "weapon_map2", "@{strikes_map2}");
@@ -604,11 +633,17 @@ var Guidance = Guidance || function () {
         setAttribute(characterId, attributeName + "npc_weapon_notes", effect);
         setAttribute(characterId, attributeName + "weapon_notes", effect);
 
-        let damage = getFirstMatchingElement(ability, /(?<=DAMAGE\s)\[+\d+d\d+(\+\d+)*?\]+/);
-        let damageType = getFirstMatchingElement(ability, /(?<=DAMAGE\s\[+\d+d\d+(\+\d+)*?\]+\s)(\w+\s*)+/);
+        debugLog("parseAttackAbility = " + ability);
+        let damage = getFirstMatchingElement(ability, /(?<=DAMAGE\s+)\d+d\d+(\+\d+)*/);
+
+        debugLog("damage = " + damage);
+        let damageType = getFirstMatchingElement(ability, /(?<=DAMAGE\s+\d+d\d+(\+\d+)*\s)(\w+\s*)+/);
+
+        debugLog("damageType = " + damageType);
         setAttribute(characterId, attributeName + "npc_weapon_strike_damage", damage);
         setAttribute(characterId, attributeName + "weapon_strike_damage", damage);
         setAttribute(characterId, attributeName + "weapon_strike_damage_type", damageType);
+
         let extra = getFirstMatchingElement(ability, /(?<=DAMAGE\s\[+\d+d\d+(\+\d+)*?\]+\s\w+\s).+/);
         setAttribute(characterId, attributeName + "weapon_strike_damage_additional", extra);
         setAttribute(characterId, attributeName + "toggles", "display,");
@@ -704,7 +739,7 @@ var Guidance = Guidance || function () {
     let parseSpecialAbility = function (characterId, ability) {
         debugLog("parseSpecialAbility = " + ability);
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
-        let abilityName = getFirstMatchingElement(ability, /^([A-Z][a-z]+\s)+?(?=([A-Z][a-z]*\s[a-z])|\[|\()/);
+        let abilityName = getAbilityName(ability);
         let actions = getFirstMatchingElement(ability, /(?<=\[\s*).*action?(?=\])/);
 
         enterOtherAbility(characterId, attributeName, abilityName, ability, actions);
@@ -717,18 +752,33 @@ var Guidance = Guidance || function () {
     }
 
     let getTraits = function (ability) {
-        let found = "";
-        let candidates = getMatchingArray(ability, /(?<=(\(|\,)\s)\w+?(?=(\,|\)))/);
-        candidates.forEach(candidate => {
-            if (allTraits.includes(candidate)) {
-                found = found + ", " + candidate
+        let cleaned = ability.replaceAll("~", "").trim();
+        let candidates = getMatchingArray(cleaned, /\(.*\)/);
+        let regex = new RegExp(allTraits, "i");
+        let returnValue = candidates.find(candidate => {
+            let found = true;
+            let words = candidate.split(",");
+            // false equivalent to break - stop checking
+            words.every(word => {
+                if (!regex.test(word.trim())) {
+                    found = false;
+                    return false;
+                }
+                return true;
+            });
+            if (found) {
+                return candidate;
             }
         });
-        return found;
+        if (returnValue === undefined) {
+            return "";
+        }
+        return returnValue.trim();
     }
 
     let enterOtherAbility = function (characterId, attributeName, abilityName, ability, actions) {
         let repTraits = getTraits(ability);
+        ability = ability.replace(repTraits, "");
 
         let trigger = getFirstMatchingElement(ability, /(?<=TRIGGER\s).*?(?=(EFFECT\s|$))/);
         let effect = getFirstMatchingElement(ability, /\sEFFECT\s.*/)
