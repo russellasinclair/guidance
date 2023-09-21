@@ -328,7 +328,12 @@ var Guidance = Guidance || function () {
     });
 
     function populateStat(characterId, statBlock, regex, ...stats) {
+        debugLog("Starting with = " + statBlock);
+        debugLog("Starting with = " + stats[0]);
         let current = getFirstMatchingElement(statBlock, regex);
+        statBlock = getSubstringStartingFrom(statBlock, current);
+        statBlock = removeStartingDelimiters(statBlock);
+        debugLog("returning = " + statBlock);
 
         if (current === "") {
             return statBlock;
@@ -342,9 +347,7 @@ var Guidance = Guidance || function () {
         } else {
             setAttribute(characterId, stats, current);
         }
-
-        statBlock = getSubstringStartingFrom(statBlock, current);
-        return removeStartingDelimiters(statBlock);
+        return statBlock;
     }
 
     let removeStartingDelimiters = function (statBlock) {
@@ -417,12 +420,12 @@ var Guidance = Guidance || function () {
             characterSheet.set("name", npcName);
             npcToken.set("name", npcName);
 
-            statBlock = populateStat(characterId, statBlock, /(?<=(Creature|Level)\s+).+?(?=~|\s+)/si, "level");
-            statBlock = populateStat(characterId, statBlock, /(?<=.*)(LG|NG|CG|LN|N|CN|LE|NE|CE)(?=\s+)/s, "alignment");
-            statBlock = populateStat(characterId, statBlock, /(?<=.*)(Fine|Diminutive|Tiny|Small|Medium|Large|Huge|Gargantuan|Colossal)(?=\s+)/si, "size");
+            statBlock = populateStat(characterId, statBlock, /(?<=(Creature|Level)\s+)\d+?(?=~|\s+)/si, "level");
+            statBlock = populateStat(characterId, statBlock, /(?<=.*)(LG|NG|CG|LN|N|CN|LE|NE|CE)(?=~|\s+)/s, "alignment");
+            statBlock = populateStat(characterId, statBlock, /(?<=.*)(Fine|Diminutive|Tiny|Small|Medium|Large|Huge|Gargantuan|Colossal)(?=~|\s+)/si, "size");
             statBlock = populateStat(characterId, statBlock, /.*?(?=Source|Perception)/s, "traits");
-            statBlock = populateStat(characterId, statBlock, /.*?(?=Perception)/s, "source");
-            statBlock = populateStat(characterId, statBlock, /(?<=.*Perception).*?(?=;)/s, "npc_perception", "perception");
+            statBlock = populateStat(characterId, statBlock, /.*?(?=~|Perception)/s, "source");
+            statBlock = populateStat(characterId, statBlock, /(?<=.*Perception).*?(?=~|;)/s, "npc_perception", "perception");
             statBlock = populateStat(characterId, statBlock, /.*?(?=~|Skills|Languages)/s, "senses");
             statBlock = populateStat(characterId, statBlock, /(?<=Languages).*?(?=Skills|~)/s, "languages");
             statBlock = getSubstringStartingFrom(statBlock, "Skills");
