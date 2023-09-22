@@ -462,7 +462,7 @@ var Guidance = Guidance || function () {
 
             let hasItems = getFirstMatchingElement(statBlock, /.*?(?=AC\s+\d+)/).trim();
             if (hasItems.includes("Items")) {
-                let items = getFirstMatchingElement(hasItems, /(?<=Items\W*).*?(?=(AC|~|$))/s, true).trim();
+                let items = getFirstMatchingElement(hasItems, /(?<=Items\W*).*?(?=(AC|$))/s, true).trim();
                 let itemsArray = items.split(",");
 
                 itemsArray.forEach(item => {
