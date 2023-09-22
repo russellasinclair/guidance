@@ -503,7 +503,6 @@ var Guidance = Guidance || function () {
                 abilityHandler(characterId, defenseAbilities, newRegex, parseAutomaticAbility);
             }
 
-
             statBlock = populateStat(characterId, statBlock, /(?<=Speed).*?(?=~)/, "speed", "speed_base", "speed_notes");
             statBlock = massageTheDataForAbilityParsing(statBlock);
             statBlock = statBlock.replaceAll("EFFECT", "effect");
@@ -524,7 +523,13 @@ var Guidance = Guidance || function () {
             if (statBlock.includes("Spells") || statBlock.includes("Rituals")) {
                 let newRegex = new RegExp(/(([A-Z][a-z]+\s(\w+\s)*)+(Spells|Rituals)).*?(?=(~\s*[A-Z][a-z]+\s+)|Melee|Ranged|$)/, "g");
                 statBlock = statBlock.replaceAll("Constant", "CONSTANT");
+                setAttribute(characterId, "toggles", "color:default.npcspellcasters");
+                setAttribute(characterId, "toggle_innate", 0);
+                setAttribute(characterId, "toggle_focus", 0);
+                setAttribute(characterId, "toggle_cantrips", 0);
+                setAttribute(characterId, "toggle_normalspells", 0);
                 statBlock = abilityHandler(characterId, statBlock, newRegex, parseSpells);
+                speakAsGuidanceToGM("WARNING! Spells are populated, but cannot populate the details due to Roll20 limitations");
             }
 
             statBlock = removeStartingDelimiters(statBlock);
@@ -672,25 +677,45 @@ var Guidance = Guidance || function () {
         setAttribute(characterId, attributeName + "toggles", "display,");
     }
 
+    let manageToggles = function (characterId, toggle, action) {
+        let value = getAttribute(characterId, "toggles");
+        if (value.includes(toggle) && action.includes("remove")) {
+            value = value.replace(toggle, "");
+        }
+
+        if (!value.includes(toggle) && action.includes("add")) {
+            toggle = "," + toggle;
+            value = value + toggle;
+        }
+        value = value.replaceAll(".,", ".").replaceAll(",,", "");
+        setAttribute(characterId, "toggles", value);
+    }
+
     let parseSpells = function (characterId, ability) {
         debugLog("parseSpells = " + ability);
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
         const spells = getFirstMatchingElement(ability, /.*(Spells|Rituals)/);
+        if (spells.toLowerCase().includes("prepared")) {
+            setAttribute(characterId, "spellcaster_prepared", "prepared");
+        }
+        if (spells.toLowerCase().includes("spontaneous")) {
+            setAttribute(characterId, "spellcaster_spontaneous", "spontaneous");
+        }
+
         let theRest = getFirstMatchingElement(ability, /(?<=(Spells|Rituals)\s+).*/);
         const matchSpellDC = new RegExp(/(?<=DC\s)\d+/);
         const matchAttack = new RegExp(/(?<=,\sattack\s)([+\-])\d+?(?=;)/);
         setAttribute(characterId, attributeName + "name", spells);
         setAttribute(characterId, attributeName + "npc_description", theRest);
         setAttribute(characterId, attributeName + "description", theRest);
+        setAttribute(characterId, "npc_spell_dc", matchSpellDC);
         setAttribute(characterId, attributeName + "toggles", "display,");
         ability = formatDamageDiceIfPresent(ability);
 
-        let toggles = "color:default.normalspells";
         if (ability.includes("cantrip")) {
-            toggles = toggles + ",cantrips"
+            manageToggles(characterId, "cantrips", "add");
+            setAttribute(characterId, "toggle_cantrips", "cantrips");
         }
-        toggles = toggles + ",npcspellcasters";
-        setAttribute(characterId, "toggles", toggles);
 
         let spellDC = "";
         let attackBonus = "";
@@ -737,7 +762,18 @@ var Guidance = Guidance || function () {
 
                 spellList.forEach(spellName => {
                     let attributeName;
-                    attributeName = "repeating_normalspells_" + generateRowID() + "_";
+                    let spellType;
+                    if (spells.toLowerCase().includes("innate")) {
+                        spellType = "spellinnate";
+                        setAttribute(characterId, "toggle_innate", "innate");
+                        manageToggles(characterId, "innate", "add");
+                    } else if (spellLevel === 0 || spellLevel.trim() === "0") {
+                        spellType = "cantrip";
+                    } else {
+                        spellType = "normalspells";
+                        setAttribute(characterId, "toggle_normalspells", "spells");
+                    }
+                    attributeName = "repeating_" + spellType + "_" + generateRowID() + "_";
                     setAttribute(characterId, attributeName + "spelllevel", spellLevel);
                     setAttribute(characterId, attributeName + "current_level", spellLevel);
                     setAttribute(characterId, attributeName + "toggles", "display,");
@@ -802,7 +838,7 @@ var Guidance = Guidance || function () {
         let repTraits = getTraits(ability);
         ability = ability.replace(repTraits, "");
 
-        if (ability.includes("TRIGGER") && ability.includes("EFFECT ")) {
+        if (ability.includes("TRIGGER") && ability.includes("EFFECT")) {
             let trigger = getFirstMatchingElement(ability, /(?<=TRIGGER\s).*?(?=(EFFECT\s|$))/);
             ability = ability.replace(/TRIGGER\s.*?(?=(EFFECT\s|$))/, "");
             setAttribute(characterId, attributeName + "trigger", trigger);
