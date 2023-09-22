@@ -1,7 +1,7 @@
 var Guidance = Guidance || function () {
     "use strict";
 // Rarity - Common Rare Uncommon Unique
-    const guidanceWelcome = "<p>Welcome to Guidance! This tool assists Pathfinder 2e GMs in Roll20. It has the ability to read a statblock from the GMNotes section of a selected character and fill out the NPC section of the charactersheet. Statblocks from Archives of Nethys and PDFs are supported.</p> <p>&nbsp;</p><h2>THE MAIN COMMANDS</h2> <p>&nbsp;</p> <p><em><strong>!pf_npc</strong></em></p> <p>This imports a statblock from the GM Notes section of a character sheet and will out the NPC section of the Pathfinder character sheet. Furthermore, it configures the token's hit points and give AC indicators.</p> <p><em>How to:</em></p><ol> <li>Select and copy a stat block and paste it into the \"GM Notes\" section of a Character sheet. (Don't worry about removing any formatting) </li> <li>Click Save.</li> <li>Select the token that you have<a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\"> linked to the character sheet</a>. </li> <li>Type !pf_npc. The script attempts to use the statblock to fill out the NPC section of the Starfinder (Simple) character sheet. </li></ol> <p>The script supports character statblocks from the <a href=\"https://2e.aonprd.com/\">Archives of Nethys</a> and <span style=\"font-style: italic;\">Society PDFs. Double check the results after importing a statblock. From time to time, abilities of various types MAY include text from another ability. IF THIS HAPPENS, you can add the @ at the end of an ability that has text from the next ability included.</span></p> <p>&nbsp;</p><p><em><strong>!pf_clean</strong></em></p> <p>I've included this for completeness, but be warned - this command will <span style=\"text-decoration: underline;\"><strong>PERMANENTLY ERASE</strong></span> things from the character sheet so use with caution. As above, this command requires selecting a token that has been <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked to the character sheet</a>.</p> <p><em>How to:</em></p> <p style=\"padding-left: 40px;\"><em><strong>!pf_clean CONFIRM</strong></em> - This will erase ALL stats from the character sheet AND remove ALL formatting from the token. It will not touch the GM Notes section of the character sheet so it can be reimported using !pf_npc.</p><p style=\"padding-left: 40px;\"><strong><em>!pf_clean ABILITIES</em></strong> - This will rease ALL macros from the character sheet.</p> <p>&nbsp;</p><h3>OTHER USEFUL FEATURES</h3> <p> <em><strong>!pf_addspell</strong></em></p> <p>This adds a spell to the NPC character sheet as a macro. Similar to pf_ability, when you run the macro to call this, a box appears allowing you to paste the full text of the spell. The script formats the spellblock. Afterwards, I recommend manually editing the macro in the \"description\" tag to tailor the results of the macro for use in play.</p> <p>&nbsp;</p> <p>Find other details on the wiki <a href=\"https://wiki.roll20.net/Script:Starfinder_-_Guidance_Tools_for_Starfinder_(Simple)_Character_sheet\">HERE</a>.</p> <p>Feel free to reach out to me if you find any bug or have any suggestions <a href=\"https://app.roll20.net/users/927625/kahn265\">HERE</a>.</p>";
+    const guidanceWelcome = "<p>Welcome to Guidance! This tool assists Pathfinder 2e GMs in Roll20. It has the ability to read a stat block from the GMNotes section of a selected character and fill out the NPC section of the character sheet. Stat blocks from Archives of Nethys and PDFs are supported.</p> <p>&nbsp;</p><h2>THE MAIN COMMANDS</h2> <p>&nbsp;</p> <p><em><strong>!pf_npc</strong></em></p> <p>This imports a stat block from the GM Notes section of a character sheet and will out the NPC section of the Pathfinder character sheet. Furthermore, it configures the token's hit points and give AC indicators.</p> <p><em>How to:</em></p><ol> <li>Select and copy a stat block and paste it into the \"GM Notes\" section of a Character sheet. (Don't worry about removing any formatting) </li> <li>Click Save.</li> <li>Select the token that you have<a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\"> linked to the character sheet</a>. </li> <li>Type !pf_npc. The script attempts to use the stat block to fill out the NPC section of the Starfinder (Simple) character sheet. </li></ol> <p>The script supports character stat blocks from the <a href=\"https://2e.aonprd.com/\">Archives of Nethys</a> and <span style=\"font-style: italic;\">Society PDFs. Double check the results after importing a stat block. From time to time, abilities of various types MAY include text from another ability. IF THIS HAPPENS, you can add the @ at the end of an ability that has text from the next ability included.</span></p> <p>&nbsp;</p><p><em><strong>!pf_clean</strong></em></p> <p>I've included this for completeness, but be warned - this command will <span style=\"text-decoration: underline;\"><strong>PERMANENTLY ERASE</strong></span> things from the character sheet so use with caution. As above, this command requires selecting a token that has been <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked to the character sheet</a>.</p> <p><em>How to:</em></p> <p style=\"padding-left: 40px;\"><em><strong>!pf_clean CONFIRM</strong></em> - This will erase ALL stats from the character sheet AND remove ALL formatting from the token. It will not touch the GM Notes section of the character sheet so it can be reimported using !pf_npc.</p><p style=\"padding-left: 40px;\"><strong><em>!pf_clean ABILITIES</em></strong> - This will erase ALL macros from the character sheet.</p> <p>&nbsp;</p><h3>OTHER USEFUL FEATURES</h3> <p> <em><strong>!pf_addspell</strong></em></p> <p>This adds a spell to the NPC character sheet as a macro. Similar to pf_ability, when you run the macro to call this, a box appears allowing you to paste the full text of the spell. The script formats the spellblock. Afterwards, I recommend manually editing the macro in the \"description\" tag to tailor the results of the macro for use in play.</p> <p>&nbsp;</p> <p>Find other details on the wiki <a href=\"https://wiki.roll20.net/Script:Starfinder_-_Guidance_Tools_for_Starfinder_(Simple)_Character_sheet\">HERE</a>.</p> <p>Feel free to reach out to me if you find any bug or have any suggestions <a href=\"https://app.roll20.net/users/927625/kahn265\">HERE</a>.</p>";
     const guidanceGreeting = "Greetings, I am Guidance. I am here to assist you working with your game. " +
         "To learn more, I created a welcome guide in the journal section.";
 
@@ -312,6 +312,7 @@ var Guidance = Guidance || function () {
                             speakAsGuidanceToGM("This does not appear to be a character statblock");
                             return;
                         }
+                        eraseCharacter(c);
                         populateCharacterSheet(gmNotes, c);
                         configureToken(c);
                     });
@@ -376,6 +377,8 @@ var Guidance = Guidance || function () {
             npcToken.set("showname", true);
             npcToken.set("bar3_value", "AC " + armorClass.get("current"));
             npcToken.set("bar3_max", "-0");
+            npcToken.set("bar1_value", "" + hitPoints.get("current"));
+            npcToken.set("bar1_max", "" + hitPoints.get("current"));
             npcToken.set("bar1_link", hitPoints.id);
         } catch (err) {
             speakAsGuidanceToGM("There is a Token Configuration Error - Check to make sure the tokens are linked to the selected NPCs.");
@@ -425,17 +428,23 @@ var Guidance = Guidance || function () {
             statBlock = populateStat(characterId, statBlock, /(?<=.*)(Fine|Diminutive|Tiny|Small|Medium|Large|Huge|Gargantuan|Colossal)(?=~|\s+)/si, "size");
             statBlock = populateStat(characterId, statBlock, /.*?(?=Source|Perception)/s, "traits");
             statBlock = populateStat(characterId, statBlock, /.*?(?=~|Perception)/s, "source");
-            statBlock = populateStat(characterId, statBlock, /(?<=.*Perception).*?(?=~|;)/s, "npc_perception", "perception");
+            statBlock = populateStat(characterId, statBlock, /(?<=.*Perception).*?(?=[~;])/s, "npc_perception", "perception");
             statBlock = populateStat(characterId, statBlock, /.*?(?=~|Skills|Languages)/s, "senses");
             statBlock = populateStat(characterId, statBlock, /(?<=Languages).*?(?=Skills|~)/s, "languages");
             statBlock = getSubstringStartingFrom(statBlock, "Skills");
 
-            ["Acrobatics", "Arcana", "Athletics", "Crafting", "Deception", "Diplomacy", "Intimidation",
-                "Lore", "Medicine", "Nature", "Occultism", "Performance", "Religion", "Society", "Stealth", "Survival",
+            ["Acrobatics", "Arcana", "Athletics", "Crafting", "Deception", "Diplomacy", "Intimidation", "Lore",
+                "Medicine", "Nature", "Occultism", "Performance", "Religion", "Society", "Stealth", "Survival",
                 "Thievery"].forEach(skill => {
                 let re = new RegExp(`(?<=${skill}\\s).*?(?=\\s*[,~])`, 'gi');
-                populateStat(characterId, statBlock, re, skill.toLowerCase());
-                populateStat(characterId, statBlock, re, "npc_" + skill.toLowerCase());
+                let skillDetail = getFirstMatchingElement(statBlock, re);
+
+                skill = skill.toLowerCase();
+                if (skillDetail.includes("(")) {
+                    populateStat(characterId, skillDetail, /(?<=\().*?(?=\))/, skill + "_notes");
+                    skillDetail = getFirstMatchingElement(skillDetail, /.+?(?=(\(|\,|$))/);
+                }
+                [skill, "npc_" + skill].forEach(stats => setAttribute(characterId, stats, skillDetail));
             });
 
             ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"].forEach(stat => {
@@ -474,7 +483,14 @@ var Guidance = Guidance || function () {
             }
             statBlock = populateStat(characterId, statBlock, /(?<=Will).*?(?=(HP|;|~))/, "npc_saving_throws_will", "saving_throws_will");
 
-            populateStat(characterId, statBlock, /(?<=HP).*?(?=[~;])/, "npc_hit_points", "hit_points");
+            let hitPointInformation = getFirstMatchingElement(statBlock, /(?<=HP).*?(?=[~;])/);
+            if (hitPointInformation.includes(",")) {
+                populateStat(characterId, hitPointInformation, /(?<=\,).*?(?=[~;])/, "hit_points_notes");
+                hitPointInformation = getFirstMatchingElement(hitPointInformation, /\d+(?=\,)/);
+            }
+            ["npc_hit_points", "hit_points"].forEach(stats =>
+                setAttribute(characterId, stats, hitPointInformation));
+
             populateStat(characterId, statBlock, /(?<=Immunities).*?(?=[~;])/, "immunities");
             populateStat(characterId, statBlock, /(?<=Weaknesses).*?(?=[~;])/, "weaknesses");
             populateStat(characterId, statBlock, /(?<=Resistances).*?(?=[~;])/, "resistances");
@@ -487,8 +503,10 @@ var Guidance = Guidance || function () {
                 abilityHandler(characterId, defenseAbilities, newRegex, parseAutomaticAbility);
             }
 
+
             statBlock = populateStat(characterId, statBlock, /(?<=Speed).*?(?=~)/, "speed", "speed_base", "speed_notes");
             statBlock = massageTheDataForAbilityParsing(statBlock);
+            statBlock = statBlock.replaceAll("EFFECT", "effect");
 
             statBlock = removeStartingDelimiters(statBlock);
             if (statBlock.startsWith("Melee")) {
@@ -524,18 +542,24 @@ var Guidance = Guidance || function () {
 
     // I hate this method, I wish I had better delimiters
     let massageTheDataForAbilityParsing = function (data) {
-        return data //.replaceAll("~", "")
-            .replaceAll("And", "and")
-            .replaceAll("Grab", "grab")
+        data = data.replaceAll("Grab", "grab")
             .replaceAll("Hit Points", "hit points")
             .replaceAll("Saving Throw", "saving throw")
             .replaceAll("Cantrip", "cantrip")
-            .replace(/[A-Z][a-z]+\W(of|to)\W[A-Z][a-z]+/, function (match) {
-                return toTitleCase(match);
-            })
             .replaceAll("Effect", "EFFECT")
             .replaceAll("Trigger", "TRIGGER")
+            .replace(/~\s*Critical\sSuccess/g, " CRITICAL SUCCESS")
+            .replace(/~\s*Success/g, " SUCCESS")
+            .replace(/~\s*Failure/g, " FAILURE")
+            .replace(/~\s*Critical\sFailure/g, " CRITICAL FAILURE")
             .trim();
+        data = data.replace(/(?<=[A-Z][a-z]+\s)at?(?=\s)/, "At")
+            .replace(/(?<=[A-Z][a-z]+\s)of?(?=\s)/, "Of")
+            .replace(/(?<=[A-Z][a-z]+\s)on?(?=\s)/, "On")
+            .replace(/(?<=[A-Z][a-z]+\s)to?(?=\s)/, "To")
+            .replace(/(?<=[A-Z][a-z]+\s)and?(?=\s)/, "And")
+            .replace(/(?<=[A-Z][a-z]+\s)the?(?=\s)/, "The");
+        return data;
     }
 
     let abilityHandler = function (characterId, source, regex, processor) {
@@ -613,16 +637,6 @@ var Guidance = Guidance || function () {
         let repTraits = getTraits(ability);
         ability = ability.replace(repTraits, "");
 
-        let effect;
-        if (ability.includes("EFFECT")) {
-            effect = getFirstMatchingElement(ability, /EFFECT\s.*/);
-        } else {
-            effect = ability;
-        }
-
-        const actions = getFirstMatchingElement(ability, /\[.*action\w*\]/);
-        effect = effect + actions;
-
         const attributeName = "repeating_" + attackType.toLowerCase() + "-strikes_" + generateRowID() + "_";
         if (repTraits.includes("agile")) {
             setAttribute(characterId, attributeName + "weapon_agile", "1");
@@ -633,8 +647,8 @@ var Guidance = Guidance || function () {
         setAttribute(characterId, attributeName + "weapon_strike", attackBonusMatch.replace("+", ""));
         setAttribute(characterId, attributeName + "weapon_map2", "@{strikes_map2}");
         setAttribute(characterId, attributeName + "weapon_map3", "@{strikes_map3}");
-        setAttribute(characterId, attributeName + "npc_weapon_notes", effect);
-        setAttribute(characterId, attributeName + "weapon_notes", effect);
+        setAttribute(characterId, attributeName + "npc_weapon_notes", ability);
+        setAttribute(characterId, attributeName + "weapon_notes", ability);
 
         debugLog("parseAttackAbility = " + ability);
         let damage = getFirstMatchingElement(ability, /(?<=DAMAGE\s+)\d+d\d+(\+\d+)*/);
@@ -743,8 +757,7 @@ var Guidance = Guidance || function () {
         debugLog("parseSpecialAbility = " + ability);
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
         let abilityName = getAbilityName(ability);
-        let actions = getFirstMatchingElement(ability, /(?<=\[\s*).*action?(?=\])/);
-
+        let actions = getFirstMatchingElement(ability, /(?<=\[\s*).*action.*?(?=\])/);
         enterOtherAbility(characterId, attributeName, abilityName, ability, actions);
     }
 
@@ -783,10 +796,10 @@ var Guidance = Guidance || function () {
         let repTraits = getTraits(ability);
         ability = ability.replace(repTraits, "");
 
-        let trigger = getFirstMatchingElement(ability, /(?<=TRIGGER\s).*?(?=(EFFECT\s|$))/);
-        let effect = getFirstMatchingElement(ability, /\sEFFECT\s.*/)
         if (ability.includes("TRIGGER") && ability.includes("EFFECT ")) {
+            let trigger = getFirstMatchingElement(ability, /(?<=TRIGGER\s).*?(?=(EFFECT\s|$))/);
             ability = ability.replace(/TRIGGER\s.*?(?=(EFFECT\s|$))/, "");
+            setAttribute(characterId, attributeName + "trigger", trigger);
         }
 
         ability = ability.replace(abilityName, "");
@@ -796,8 +809,7 @@ var Guidance = Guidance || function () {
         setAttribute(characterId, attributeName + "npc_description", ability);
         setAttribute(characterId, attributeName + "description", ability);
         setAttribute(characterId, attributeName + "rep_traits", repTraits);
-        setAttribute(characterId, attributeName + "trigger", trigger);
-        setAttribute(characterId, attributeName + "npc_weapon_notes", effect);
+        setAttribute(characterId, attributeName + "npc_weapon_notes", ability);
         setAttribute(characterId, attributeName + "actions", actions);
         setAttribute(characterId, attributeName + "toggles", "display,");
     }
