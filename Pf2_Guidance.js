@@ -456,7 +456,7 @@ var Guidance = Guidance || function () {
             let senseAbilities = getFirstMatchingElement(statBlock, /^.*?(?=(AC\s|Items))/);
             senseAbilities = massageTheDataForAbilityParsing(senseAbilities);
             if (senseAbilities.length > 0) {
-                let newRegex = new RegExp(/((([A-Z][a-z]+\s)+[\[\(])|([A-Z][a-z]+\s){2,}).*?(?=(~\s*[A-Z][a-z]*\s+)|$)/, "g");
+                let newRegex = new RegExp(/((([A-Z][a-z]+(\s|\-))+[\[\(])|([A-Z][a-z]+\s){2,}).*?(?=(~\s*[A-Z][a-z]*\s+)|$)/, "g");
                 abilityHandler(characterId, senseAbilities, newRegex, parseInteractionAbility);
             }
 
@@ -524,10 +524,6 @@ var Guidance = Guidance || function () {
                 let newRegex = new RegExp(/(([A-Z][a-z]+\s(\w+\s)*)+(Spells|Rituals)).*?(?=(~\s*[A-Z][a-z]+\s+)|Melee|Ranged|$)/, "g");
                 statBlock = statBlock.replaceAll("Constant", "CONSTANT");
                 setAttribute(characterId, "toggles", "color:default.npcspellcasters");
-                setAttribute(characterId, "toggle_innate", 0);
-                setAttribute(characterId, "toggle_focus", 0);
-                setAttribute(characterId, "toggle_cantrips", 0);
-                setAttribute(characterId, "toggle_normalspells", 0);
                 statBlock = abilityHandler(characterId, statBlock, newRegex, parseSpells);
                 speakAsGuidanceToGM("WARNING! Spells are populated, but cannot populate the details due to Roll20 limitations");
             }
@@ -557,6 +553,7 @@ var Guidance = Guidance || function () {
             .replace(/~\s*Success/g, " SUCCESS")
             .replace(/~\s*Failure/g, " FAILURE")
             .replace(/~\s*Critical\sFailure/g, " CRITICAL FAILURE")
+            .replace(/(?<=[a-z])\'s/g, "s")
             .trim();
         data = data.replace(/(?<=[A-Z][a-z]+\s)at?(?=\s)/, "At")
             .replace(/(?<=[A-Z][a-z]+\s)of?(?=\s)/, "Of")
@@ -607,9 +604,9 @@ var Guidance = Guidance || function () {
 
     let getAbilityName = function (ability) {
         if (ability.includes(".")) {
-            return getFirstMatchingElement(ability, /([A-Z][a-z]*\s)+(?=([\(\[])|([A-Z][a-z]*))/).trim();
+            return getFirstMatchingElement(ability, /([A-Z][a-z]*(\s|\-))+(?=([\(\[])|([A-Z][a-z]*))/).trim();
         }
-        return getFirstMatchingElement(ability, /([A-Z][a-z]*\s)+/).trim();
+        return getFirstMatchingElement(ability, /([A-Z][a-z]*(\s|\-))+/).trim();
     }
 
     let parseAutomaticAbility = function (characterId, ability) {
@@ -677,20 +674,6 @@ var Guidance = Guidance || function () {
         setAttribute(characterId, attributeName + "toggles", "display,");
     }
 
-    let manageToggles = function (characterId, toggle, action) {
-        let value = getAttribute(characterId, "toggles");
-        if (value.includes(toggle) && action.includes("remove")) {
-            value = value.replace(toggle, "");
-        }
-
-        if (!value.includes(toggle) && action.includes("add")) {
-            toggle = "," + toggle;
-            value = value + toggle;
-        }
-        value = value.replaceAll(".,", ".").replaceAll(",,", "");
-        setAttribute(characterId, "toggles", value);
-    }
-
     let parseSpells = function (characterId, ability) {
         debugLog("parseSpells = " + ability);
         const attributeName = "repeating_actions-activities_" + generateRowID() + "_";
@@ -719,23 +702,21 @@ var Guidance = Guidance || function () {
         setAttribute(characterId, attributeName + "name", spells);
         setAttribute(characterId, attributeName + "npc_description", theRest);
         setAttribute(characterId, attributeName + "description", theRest);
-        setAttribute(characterId, "npc_spell_dc", matchSpellDC);
         setAttribute(characterId, attributeName + "toggles", "display,");
         ability = formatDamageDiceIfPresent(ability);
-
-        if (ability.includes("cantrip")) {
-            manageToggles(characterId, "cantrips", "add");
-        }
 
         let spellDC = "";
         let attackBonus = "";
 
         if (matchSpellDC.test(theRest)) {
             spellDC = getFirstMatchingElement(theRest, matchSpellDC);
+            setAttribute(characterId, "spell_dc", spellDC);
             setAttribute(characterId, "npc_spell_dc", spellDC);
         }
+
         if (matchAttack.test(theRest)) {
             attackBonus = getFirstMatchingElement(theRest, matchAttack);
+            setAttribute(characterId, "spell_attack", attackBonus);
             setAttribute(characterId, "npc_spell_attack", attackBonus);
         }
 
@@ -773,41 +754,49 @@ var Guidance = Guidance || function () {
                 spellList.forEach(spellName => {
                     let attributeName;
                     let spellType;
+
                     if (spells.toLowerCase().includes("innate")) {
                         spellType = "spellinnate";
                         setAttribute(characterId, "toggle_innate", "innate");
-                        manageToggles(characterId, "innate", "add");
                     } else if (spellLevel === 0 || spellLevel.trim() === "0") {
                         spellType = "cantrip";
                         setAttribute(characterId, "toggle_cantrips", "cantrips");
+                    } else if (ability.toLowerCase().includes("focus point")) {
+                        spellType = "spellfocus";
+                        setAttribute(characterId, "toggle_focus", "focus");
+                        let focusPoints = getFirstMatchingElement(ability, /(?<=Spells\s)\d+/)
+                        setAttribute(characterId, "focus_points", focusPoints);
                     } else {
                         spellType = "normalspells";
                         setAttribute(characterId, "toggle_normalspells", "spells");
                     }
+
                     attributeName = "repeating_" + spellType + "_" + generateRowID() + "_";
                     setAttribute(characterId, attributeName + "spelllevel", spellLevel);
                     setAttribute(characterId, attributeName + "current_level", spellLevel);
                     setAttribute(characterId, attributeName + "toggles", "display,");
                     spellName = spellName.replace(/\(\d+\w+\)/, "");
 
+                    let extraDetails = "";
                     if (spellName.toLowerCase().includes("at will")) {
                         setAttribute(characterId, attributeName + "frequency", "at-will");
+                        spellName = spellName.replaceAll("(at will)", "");
                     } else if (spellName.toLowerCase().includes("constant")) {
                         setAttribute(characterId, attributeName + "frequency", "constant");
+                        spellName = spellName.replaceAll("(constant)", "");
+                    } else if (spellName.includes("(") && spellName.toLowerCase().includes(")")) {
+                        extraDetails = getFirstMatchingElement(spellName, /\(.*\)/);
+                        spellName = spellName.replaceAll(extraDetails, "");
+                        extraDetails = ": " + extraDetails;
                     }
 
                     setAttribute(characterId, attributeName + "name", spellName.trim());
-                    setAttribute(characterId, attributeName + "description", "Unable to populate due to Roll20 limitations");
+                    setAttribute(characterId, attributeName + "description", "Unable to populate due to Roll20 limitations" + extraDetails);
                     setAttribute(characterId, attributeName + "cast_actions", "other");
                     setAttribute(characterId, attributeName + "magic_tradition", tradition);
-
-                    try {
-                        setAttribute(characterId, attributeName + "spell_dc", spellDC);
-                        setAttribute(characterId, attributeName + "spellattack", attackBonus);
-                        setAttribute(characterId, attributeName + "spellattack_final", attackBonus);
-                    } catch (e) {
-                        debugLog("No Spell DC/Attack Bonus");
-                    }
+                    setAttribute(characterId, attributeName + "spell_dc", spellDC);
+                    setAttribute(characterId, attributeName + "spellattack", attackBonus);
+                    setAttribute(characterId, attributeName + "spellattack_final", attackBonus);
                 });
             }
         });
