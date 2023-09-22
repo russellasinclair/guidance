@@ -702,6 +702,17 @@ var Guidance = Guidance || function () {
             setAttribute(characterId, "spellcaster_spontaneous", "spontaneous");
         }
 
+        let tradition;
+        if (spells.toLowerCase().includes("occult")) {
+            tradition = "occult";
+        } else if (spells.toLowerCase().includes("arcane")) {
+            tradition = "arcane";
+        } else if (spells.toLowerCase().includes("divine")) {
+            tradition = "divine";
+        } else if (spells.toLowerCase().includes("primal")) {
+            tradition = "primal";
+        }
+
         let theRest = getFirstMatchingElement(ability, /(?<=(Spells|Rituals)\s+).*/);
         const matchSpellDC = new RegExp(/(?<=DC\s)\d+/);
         const matchAttack = new RegExp(/(?<=,\sattack\s)([+\-])\d+?(?=;)/);
@@ -714,7 +725,6 @@ var Guidance = Guidance || function () {
 
         if (ability.includes("cantrip")) {
             manageToggles(characterId, "cantrips", "add");
-            setAttribute(characterId, "toggle_cantrips", "cantrips");
         }
 
         let spellDC = "";
@@ -769,6 +779,7 @@ var Guidance = Guidance || function () {
                         manageToggles(characterId, "innate", "add");
                     } else if (spellLevel === 0 || spellLevel.trim() === "0") {
                         spellType = "cantrip";
+                        setAttribute(characterId, "toggle_cantrips", "cantrips");
                     } else {
                         spellType = "normalspells";
                         setAttribute(characterId, "toggle_normalspells", "spells");
@@ -779,9 +790,16 @@ var Guidance = Guidance || function () {
                     setAttribute(characterId, attributeName + "toggles", "display,");
                     spellName = spellName.replace(/\(\d+\w+\)/, "");
 
+                    if (spellName.toLowerCase().includes("at will")) {
+                        setAttribute(characterId, attributeName + "frequency", "at-will");
+                    } else if (spellName.toLowerCase().includes("constant")) {
+                        setAttribute(characterId, attributeName + "frequency", "constant");
+                    }
+
                     setAttribute(characterId, attributeName + "name", spellName.trim());
                     setAttribute(characterId, attributeName + "description", "Unable to populate due to Roll20 limitations");
                     setAttribute(characterId, attributeName + "cast_actions", "other");
+                    setAttribute(characterId, attributeName + "magic_tradition", tradition);
 
                     try {
                         setAttribute(characterId, attributeName + "spell_dc", spellDC);
