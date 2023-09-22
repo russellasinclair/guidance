@@ -547,6 +547,7 @@ var Guidance = Guidance || function () {
             .replaceAll("Hit Points", "hit points")
             .replaceAll("Saving Throw", "saving throw")
             .replaceAll("Cantrip", "cantrip")
+            .replaceAll("Focus Point", "focus point")
             .replaceAll("Effect", "EFFECT")
             .replaceAll("Trigger", "TRIGGER")
             .replace(/~\s*Critical\sSuccess/g, " CRITICAL SUCCESS")
