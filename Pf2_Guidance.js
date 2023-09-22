@@ -559,6 +559,12 @@ var Guidance = Guidance || function () {
             .replace(/(?<=[A-Z][a-z]+\s)to?(?=\s)/, "To")
             .replace(/(?<=[A-Z][a-z]+\s)and?(?=\s)/, "And")
             .replace(/(?<=[A-Z][a-z]+\s)the?(?=\s)/, "The");
+
+        // edge case.
+        data = data.replace(/(?<=EFFECT\s*)~\s*[A-Z]/g, function (match) {
+            match = match.replace("~", "");
+            return match.toLowerCase();
+        });
         return data;
     }
 
@@ -774,7 +780,7 @@ var Guidance = Guidance || function () {
         let returnValue = candidates.find(candidate => {
             let found = true;
             let words = candidate.split(",");
-            // false equivalent to break - stop checking
+            // false is equivalent to break - stop checking
             words.every(word => {
                 if (!regex.test(word.trim())) {
                     found = false;
