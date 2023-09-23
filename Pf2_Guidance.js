@@ -16,7 +16,7 @@ var Guidance = Guidance || function () {
     const commandPopulate = prefix + "npc";
     const allTraits = "Aftermath,All Ancestries,Archetype,Attack,Aura,Cantrip,Charm,Class,Concentrate,Consecration,Contingency,Curse,Darkness,Death,Dedication,Detection,Deviant,Disease,Downtime,Emotion,Experiment,Exploration,Extradimensional,Fear,Flourish,Focus,Fortune,General,Healing,Incapacitation,Incarnate,Legacy,Light,Lineage,Linguistic,Magical,Manipulate,Mental,Metamagic,Mindshift,Minion,Misfortune,Morph,Move,Multiclass,Open,Polymorph,Possession,Prediction,Press,Radiation,Reckless,Revelation,Scrying,Secret,Skill,Sleep,Spellshape,Splash,Summoned,Tech,Telepathy,Teleportation,Varies,Virulent,Vocal,Chaotic,Evil,Good,Lawful,Aasimar,Anadi,Android,Aphorite,Ardande,Automaton,Azarketi,Beastkin,Catfolk,Changeling,Conrasu,Dhampir,Duskwalker,Dwarf,Elf,Fetchling,Fleshwarp,Ganzi,Geniekin,Ghoran,Gnoll,Gnome,Goblin,Goloma,Grippli,Half-Elf,Halfling,Half-Orc,Hobgoblin,Human,Ifrit,Kashrishi,Kitsune,Kobold,Leshy,Lizardfolk,Nagaji,Orc,Oread,Poppet,Ratfolk,Reflection,Shisk,Shoony,Skeleton,Sprite,Strix,Suli,Sylph,Talos,Tengu,Tiefling,Undine,Vanara,Vishkanya,Adjusted,Aquadynamic,Bulwark,Comfort,Flexible,Hindering,Inscribed,Laminar,Noisy,Ponderous,Alchemist,Barbarian,Bard,Champion,Cleric,Druid,Fighter,Gunslinger,Inventor,Investigator,Kineticist,Magus,Monk,Oracle,Psychic,Ranger,Rogue,Sorcerer,Summoner,Swashbuckler,Thaumaturge,Witch,Wizard,Additive,Amp,Composite,Composition,Cursebound,Eidolon,Esoterica,Evolution,Finisher,Hex,Impulse,Infused,Infusion,Litany,Modification,Oath,Overflow,Psyche,Rage,Social,Spellshot,Stance,Tandem,Unstable,Vigilante,Aberration,Animal,Astral,Beast,Celestial,Construct,Dragon,Dream,Elemental,Ethereal,Fey,Fiend,Fungus,Giant,Humanoid,Monitor,Negative,Ooze,Petitioner,Plant,Positive,Spirit,Time,Undead,Air,Earth,Fire,Metal,Water,Wood,Acid,Cold,Electricity,Force,Sonic,Vitality,Void,Adjustment,Alchemical,Apex,Artifact,Barding,Bomb,Bottled,Breath,Catalyst,Censer,Clockwork,Coda,Companion,Consumable,Contract,Cursed,Drug,Elixir,Entrench,Expandable,Figurehead,Focused,Fulu,Gadget,Grimoire,Intelligent,Invested,Lozenge,Mechanical,Missive,Mutagen,Oil,Potion,Precious,Processed,Relic,Saggorak,Scroll,Snare,Spellgun,Spellheart,Staff,Steam,Structure,Talisman,Tattoo,Trap,Wand,Complex,Environmental,Haunt,Weather,Aeon,Aesir,Agathion,Amphibious,Angel,Anugobu,Aquatic,Arcane,Archon,Asura,Azata,Boggard,Caligni,Charau-ka,Couatl,Daemon,Darvakka,Demon,Dero,Devil,Dinosaur,Div,Drow,Duergar,Formian,Genie,Ghost,Ghoul,Ghul,Golem,Gremlin,Grioth,Hag,Hantu,Herald,Ikeshti,Illusion,Incorporeal,Inevitable,Kaiju,Kami,Kovintus,Lilu,Locathah,Merfolk,Mindless,Morlock,Mortic,Mummy,Munavri,Mutant,Nymph,Oni,Paaridar,Phantom,Protean,Psychopomp,Qlippoth,Rakshasa,Ratajin,Sahkil,Samsaran,Sea Devil,Serpentfolk,Seugathi,Shabti,Shapechanger,Siktempora,Skelm,Skulk,Soulbound,Sporeborn,Spriggan,Stheno,Swarm,Tane,Tanggal,Titan,Troll,Troop,Urdefhan,Vampire,Velstrac,Wayang,Werecreature,Wight,Wild Hunt,Wraith,Wyrwood,Xulgath,Zombie,Erratic,Finite,Flowing,High Gravity,Immeasurable,Low Gravity,Metamorphic,Microgravity,Sentient,Shadow,Static,Strange Gravity,Subjective Gravity,Timeless,Unbounded,Contact,Ingested,Inhaled,Injury,Poison,Abjuration,Conjuration,Divination,Enchantment,Evocation,Necromancy,Transmutation,Auditory,Olfactory,Visual,Deflecting,Foldaway,Harnessed,Hefty,Integrated,Launching,Shield Throw,Divine,Occult,Primal,Agile,Attached,Backstabber,Backswing,Brace,Brutal,Capacity,Climbing,Cobbled,Combination,Concealable,Concussive,Critical Fusion,Deadly,Disarm,Double,Barrel,Fatal,Fatal Aim,Finesse,Forceful,Free-Hand,Grapple,Hampering,Injection,Jousting,Kickback,Modular,Mounted,Nonlethal,Parry,Portable,Propulsive,Range,Ranged Trip,Razing,Reach,Recovery,Reload,Repeating,Resonant,Scatter,Shove,Sweep,Tethered,Thrown,Training,Trip,Twin,Two-Hand,Unarmed,Vehicular,Versatile,Volley";
 
-    //<editor-fold desc="Support Methods">
+    //<editor-fold desc="Support Methods"  defaultstate="collapsed" >
     let getFirstMatchingElement = function (source, regex, ignoreEmpty) {
         let match = getMatchingArray(source, regex, ignoreEmpty);
         if (match[0] == null) {
@@ -216,9 +216,62 @@ var Guidance = Guidance || function () {
             .replace(/&nbsp;|&amp;/gi, " ")
             .replace(/\s+/g, " ");
     };
+
+    let eraseCharacter = function (c) {
+        for (const attribute of findObjs({_characterid: c.characterId, _type: "attribute"})) {
+            attribute.remove();
+        }
+        for (const ability of findObjs({_characterid: c.characterId, _type: "ability"})) {
+            ability.remove();
+        }
+        for (let i = 1; i < 4; i++) {
+            c.npcToken.set("bar" + i + "_value", "");
+            c.npcToken.set("bar" + i + "_max", "");
+        }
+
+        speakAsGuidanceToGM("Removed all properties for " + c.characterSheet.get("name"));
+        c.characterSheet.set("name", "Erased Character");
+    }
+
+    function populateStat(characterId, statBlock, regex, ...stats) {
+        debugLog("Starting with = " + statBlock);
+        debugLog("Starting with = " + stats[0]);
+        let current = getFirstMatchingElement(statBlock, regex);
+        statBlock = getSubstringStartingFrom(statBlock, current);
+        statBlock = removeStartingDelimiters(statBlock);
+        debugLog("returning = " + statBlock);
+
+        if (current === "") {
+            return statBlock;
+        }
+        current = current.replaceAll("~", "").trim();
+
+        if (Array.isArray(stats)) {
+            stats.forEach(stat => {
+                setAttribute(characterId, stat, current);
+            });
+        } else {
+            setAttribute(characterId, stats, current);
+        }
+        return statBlock;
+    }
+
+    let removeStartingDelimiters = function (statBlock) {
+        statBlock = statBlock.trim();
+        while (statBlock.startsWith(";") || statBlock.startsWith("~")) {
+            if (statBlock.startsWith(";")) {
+                statBlock = getSubstringStartingFrom(statBlock, ";");
+            }
+            if (statBlock.startsWith("~")) {
+                statBlock = getSubstringStartingFrom(statBlock, "~");
+            }
+        }
+        return statBlock;
+    }
+
     //</editor-fold>
 
-    //<editor-fold desc="on(ready) event">
+    //<editor-fold desc="on(ready) event"  defaultstate="collapsed" >
     on("ready", function () {
         speakAsGuidanceToGM(guidanceGreeting);
 
@@ -234,7 +287,7 @@ var Guidance = Guidance || function () {
             userGuide = objs[0];
         }
         userGuide.get("gmnotes", function (gmNotes) {
-            if (gmNotes.indexOf("debug")) {
+            if (gmNotes.includes("debug")) {
                 debugMode = true;
                 speakAsGuidanceToGM("Debug Mode has been enabled");
             }
@@ -328,41 +381,6 @@ var Guidance = Guidance || function () {
         }
     });
 
-    function populateStat(characterId, statBlock, regex, ...stats) {
-        debugLog("Starting with = " + statBlock);
-        debugLog("Starting with = " + stats[0]);
-        let current = getFirstMatchingElement(statBlock, regex);
-        statBlock = getSubstringStartingFrom(statBlock, current);
-        statBlock = removeStartingDelimiters(statBlock);
-        debugLog("returning = " + statBlock);
-
-        if (current === "") {
-            return statBlock;
-        }
-        current = current.replaceAll("~", "").trim();
-
-        if (Array.isArray(stats)) {
-            stats.forEach(stat => {
-                setAttribute(characterId, stat, current);
-            });
-        } else {
-            setAttribute(characterId, stats, current);
-        }
-        return statBlock;
-    }
-
-    let removeStartingDelimiters = function (statBlock) {
-        statBlock = statBlock.trim();
-        while (statBlock.startsWith(";") || statBlock.startsWith("~")) {
-            if (statBlock.startsWith(";")) {
-                statBlock = getSubstringStartingFrom(statBlock, ";");
-            }
-            if (statBlock.startsWith("~")) {
-                statBlock = getSubstringStartingFrom(statBlock, "~");
-            }
-        }
-        return statBlock;
-    }
 
     //<editor-fold desc="configureToken - link the token stats to the NPC sheet and show the name">
     let configureToken = function (selectedNPC) {
@@ -386,24 +404,6 @@ var Guidance = Guidance || function () {
             log(new Error().stack);
         }
     };
-    //</editor-fold>
-
-    //<editor-fold desc="eraseCharacter - Remove all Attributes and Macros from the NPC sheet">
-    let eraseCharacter = function (c) {
-        for (const attribute of findObjs({_characterid: c.characterId, _type: "attribute"})) {
-            attribute.remove();
-        }
-        for (const ability of findObjs({_characterid: c.characterId, _type: "ability"})) {
-            ability.remove();
-        }
-        for (let i = 1; i < 4; i++) {
-            c.npcToken.set("bar" + i + "_value", "");
-            c.npcToken.set("bar" + i + "_max", "");
-        }
-
-        speakAsGuidanceToGM("Removed all properties for " + c.characterSheet.get("name"));
-        c.characterSheet.set("name", "Erased Character");
-    }
     //</editor-fold>
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

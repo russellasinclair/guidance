@@ -1,42 +1,41 @@
-/*
-Starfinder utilities for Roll20
-Requires API
-*/
 var Guidance = Guidance || (function () {
     "use strict";
+
+    const guidanceWelcome = "<p>This is a tool to support the usage of the Starfinder character sheets in Roll20. It has the ability to read a statblock from the GMNotes section of a selected character and fill out the NPC section of the charactersheet. Statblocks from Archives of Nethys and Starjammer SRD are supported. Statblocks from PDFs can be used, but there may be parsing issues.</p> <p>&nbsp;</p> <h2>THE MAIN COMMANDS</h2> <p>&nbsp;</p> <p><em><strong>!sf_character</strong></em></p> <p>This imports a Starfinder statblock in the GM Notes section of a character sheet and will out the NPC section of the Starfinder (Simple) character sheet. Furthermore, it configures the token's hit points and give EAC/KAC indicators.</p> <p><em>How to:</em></p> <ol> <li>Select and copy a stat block and paste it into the \"GM Notes\" section of a Character sheet. (Don't worry about removing any formatting)</li> <li>Click Save.</li> <li>Select the token that you have<a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\"> linked to the character sheet</a>.</li> <li>Type !sf_character. The script attempts to use the statblock to fill out the NPC section of the Starfinder (Simple) character sheet.</li> </ol> <p>The script supports character statblocks from the <a href=\"https://www.aonsrd.com/Default.aspx\">Archives of Nethys</a> and the <a href=\"https://www.starjammersrd.com/\">Starjammer SRD</a>. <span style=\"font-style: italic;\">Society PDFs, at least in the earlier ones, sometimes present issues. Double check the results after importing a statblock from a PDF.</span></p> <p>&nbsp;</p> <p><strong><span style=\"font-style: italic;\">!sf_starship</span></strong></p> <p>This imports a Starfinder starship statblock from the GM Notes section of a <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked character sheet</a> and populates the Starship page of the sheet. Furthermore, It adds gunnery and piloting check macros. If the statblock doesn&rsquo;t have stats for the pilot/gunner, the script adds prompts so that when you click the macro, you are prompted for the bonus.</p> <p>This works the same as !sf_character but in practice, statblocks for starships are less consistent across platforms.</p> <p>&nbsp;</p> <p><em><strong>!sf_token</strong></em></p> <p>This populates the token with hitpoint, EAC, and KAC information in the event that the NPC sheet is setup, but the token isn't. The token will look like the one produced by !sf_character</p> <p>&nbsp;</p> <p><em><strong>!sf_clean</strong></em></p> <p>I've included this for completeness, but be warned - this command will <span style=\"text-decoration: underline;\"><strong>PERMANENTLY ERASE</strong></span> things from the character sheet so use with caution. As above, this command requires selecting a token that has been <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked to the character sheet</a>.</p> <p><em>How to:</em></p> <p style=\"padding-left: 40px;\"><em><strong>!sf_clean CONFIRM</strong></em> - This will erase ALL stats from the character sheet AND remove ALL formatting from the token. It will not touch the GM Notes section of the character sheet so it can be reimported using !sf_character.</p> <p style=\"padding-left: 40px;\"><strong><em>!sf_clean ABILITIES</em></strong> - This will rease ALL macros from the character sheet.</p> <p>&nbsp;</p> <h3>OTHER USEFUL COMMANDS</h3> <p><em><strong>!sf_init</strong></em></p> <p>This rolls group initiative for all selected NPCs. The script refers to the Initiative bonus on the NPC tab of the character sheet to do this.</p> <p>&nbsp;</p> <p><em><strong>!sf_addtrick</strong></em></p> <p>This adds a macro to handle Trick Attacks for the NPC. Click over to the main \"Character\" page, and configure Trick Attacks to make it work.</p> <p>&nbsp;</p> <h3>The next two commands will require creating a simple macro to run correctly</h3> <p>The macro will look like this.</p> <blockquote> <p style=\"padding-left: 40px;\">!sf_ability ?{textToPaste}</p> </blockquote> <p>&nbsp;</p> <p><em><strong>!sf_ability</strong></em></p> <p>This adds a special ability to the NPC character sheet for quick reference. If the macro has been created as described above, a box appears allowing you to paste the full text of a special ability.</p> <p>&nbsp;</p> <p><em><strong>!sf_addspell</strong></em></p> <p>This adds a spell to the NPC character sheet as a macro. Similar to sf_ability, when you run the macro to call this, a box appears allowing you to paste the full text of the spell. The script formats the spellblock. Afterwards, I recommend manually editing the macro in the \"description\" tag to tailor the results of the macro for use in play.</p> <p>&nbsp;</p> <p>Find other details on the wiki <a href=\"https://wiki.roll20.net/Script:Starfinder_-_Guidance_Tools_for_Starfinder_(Simple)_Character_sheet\">HERE</a>.</p> <p>Feel free to reach out to me if you find any bug or have any suggestions <a href=\"https://app.roll20.net/users/927625/kahn265\">HERE</a>.</p>";
+    const guidanceGreeting = "Greetings, I am Guidance. I am here to assist you working with your Starfinder game to make " +
+        "your time in the Pact Worlds more enjoyable. To learn more, I created a welcome guide in the journal section.";
+
     let debugMode = true;
     let simpleSheetUsed = false;
 
-    class StrUtils extends String {
-        constructor(s) {
-            super(s);
-        }
-
-        firstMatch(regex) {
-            let match = this.match(regex);
-            if (match == null || match.length === 0 || match[0] == null || !Array.isArray(match)) {
-                debugLog("firstItem: Not a valid array of strings");
+    //<editor-fold desc="Support Methods"  defaultstate="collapsed" >
+    let getFirstMatchingElement = function (source, regex, ignoreEmpty) {
+        let match = getMatchingArray(source, regex, ignoreEmpty);
+        if (match[0] == null) {
+            if (ignoreEmpty == undefined) {
                 return "";
             }
-            return match[0].trim();
+            return source;
         }
-
-        substringFrom(str) {
-            let index = this.indexOf(str);
-            if (index === -1) {
-                return "";
-            }
-            return this.substr(index + str.length);
-        }
+        return match[0].trim();
     }
 
-    let firstItem = (function (str) {
-        if (str == null || str.length === 0 || str[0] == null || !Array.isArray(str)) {
-            debugLog("firstItem: Not a valid array of strings");
+    let getMatchingArray = function (source, regex) {
+        let match = source.match(regex);
+        if (match == null || match.length === 0 || !Array.isArray(match)) {
+            debugLog("source=" + source + ", regex=" + regex + " didn't return an array");
+            return [];
+        }
+        return match;
+    }
+
+    let getSubstringStartingFrom = function (source, delimit) {
+        let index = source.toLowerCase().indexOf(delimit.toLowerCase());
+        if (index === -1) {
             return "";
         }
-        return str[0].trim();
-    });
+        return source.substr(index + delimit.length).trim();
+    }
 
     /// Class that represents a NPC/Starship that is being worked on.
     class NPC {
@@ -52,15 +51,6 @@ var Guidance = Guidance || (function () {
         }
     }
 
-    class TemplateRow {
-        constructor(sortOrder, attribute, value) {
-            this.val = value;
-            this.order = sortOrder;
-            this.attribute = attribute;
-        }
-    }
-
-    //<editor-fold desc="GENERIC HELPER ROUTINES">
     // Based on code from https://app.roll20.net/users/104025/the-aaron
     let generateUUID = (function () {
         let lastTimestamp = 0;
@@ -118,6 +108,26 @@ var Guidance = Guidance || (function () {
         })[0];
     };
 
+    let debugCharacterDetails = function (character) {
+        let attributes = findObjs({
+            _characterid: character.characterId,
+            _type: "attribute",
+        });
+        for (const att of attributes) {
+            log("{\"name\":" + att.get("name") + "\"," +
+                "\"current\":\"" + att.get("current") + "\"," +
+                "\"max\":\"" + att.get("max") + "\"}");
+        }
+
+        let abilities = findObjs({
+            _characterid: character.characterId,
+            _type: "ability",
+        });
+        for (const ab of abilities) {
+            debugLog(ab.get("name"));
+        }
+    };
+
     // borrowed from https://app.roll20.net/users/901082/invincible-spleen in the forums
     function setAttribute(characterId, attributeName, newValue, operator) {
         if (!attributeName || !newValue) {
@@ -169,81 +179,29 @@ var Guidance = Guidance || (function () {
         }
     };
 
+    let getSelectedNPCs = function (selected) {
+        let npcs = [];
+        for (const t of selected) {
+            debugLog(t);
+            let token = findObjs(t)[0];
+            let cid = token.get("represents");
+            npcs.push(new NPC(cid, token, findObjs({_id: cid, _type: "character"})[0]));
+        }
+        return npcs;
+    };
+
     let speakAsGuidanceToGM = function (text) {
         text = "/w gm  &{template:default} {{name=Guidance}} {{" + text + "}}";
         sendChat("Guidance", text);
     };
 
-    let welcomeHandout = function () {
-        return "<p>This is a tool to support the usage of the Starfinder character sheets in Roll20. It has the ability to read a statblock from the GMNotes section of a selected character and fill out the NPC section of the charactersheet. Statblocks from Archives of Nethys and Starjammer SRD are supported. Statblocks from PDFs can be used, but there may be parsing issues.</p> <p>&nbsp;</p> <h2>THE MAIN COMMANDS</h2> <p>&nbsp;</p> <p><em><strong>!sf_character</strong></em></p> <p>This imports a Starfinder statblock in the GM Notes section of a character sheet and will out the NPC section of the Starfinder (Simple) character sheet. Furthermore, it configures the token's hit points and give EAC/KAC indicators.</p> <p><em>How to:</em></p> <ol> <li>Select and copy a stat block and paste it into the \"GM Notes\" section of a Character sheet. (Don't worry about removing any formatting)</li> <li>Click Save.</li> <li>Select the token that you have<a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\"> linked to the character sheet</a>.</li> <li>Type !sf_character. The script attempts to use the statblock to fill out the NPC section of the Starfinder (Simple) character sheet.</li> </ol> <p>The script supports character statblocks from the <a href=\"https://www.aonsrd.com/Default.aspx\">Archives of Nethys</a> and the <a href=\"https://www.starjammersrd.com/\">Starjammer SRD</a>. <span style=\"font-style: italic;\">Society PDFs, at least in the earlier ones, sometimes present issues. Double check the results after importing a statblock from a PDF.</span></p> <p>&nbsp;</p> <p><strong><span style=\"font-style: italic;\">!sf_starship</span></strong></p> <p>This imports a Starfinder starship statblock from the GM Notes section of a <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked character sheet</a> and populates the Starship page of the sheet. Furthermore, It adds gunnery and piloting check macros. If the statblock doesn&rsquo;t have stats for the pilot/gunner, the script adds prompts so that when you click the macro, you are prompted for the bonus.</p> <p>This works the same as !sf_character but in practice, statblocks for starships are less consistent across platforms.</p> <p>&nbsp;</p> <p><em><strong>!sf_token</strong></em></p> <p>This populates the token with hitpoint, EAC, and KAC information in the event that the NPC sheet is setup, but the token isn't. The token will look like the one produced by !sf_character</p> <p>&nbsp;</p> <p><em><strong>!sf_clean</strong></em></p> <p>I've included this for completeness, but be warned - this command will <span style=\"text-decoration: underline;\"><strong>PERMANENTLY ERASE</strong></span> things from the character sheet so use with caution. As above, this command requires selecting a token that has been <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked to the character sheet</a>.</p> <p><em>How to:</em></p> <p style=\"padding-left: 40px;\"><em><strong>!sf_clean CONFIRM</strong></em> - This will erase ALL stats from the character sheet AND remove ALL formatting from the token. It will not touch the GM Notes section of the character sheet so it can be reimported using !sf_character.</p> <p style=\"padding-left: 40px;\"><strong><em>!sf_clean ABILITIES</em></strong> - This will rease ALL macros from the character sheet.</p> <p>&nbsp;</p> <h3>OTHER USEFUL COMMANDS</h3> <p><em><strong>!sf_init</strong></em></p> <p>This rolls group initiative for all selected NPCs. The script refers to the Initiative bonus on the NPC tab of the character sheet to do this.</p> <p>&nbsp;</p> <p><em><strong>!sf_addtrick</strong></em></p> <p>This adds a macro to handle Trick Attacks for the NPC. Click over to the main \"Character\" page, and configure Trick Attacks to make it work.</p> <p>&nbsp;</p> <h3>The next two commands will require creating a simple macro to run correctly</h3> <p>The macro will look like this.</p> <blockquote> <p style=\"padding-left: 40px;\">!sf_ability ?{textToPaste}</p> </blockquote> <p>&nbsp;</p> <p><em><strong>!sf_ability</strong></em></p> <p>This adds a special ability to the NPC character sheet for quick reference. If the macro has been created as described above, a box appears allowing you to paste the full text of a special ability.</p> <p>&nbsp;</p> <p><em><strong>!sf_addspell</strong></em></p> <p>This adds a spell to the NPC character sheet as a macro. Similar to sf_ability, when you run the macro to call this, a box appears allowing you to paste the full text of the spell. The script formats the spellblock. Afterwards, I recommend manually editing the macro in the \"description\" tag to tailor the results of the macro for use in play.</p> <p>&nbsp;</p> <p>Find other details on the wiki <a href=\"https://wiki.roll20.net/Script:Starfinder_-_Guidance_Tools_for_Starfinder_(Simple)_Character_sheet\">HERE</a>.</p> <p>Feel free to reach out to me if you find any bug or have any suggestions <a href=\"https://app.roll20.net/users/927625/kahn265\">HERE</a>.</p>";
-    };
-
-    // For Debugging purposes
-    let isNullOrUndefined = function (v) {
-        if (v == null) { // null or undefined
-            debugLog(v === null ? "null" : "undefined");
-            debugLog(new Error().stack);
-            return true;
+    let toTitleCase = function (str) {
+        str = str.toLowerCase().split(' ');
+        for (let i = 0; i < str.length; i++) {
+            str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
         }
-        return false;
-    };
-
-    let eraseCharacter = function (c) {
-        for (const attribute of findObjs({_characterid: c.characterId, _type: "attribute"})) {
-            debugLog("Removing " + attribute.get("name"));
-            attribute.remove();
-        }
-        for (const ability of findObjs({_characterid: c.characterId, _type: "ability"})) {
-            debugLog("Removing " + ability.get("name"));
-            ability.remove();
-        }
-        for (let i = 1; i < 4; i++) {
-            c.npcToken.set("bar" + i + "_value", "");
-            c.npcToken.set("bar" + i + "_max", "");
-        }
+        return str.join(' ');
     }
-
-    let getStringValue = function (textToFind, textToParse, delimiter = " ") {
-        let start = textToParse.indexOf(textToFind);
-        if (start === -1) {
-            return "";
-        }
-        start += textToFind.length;
-
-        let bucket = textToParse.substring(start);
-        if (delimiter !== ";") {
-            let end = bucket.indexOf(";");
-            if (end !== -1) {
-                bucket = bucket.substring(0, end);
-            }
-        }
-
-        bucket = bucket.trim();
-        let delimiterIndex = bucket.toLowerCase().indexOf(delimiter.toLowerCase());
-        if (delimiterIndex !== -1) {
-            bucket = bucket.substring(0, delimiterIndex).trim();
-        }
-        return bucket;
-    };
-
-    let getValue = function (textToFind, textToParse, delimiter) {
-        let bucket = getStringValue(textToFind, textToParse, delimiter);
-        let b2 = bucket.split(" ");
-        bucket = b2[0];
-        return bucket.replace(";", "").replace(",", " ").trim(); // replace("+", "")
-    };
-
-    let getSkillValue = function (skillName, attribute, textToParse) {
-        if (!textToParse.includes(skillName)) {
-            return 0;
-        }
-        let skill = parseFloat(getValue(skillName, textToParse));
-        debugLog(skillName + " : " + skill + " - " + attribute + " : " + getValue(attribute, textToParse));
-        if (attribute === null) {
-            return skill;
-        }
-        return skill - parseFloat(getValue(attribute, textToParse));
-    };
 
     let cleanText = function (textToClean) {
         return textToClean
@@ -259,6 +217,590 @@ var Guidance = Guidance || (function () {
             .replace(/\b(Str|Dex|Con|Int|Wis|Cha)\b/gi, function (match) {
                 return match.toUpperCase() + " ";
             });
+    };
+
+    let removeStartingDelimiters = function (statBlock) {
+        statBlock = statBlock.trim();
+        while (statBlock.startsWith(";") || statBlock.startsWith("~")) {
+            if (statBlock.startsWith(";")) {
+                statBlock = getSubstringStartingFrom(statBlock, ";");
+            }
+            if (statBlock.startsWith("~")) {
+                statBlock = getSubstringStartingFrom(statBlock, "~");
+            }
+        }
+        return statBlock;
+    }
+
+    let eraseCharacter = function (c) {
+        for (const attribute of findObjs({_characterid: c.characterId, _type: "attribute"})) {
+            debugLog("Removing " + attribute.get("name"));
+            attribute.remove();
+        }
+        for (const ability of findObjs({_characterid: c.characterId, _type: "ability"})) {
+            debugLog("Removing " + ability.get("name"));
+            ability.remove();
+        }
+        for (let i = 1; i < 4; i++) {
+            c.npcToken.set("bar" + i + "_value", "");
+            c.npcToken.set("bar" + i + "_max", "");
+        }
+
+        speakAsGuidanceToGM("Removed all properties for " + c.characterSheet.get("name"));
+        c.characterSheet.set("name", "Erased Character");
+    }
+
+    function populateStat(characterId, statBlock, regex, ...stats) {
+        debugLog("Starting with = " + statBlock);
+        debugLog("Starting with = " + stats[0]);
+        let current = getFirstMatchingElement(statBlock, regex);
+        statBlock = getSubstringStartingFrom(statBlock, current);
+        statBlock = removeStartingDelimiters(statBlock);
+        debugLog("returning = " + statBlock);
+
+        if (current === "") {
+            return statBlock;
+        }
+        current = current.replaceAll("~", "").trim();
+
+        if (Array.isArray(stats)) {
+            stats.forEach(stat => {
+                setAttribute(characterId, stat, current);
+            });
+        } else {
+            setAttribute(characterId, stats, current);
+        }
+        return statBlock;
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="on(ready) event"  defaultstate="collapsed" >
+    on("ready", function () {
+        speakAsGuidanceToGM(guidanceGreeting);
+
+        let handoutName = "Welcome To Guidance";
+        let objs = findObjs({name: handoutName, _type: "handout"});
+        let userGuide;
+
+        if (objs.length < 1) {
+            let userGuide = createObj("handout", {
+                name: handoutName
+            });
+            userGuide.set("notes", guidanceWelcome);
+        } else {
+            userGuide = objs[0];
+        }
+        userGuide.get("gmnotes", function (gmNotes) {
+            if (gmNotes.includes("debug")) {
+                debugMode = true;
+                speakAsGuidanceToGM("Debug Mode has been enabled");
+            }
+            if (gmNotes.includes("official")) {
+                simpleSheetUsed = false;
+                speakAsGuidanceToGM("The Roll20 official Starfinder sheet detected");
+            } else {
+                simpleSheetUsed = false;
+                speakAsGuidanceToGM("The Starfinder (Simple) sheet set");
+            }
+        });
+    });
+
+    //</editor-fold>
+
+    on("chat:message", function (chatMessage) {
+        if (chatMessage.type !== "api" || !playerIsGM(chatMessage.playerid)) {
+            return;
+        }
+
+        if (chatMessage.content.startsWith("!sf_help")) {
+            speakAsGuidanceToGM("I have several commands I support:<br><br>" +
+                "<b><i>!sf_character</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
+                "of a selected character and I will attempt to use it to fill out the NPC section of the Starfinder " +
+                "(Simple) character sheet. I support statblocks from the Archives of Nethys and the Starjammer SRD. " +
+                "<i>I don't do well with Society PDFs</i>. If you want to attempt using one, double check my work.<br><br>" +
+                "<b><i>!sf_clean CONFIRM</i></b> will allow me to take a selected character sheet and completely " +
+                "<i>AND PERMANENTLY</i> remove all data from it. <i>I recommend against using this unless you are about " +
+                "to reimport a character</i>.<br><br><b><i>!sf_token</i></b> will populate the token with hitpoint, " +
+                "EAC, and KAC information in the event that the sheet is setup, but the token isn't.<br><br><b><i>" +
+                "!sf_init</i></b> will roll group initiative for all selected NPCs<br><br><b><i>!sf_addtrick</i></b>" +
+                "will add a macro to handle Trick Attacks for the NPC<br><br><b><i>!sf_starship</i></b> will allow you " +
+                "to take a Starfinder starship statblock in the GM Notes section of a character sheet and populate it." +
+                "Furthermore, I will add weapons and piloting check macros.<br><br><b><i>!sf_ability</i></b> will allow" +
+                "me to add a special ability to the character sheet for quick reference. No macro is added<br><br><b>" +
+                "<i>!sf_addspell</i></b> add a macro to display a formatted spell stat block for a spell. I recommend " +
+                "editing the description of the new macro to display the appropriate rolls for the spell. ");
+            return;
+        }
+
+        if (chatMessage.selected === undefined) {
+            speakAsGuidanceToGM("Please select a token representing a character for me to work with");
+            return;
+        }
+
+        let selectedNPCs = getSelectedNPCs(chatMessage.selected);
+
+        try {
+            identifyCharacterSheet(selectedNPCs[1]);
+
+
+            //<editor-fold desc="Roll Initiative for a group of NPCs">
+            if (chatMessage.content.startsWith("!sf_init")) {
+                speakAsGuidanceToGM("Rolling NPC initiative for all selected tokens");
+                let turnorder = JSON.parse(Campaign().get("turnorder"));
+                selectedNPCs.forEach(function (npc) {
+                    npc.showContents();
+
+                    let init = getAttribute(npc.characterId, "npc-init-misc");
+                    if (init === undefined) {
+                        init = 0;
+                    } else {
+                        init = init.get("current");
+                    }
+                    if (isNullOrUndefined(init) || isNaN(init)) {
+                        init = 0;
+                    }
+                    debugLog("init " + init);
+
+                    let dex = getAttribute(npc.characterId, "DEX-bonus");
+                    if (dex === undefined) {
+                        dex = 0;
+                    } else {
+                        dex = dex.get("current");
+                    }
+                    if (isNullOrUndefined(dex) || isNaN(dex)) {
+                        init = 0;
+                    }
+                    debugLog("dex " + dex);
+
+                    let roll = randomInteger(20);
+                    speakAsGuidanceToGM(npc.characterSheet.get("name") + " rolls initiative<br><br>d20=" + roll + " + Dex=" + dex + " + Init=" + init);
+                    roll = roll + parseFloat(dex) + parseFloat(init);
+
+                    turnorder.push({
+                        id: npc.npcToken.id,
+                        pr: String(roll) + String(".0" + init),
+                        custom: getAttribute(npc.characterId, "name")
+                    });
+                });
+                Campaign().set("turnorder", JSON.stringify(turnorder));
+                debugLog(JSON.stringify(turnorder));
+                return;
+            }
+            //</editor-fold>
+
+            //<editor-fold desc="Wipe out all Character Data">
+            if (chatMessage.content.startsWith("!sf_clean")) {
+                let msg = chatMessage.content.replace("!sf_clean ", "");
+                if (selectedNPCs.length > 1 && !debugMode) {
+                    speakAsGuidanceToGM("Please do not select more than 1 NPC at a time. This command is potentially dangerous.");
+                    return;
+                }
+                let c = selectedNPCs[0];
+                debugLog("INCLUDES = " + msg);
+                if (msg.includes("CONFIRM")) {
+                    identifyCharacterSheet(c);
+                    eraseCharacter(c);
+                    if (debugMode) {
+                        c.npcToken.set("gmnotes", "");
+                    }
+
+                    speakAsGuidanceToGM("Removed all properties for " + c.characterSheet.get("name"));
+                    return;
+                } else if (msg.includes("ABILITIES")) {
+                    c.showContents();
+                    for (let prop of findObjs({_characterid: c.characterId, _type: "ability"})) {
+                        debugLog("Removing " + prop.get("name"));
+                        prop.remove();
+                    }
+                    speakAsGuidanceToGM("Removed all abilities for " + c.characterSheet.get("name"));
+                    return;
+                }
+                speakAsGuidanceToGM("Check usage for !sf_clean");
+                return;
+            }
+            //</editor-fold>
+
+            //<editor-fold desc="Set up all selected Token">
+            if (chatMessage.content.startsWith("!sf_token")) {
+                selectedNPCs.forEach(function (c) {
+                    identifyCharacterSheet(c);
+                    setUpToken(c.characterId, c.npcToken);
+                });
+                return;
+            }
+            //</editor-fold>
+
+            //<editor-fold desc="Populate all selected Character Sheet">
+            if (chatMessage.content.startsWith("!sf_character")) {
+                selectedNPCs.forEach(function (c) {
+                    c.characterSheet.get("gmnotes", function (gmNotes) {
+                        if (!gmNotes.includes("Will")) {
+                            speakAsGuidanceToGM("This does not appear to be a character statblock");
+                            return;
+                        }
+                        eraseCharacter(c);
+                        populateCharacterSheet(gmNotes, c);
+                        setToken(c.characterSheet, c.npcToken);
+                    });
+                });
+                return;
+            }
+            //</editor-fold>
+
+            //<editor-fold desc="Add Trick Attack to all selected Character Sheet">
+            if (chatMessage.content.startsWith("!sf_addtrick")) {
+                selectedNPCs.forEach(function (character) {
+                    debugLog("Adding Trick Attack");
+                    character.showContents();
+                    createObj("ability", {
+                        name: "Trick Attack (settings on main sheet)",
+                        description: "",
+                        action: "&{template:default}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
+                        _characterid: character.characterId,
+                    });
+                    addSpecialAbility(character.characterId, "Trick Attack (Ex) You can trick or startle a foe and then attack when she drops her guard. As a full action, you can move up to your speed. Whether or not you moved, you can then make an attack with a melee weapon with the operative special property or with any small arm. Just before making your attack, attempt a Bluff, Intimidate, or Stealth check (or a check associated with your specialization; see page 94) with a DC equal to 20 + your target’s CR. If you succeed at the check, you deal 1d4 additional damage and the target is flat-footed. This damage increases to 1d8 at 3rd level, to 3d8 at 5th level, and by an additional 1d8 every 2 levels thereafter. You can’t use this ability with a weapon that has the unwieldy special property or that requires a full action to make a single attack.");
+                });
+                speakAsGuidanceToGM("Trick attack added to selected character(s)");
+                return;
+            }
+            //</editor-fold>
+
+            //<editor-fold desc="Populate Starship Character Sheet">
+            if (chatMessage.content.startsWith("!sf_starship")) {
+                selectedNPCs.forEach(function (c) {
+                    c.characterSheet.get("gmnotes", function (gmNotes) {
+                        if (!gmNotes.includes("TL")) {
+                            speakAsGuidanceToGM("This does not appear to be a starship statblock");
+                            return;
+                        }
+                        populateStarshipData(gmNotes, c);
+                    });
+                });
+                return;
+            }
+            //</editor-fold>
+
+            //<editor-fold desc="Add Special Ability to Character sheet">
+            if (chatMessage.content.startsWith("!sf_ability")) {
+                let cleanNotes = chatMessage.content.replace("!sf_ability ", "");
+                selectedNPCs.forEach(character => addSpecialAbility(character.characterId, cleanNotes));
+                return;
+            }
+            //</editor-fold>
+
+            //<editor-fold desc="Add a Spell to a character sheet as a macro">
+            if (chatMessage.content.startsWith("!sf_addspell")) {
+                try {
+                    let c = selectedNPCs[0];
+                    let cleanNotes = chatMessage.content.replace("!sf_addspell ", "");
+                    if (!cleanNotes.toLowerCase().includes("classes")) {
+                        speakAsGuidanceToGM("usage:<br>!sf_addspell ?{text}<br>Type that exactly, and a dialog will appear where you can past the full text of the spell.");
+                        return;
+                    }
+
+                    cleanNotes = cleanNotes.replace("SFS Legal", "").trim();
+                    let spellName = cleanNotes.substring(0, cleanNotes.indexOf("Source"));
+                    let spell = parseStatBlock(getSpellStatBlocks(), cleanNotes);
+
+                    spell.push(new TemplateRow(0, "name", spellName));
+
+                    let spellText = formatSpellAsMacro(spell);
+                    debugLog(spellText);
+                    let name = getFirstMatchingElement(spellText, /(?<={{name=)(.*?)(?=}})/);
+
+                    if (c.characterId !== undefined) {
+                        createObj("ability", {
+                            name: name + " spell",
+                            description: "",
+                            action: spellText,
+                            _characterid: c.characterId,
+                        });
+                    }
+                    speakAsGuidanceToGM("Spell has been added to " + c.characterSheet.get("name"));
+                } catch (e) {
+                    debugLog(e);
+                }
+                return;
+            }
+            //</editor-fold>
+
+            //<editor-fold desc="Code for Testing and Debugging">
+
+            // Code for Testing and Debugging
+            if (chatMessage.content.startsWith("!sf_debug")) {
+                selectedNPCs.forEach(debugCharacterDetails);
+
+                let character = selectedNPCs[0];
+                identifyCharacterSheet(character);
+
+                let ables = findObjs({
+                    _characterid: character.characterId,
+                    _type: "ability",
+                });
+                for (const ab of ables) {
+                    debugLog(ab.get("name"));
+                }
+
+                let macros = findObjs({
+                    _type: "macro",
+                });
+                for (const ab of macros) {
+                    debugLog(ab.get("name"));
+                    debugLog(ab.get("action"));
+                }
+            }
+            //</editor-fold>
+
+        } catch (ex) {
+            speakAsGuidanceToGM("I have encountered an error. If you can, please report this to the Script Creator.");
+            debugLog(ex);
+        }
+    });
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    let populateCharacterSheet = function (gmNotes, selectedNPC) {
+        const characterId = selectedNPC.characterId;
+        const npcToken = selectedNPC.npcToken;
+        const characterSheet = selectedNPC.characterSheet;
+
+        let statBlock = cleanText(gmNotes).trim();
+
+        try {
+            if (debugMode) {
+                selectedNPC.npcToken.set("gmnotes", statBlock);
+            }
+
+            if (simpleSheetUsed) {
+                setAttribute(characterId, "tab", 4);
+                setAttribute(characterId, "npc-race", c.characterSheet.get("name"));
+                setAttribute(characterId, "npc-feats-show", 0);
+                setAttribute(characterId, "npc-special-abilities-show", 1);
+                setAttribute(characterId, "npc-gear-show", 0);
+            } else {
+                setAttribute(characterId, "sheet_type", "npc");
+                setAttribute(characterId, "tab_select", "0");
+                setAttribute(characterId, "name", characterSheet.get("name"));
+            }
+
+            /******
+             * to do  - double check Init, Perception & all Skills
+             */
+
+                //<editor-fold desc="Character Sheet Header">
+            let workingSection = getFirstMatchingElement(statBlock, /.*?(?=DEFENSE)/);
+            workingSection = populateStat(characterId, workingSection, /(?<=CR\s)\d+(\\\d)*?(?=\s*\w)/, "npc-cr", "character_level");
+            populateStat(characterId, workingSection, /(?<=\s)(LG|NG|CG|LN|N|CN|LE|NE|CE)?(?=\s)/, "npc-alignment", "alignment");
+
+            if (workingSection.toLowerCase().includes("fine")) {
+                setAttribute(characterId, "npc-size", 8);
+                setAttribute(characterId, "size", -4);
+            } else if (workingSection.toLowerCase().includes("diminutive")) {
+                setAttribute(characterId, "npc-size", 4);
+                setAttribute(characterId, "size", -3);
+            } else if (workingSection.toLowerCase().includes("tiny")) {
+                setAttribute(characterId, "npc-size", 2);
+                setAttribute(characterId, "size", -2);
+            } else if (workingSection.toLowerCase().includes("small")) {
+                setAttribute(characterId, "npc-size", 1);
+                setAttribute(characterId, "size", -1);
+            } else if (workingSection.toLowerCase().includes("large")) {
+                setAttribute(characterId, "npc-size", -1);
+                setAttribute(characterId, "size", 1);
+            } else if (workingSection.toLowerCase().includes("huge")) {
+                setAttribute(characterId, "npc-size", -2);
+                setAttribute(characterId, "size", 2);
+            } else if (workingSection.toLowerCase().includes("gargantuan")) {
+                setAttribute(characterId, "npc-size", -4);
+                setAttribute(characterId, "size", 3);
+            } else if (workingSection.toLowerCase().includes("colossal")) {
+                setAttribute(characterId, "npc-size", -8);
+                setAttribute(characterId, "size", 4);
+            } else {
+                setAttribute(characterId, "npc-size", 0);
+                setAttribute(characterId, "size", 0);
+            }
+            workingSection = populateStat(characterId, workingSection, /(?<=XP\s)\d+(\,\d)*?(?=\s*\w)/, "npc-xp", "xp");
+            workingSection = populateStat(characterId, workingSection, /(?<=(Medium|Fine|Diminutive|Tiny|Small|Large|Huge|Gargantuan|Colossal)\s).*?(?=\s(~|Init))/, "npc-subtype", "type_subtype");
+            workingSection = populateStat(characterId, workingSection, /(?<=Init\s(\+)*)\d+?(?=(;\s*))/, "npc-init-misc", "npc-init-ranks", "initiative", "initiative_base");
+            workingSection = populateStat(characterId, workingSection, /(?<=Senses\s(\+)*)\d+?(?=(;\s*(Perception)))/, "npc-senses", "sense");
+            workingSection = populateStat(characterId, workingSection, /(?<=Perception\s(\+)*)\d+?(?=(\s*($|Aura)))/, "perception", "perception_base", "Perception-npc-misc", "Perception-npc-ranks");
+            populateStat(characterId, workingSection, /(?<=Aura\s(\+)*)\d+?(?=(\s*$))/, "npc-senses", "sense")
+            //</editor-fold>
+
+            //<editor-fold desc="Character Sheet Defense">
+            workingSection = getFirstMatchingElement(statBlock, /(?<=DEFENSE).*?(?=OFFENSE)/);
+
+            populateStat(characterId, workingSection, /(?<=RP\s*)\d+/, "RP-npc", "rp");
+            populateStat(characterId, workingSection, /(?<=SR\s*)\d+/, "npc-SR", "sr");
+            populateStat(characterId, workingSection, /(?<=DR\s*).*?(?=(;|$))/, "npc-DR", "dr");
+
+            workingSection = populateStat(characterId, workingSection, /(?<=HP\s*(\+\s)*)\d+/, "HP-npc", "hp");
+            workingSection = populateStat(characterId, workingSection, /(?<=EAC\s*(\+\s)*)\d+/, "EAC-npc", "eac", "eac_base");
+            workingSection = populateStat(characterId, workingSection, /(?<=KAC\s*(\+\s)*)\d+/, "KAC-npc", "kac", "kac_base");
+            workingSection = populateStat(characterId, workingSection, /(?<=Fort\s*(\+\s)*)\d+/, "Fort-npc", "fort", "fort_base");
+            workingSection = populateStat(characterId, workingSection, /(?<=Ref\s*(\+\s)*)\d+/, "Ref-npc", "ref", "ref_base");
+            workingSection = populateStat(characterId, workingSection, /(?<=Will\s*(\+\s)*)\d+/, "Will-npc", "will", "will_base");
+            workingSection = populateStat(characterId, workingSection, /(?<=Defensive Abilities\s*).*?(?=($|;|Resistances|Weaknesses|Immunities))/, "npc-defensive-abilities", "defensive-abilities");
+            workingSection = populateStat(characterId, workingSection, /(?<=Immunities\s*).*?(?=($|;|Resistances|Weaknesses))/, "npc-immunities", "immunities");
+            workingSection = populateStat(characterId, workingSection, /(?<=Resistances\s*).*?(?=($|;|Weaknesses))/, "npc-resistances", "resistances");
+            populateStat(characterId, workingSection, /(?<=Weaknesses\s*).*?(?=($|;))/, "npc-weaknesses", "weaknesses");
+            //</editor-fold>
+
+            //<editor-fold desc="Character Sheet Offense">
+            workingSection = getFirstMatchingElement(statBlock, /(?<=OFFENSE).*?(?=(TACTICS|STATISTICS))/);
+
+            let speedInfo = getFirstMatchingElement(workingSection, /(?<=Speed\s).*?(?=(Space|Melee|Ranged|Multi))/);
+            speedInfo = getFirstMatchingElement(speedInfo, /.*ft\./);
+            setAttribute(characterId, "speed", speedInfo);
+            setAttribute(characterId, "speed-base-npc", getFirstMatchingElement(speedInfo, /^\d+/));
+            setAttribute(characterId, "speed-fly-npc", getFirstMatchingElement(speedInfo, /(?<=fly\s)\d+/));
+            setAttribute(characterId, "speed-burrow-npc", getFirstMatchingElement(speedInfo, /(?<=burrow\s)\d+/));
+            setAttribute(characterId, "speed-climb-npc", getFirstMatchingElement(speedInfo, /(?<=climb\s)\d+/));
+            setAttribute(characterId, "speed-swim-npc", getFirstMatchingElement(speedInfo, /(?<=swim\s)\d+/));
+            if (speedInfo.toLowerCase().includes("fly")) {
+                if (speedInfo.includes("(Ex")) {
+                    setAttribute(characterId, "speed-fly-source-npc", 1);
+                } else if (speedInfo.includes("(Su")) {
+                    setAttribute(characterId, "speed-fly-source-npc", 2);
+                } else {
+                    setAttribute(characterId, "speed-fly-source-npc", 3);
+                }
+
+                if (speedInfo.toLowerCase().includes("clumsy)")) {
+                    setAttribute(characterId, "speed-fly-maneuverability-npc", -8);
+                } else if (speedInfo.toLowerCase().includes("perfect)")) {
+                    setAttribute(characterId, "speed-fly-maneuverability-npc", 8);
+                } else {
+                    setAttribute(characterId, "speed-fly-maneuverability-npc", 0);
+                }
+            }
+
+            let offensiveAbilities = getFirstMatchingElement(workingSection, /(?<=Offensive\sAbilities).*?(?=(Spell|$))/);
+            setAttribute(characterId, "npc-special-attacks", offensiveAbilities);
+
+            populateStat(characterId, workingSection, /(?<=Space\s).*?(?=;)/, "space");
+            populateStat(characterId, workingSection, /(?<=Reach\s).*?(?=\.)/, "reach");
+
+            // TODO - Roll20 offensiveAbilities to special abilities
+
+            doWeapons(characterId, workingSection);
+            doMagic(characterId, workingSection);
+            //</editor-fold>
+
+            //<editor-fold desc="Character Sheet Tactics">
+            workingSection = getFirstMatchingElement(statBlock, /(?<=TACTICS).*?(?=STATISTICS)/);
+            workingSection = removeStartingDelimiters(workingSection);
+            if (workingSection !== "") {
+                setAttribute(characterId, "npc-tactics-show", 1);
+                setAttribute(characterId, "tactics", workingSection);
+                workingSection = getFirstMatchingElement(statBlock, /(?<=Before\sCombat).*?(?=(During\sCombat)|Morale|$)/)
+                setAttribute(characterId, "npc-before-combat", workingSection);
+                workingSection = getFirstMatchingElement(statBlock, /(?<=During\sCombat).*?(?=Morale|$)/)
+                setAttribute(characterId, "npc-during-combat", workingSection);
+                workingSection = getFirstMatchingElement(statBlock, /(?<=During\sCombat).*?(?=Morale)/)
+                setAttribute(characterId, "npc-morale", workingSection);
+            } else {
+                setAttribute(characterId, "npc-tactics-show", 0);
+            }
+            //</editor-fold>
+
+            //<editor-fold desc="Character Sheet Statistics">
+            workingSection = getFirstMatchingElement(statBlock, /(?<=STATISTICS).*?(?=(SPECIAL ABILITIES|$))/);
+
+            ["STR", "DEX", "CON", "INT", "WIS", "CHA"].forEach(att => {
+                let re = new RegExp(`(?<=${att}\\s\\+*)\\d+?(?=(\\s|;)`)
+                let x = getFirstMatchingElement(workingSection, re);
+
+                let stat = parseFloat(x);
+                setAttribute(characterId, att + "-bonus", stat);
+                setAttribute(characterId, att + "-temp", stat * 2);
+                let roll20att = "";
+                switch (att) {
+                    case "STR":
+                        roll20att = "strength";
+                        break;
+                    case "DEX":
+                        roll20att = "dexterity";
+                        break;
+                    case "CON":
+                        roll20att = "constitution";
+                        break;
+                    case "INT":
+                        roll20att = "intelligence";
+                        break;
+                    case "WIS":
+                        roll20att = "wisdom";
+                        break;
+                    case "CHA":
+                        roll20att = "charisma";
+                        break;
+                }
+                setAttribute(characterId, roll20att + "_base", stat);
+                setAttribute(characterId, roll20att + "_mod", stat);
+            });
+
+            populateStat(characterId, /(?<=Languages*\s).*?(?=(ECOLOGY|$|;|Gear))/, "languages-npc", "languages");
+            populateStat(characterId, /(?<=Gear\s).*?(?=(ECOLOGY|$|;))/, "gear", "npc-gear")
+
+            populateStatics(characterId, workingSection);
+            populateSkills(selectedNPC.characterId, workingSection);
+            //</editor-fold>
+
+            //<editor-fold desc="Character Sheet Special Abilities">
+            workingSection = getFirstMatchingElement(statBlock, /(?<=SPECIAL ABILITIES).*?/);
+            //</editor-fold>
+
+        } catch (err) {
+            speakAsGuidanceToGM("I have encountered an error importing this character. The error was around this area -> " + massageTheDataForAbilityParsing(statBlock.substr(0, 20)));
+            log(err)
+            log(new Error().stack);
+        }
+
+        let featText = getFirstMatchingElement(statBlock, /(?<=Feats\s).*?(?=Skills)/);
+        populateFeats(selectedNPC.characterId, featText);
+        populateSpecialAbilities(selectedNPC.characterId, section.get("special"));
+
+        setUpToken(selectedNPC.characterId, selectedNPC.npcToken);
+        if (statBlock.toLowerCase().includes("trick attack")) {
+            createObj("ability", {
+                name: "Trick Attack (settings on main sheet)",
+                description: "",
+                action: "&{template:default}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
+                _characterid: selectedNPC.characterId,
+            });
+            speakAsGuidanceToGM("Trick attack added to selected character");
+        }
+
+        speakAsGuidanceToGM(selectedNPC.characterSheet.get("name") + " NPC character sheet processed");
+    };
+
+    // For Debugging purposes
+    let isNullOrUndefined = function (v) {
+        if (v == null) { // null or undefined
+            debugLog(v === null ? "null" : "undefined");
+            debugLog(new Error().stack);
+            return true;
+        }
+        return false;
+    };
+
+    let getSkillValue = function (skillName, attribute, textToParse) {
+        if (!textToParse.includes(skillName)) {
+            return 0;
+        }
+        let re = new RegExp(`(?<=${skillName}\\s*)\d+`);
+        let skill = parseFloat(getFirstMatchingElement(textToParse, re));
+        re = new RegExp(`(?<=${attribute}\\s*)\d+`);
+        let retVal = parseFloat(getFirstMatchingElement(textToParse, re));
+
+        debugLog(skillName + " : " + skill + " - " + attribute + " : " + retVal);
+        if (attribute === null) {
+            return skill;
+        }
+        return skill - retVal;
     };
 
     const frameLookup = {
@@ -326,12 +868,6 @@ var Guidance = Guidance || (function () {
         return templateRow;
     };
 
-    let setAlignment = function (characterId, section) {
-        const alignments = ["LG", "NG", "CG", "LN", "CN", "LE", "NE", "CE"];
-        const alignment = alignments.find(a => section.includes(a)) || "N";
-        setAttribute(characterId, "npc-alignment", alignment);
-    };
-
     let abbreviateArc = function (arc) {
         if (arc.includes("orward")) {
             return "fwd";
@@ -341,18 +877,6 @@ var Guidance = Guidance || (function () {
             return arc.match(/\((.*?)\)/)[1].toLowerCase();
         }
     };
-
-    let getSelectedNPCs = function (selected) {
-        let npcs = [];
-        for (const t of selected) {
-            debugLog(t);
-            let token = findObjs(t)[0];
-            let cid = token.get("represents");
-            npcs.push(new NPC(cid, token, findObjs({_id: cid, _type: "character"})[0]));
-        }
-        return npcs;
-    };
-
 
     //Get or replace ability with specified ID
     let createAbility = function (name, pattern, id) {
@@ -376,23 +900,6 @@ var Guidance = Guidance || (function () {
         let spellAsMacro = "?{Hide this roll?|No, |Yes,/w GM} &{template:default}";
         return formatTemplateAsMacro(spellAsMacro, template);
     };
-    //</editor-fold>
-
-    //////////////////////////////////////////////////////////////////
-    //<editor-fold desc="On-Ready event Code">
-    on("ready", function () {
-        speakAsGuidanceToGM("Greetings, I am Guidance. I am here to assist you working with your Starfinder game to make " +
-            "your time in the Pact Worlds more enjoyable. To learn more, I created a welcome guide in the journal section.");
-
-        let handoutName = "Welcome To Guidance";
-        let objs = findObjs({name: handoutName, _type: "handout"});
-        if (objs.length < 1) {
-            let userGuide = createObj("handout", {
-                name: handoutName
-            });
-            userGuide.set("notes", welcomeHandout());
-        }
-    });
 
     //</editor-fold>
 
@@ -400,269 +907,16 @@ var Guidance = Guidance || (function () {
         if (simpleSheetUsed) {
             let sheet = getAttribute(character.characterId, "character_sheet");
             if (sheet != null) {
-                if (sheet.get("current").startsWith("Starfinder v1")) {
+                if (sheet.get("current").startsWith("Starfinder v")) {
                     simpleSheetUsed = false;
                     speakAsGuidanceToGM("You are using the official Roll20 Starfinder sheet");
+
+
+//                    npcToken.set("gmnotes", "official");
                 }
             }
         }
     }
-
-//<editor-fold desc="On-Message event Code">
-    on("chat:message", function (chatMessage) {
-        if (chatMessage.type !== "api" || !playerIsGM(chatMessage.playerid)) {
-            return;
-        }
-
-        if (chatMessage.content.startsWith("!sf_help")) {
-            speakAsGuidanceToGM("I have several commands I support:<br><br>" +
-                "<b><i>!sf_character</i></b> will allow you to take a Starfinder statblock that is in the GM notes section " +
-                "of a selected character and I will attempt to use it to fill out the NPC section of the Starfinder " +
-                "(Simple) character sheet. I support statblocks from the Archives of Nethys and the Starjammer SRD. " +
-                "<i>I don't do well with Society PDFs</i>. If you want to attempt using one, double check my work.<br><br>" +
-                "<b><i>!sf_clean CONFIRM</i></b> will allow me to take a selected character sheet and completely " +
-                "<i>AND PERMANENTLY</i> remove all data from it. <i>I recommend against using this unless you are about " +
-                "to reimport a character</i>.<br><br><b><i>!sf_token</i></b> will populate the token with hitpoint, " +
-                "EAC, and KAC information in the event that the sheet is setup, but the token isn't.<br><br><b><i>" +
-                "!sf_init</i></b> will roll group initiative for all selected NPCs<br><br><b><i>!sf_addtrick</i></b>" +
-                "will add a macro to handle Trick Attacks for the NPC<br><br><b><i>!sf_starship</i></b> will allow you " +
-                "to take a Starfinder starship statblock in the GM Notes section of a character sheet and populate it." +
-                "Furthermore, I will add weapons and piloting check macros.<br><br><b><i>!sf_ability</i></b> will allow" +
-                "me to add a special ability to the character sheet for quick reference. No macro is added<br><br><b>" +
-                "<i>!sf_addspell</i></b> add a macro to display a formatted spell stat block for a spell. I recommend " +
-                "editing the description of the new macro to display the appropriate rolls for the spell. ");
-            return;
-        }
-
-        if (chatMessage.selected === undefined) {
-            speakAsGuidanceToGM("Please select a token representing a character for me to work with");
-            return;
-        }
-
-        let npcs = getSelectedNPCs(chatMessage.selected);
-
-        try {
-            //<editor-fold desc="Roll Initiative for a group of NPCs">
-            if (chatMessage.content.startsWith("!sf_init")) {
-                speakAsGuidanceToGM("Rolling NPC initiative for all selected tokens");
-                let turnorder = JSON.parse(Campaign().get("turnorder"));
-                npcs.forEach(function (npc) {
-                    npc.showContents();
-
-                    let init = getAttribute(npc.characterId, "npc-init-misc");
-                    if (init === undefined) {
-                        init = 0;
-                    } else {
-                        init = init.get("current");
-                    }
-                    if (isNullOrUndefined(init) || isNaN(init)) {
-                        init = 0;
-                    }
-                    debugLog("init " + init);
-
-                    let dex = getAttribute(npc.characterId, "DEX-bonus");
-                    if (dex === undefined) {
-                        dex = 0;
-                    } else {
-                        dex = dex.get("current");
-                    }
-                    if (isNullOrUndefined(dex) || isNaN(dex)) {
-                        init = 0;
-                    }
-                    debugLog("dex " + dex);
-
-                    let roll = randomInteger(20);
-                    speakAsGuidanceToGM(npc.characterSheet.get("name") + " rolls initiative<br><br>d20=" + roll + " + Dex=" + dex + " + Init=" + init);
-                    roll = roll + parseFloat(dex) + parseFloat(init);
-
-                    turnorder.push({
-                        id: npc.npcToken.id,
-                        pr: String(roll) + String(".0" + init),
-                        custom: getAttribute(npc.characterId, "name")
-                    });
-                });
-                Campaign().set("turnorder", JSON.stringify(turnorder));
-                debugLog(JSON.stringify(turnorder));
-                return;
-            }
-            //</editor-fold>
-
-            //<editor-fold desc="Wipe out all Character Data">
-            if (chatMessage.content.startsWith("!sf_clean")) {
-                let msg = chatMessage.content.replace("!sf_clean ", "");
-                if (npcs.length > 1 && !debugMode) {
-                    speakAsGuidanceToGM("Please do not select more than 1 NPC at a time. This command is potentially dangerous.");
-                    return;
-                }
-                let c = npcs[0];
-                debugLog("INCLUDES = " + msg);
-                if (msg.includes("CONFIRM")) {
-                    identifyCharacterSheet(c);
-                    eraseCharacter(c);
-                    if (debugMode) {
-                        c.npcToken.set("gmnotes", "");
-                    }
-
-                    speakAsGuidanceToGM("Removed all properties for " + c.characterSheet.get("name"));
-                    return;
-                } else if (msg.includes("ABILITIES")) {
-                    c.showContents();
-                    for (let prop of findObjs({_characterid: c.characterId, _type: "ability"})) {
-                        debugLog("Removing " + prop.get("name"));
-                        prop.remove();
-                    }
-                    speakAsGuidanceToGM("Removed all abilities for " + c.characterSheet.get("name"));
-                    return;
-                }
-                speakAsGuidanceToGM("Check usage for !sf_clean");
-                return;
-            }
-            //</editor-fold>
-
-            //<editor-fold desc="Set up all selected Token">
-            if (chatMessage.content.startsWith("!sf_token")) {
-                npcs.forEach(function (c) {
-                    identifyCharacterSheet(c);
-                    setUpToken(c.characterId, c.npcToken);
-                });
-                return;
-            }
-            //</editor-fold>
-
-            //<editor-fold desc="Populate all selected Character Sheet">
-            if (chatMessage.content.startsWith("!sf_character")) {
-                npcs.forEach(function (c) {
-                    c.characterSheet.get("gmnotes", function (gmNotes) {
-                        if (!gmNotes.includes("Will")) {
-                            speakAsGuidanceToGM("This does not appear to be a character statblock");
-                            return;
-                        }
-                        eraseCharacter(c);
-                        populateNPCData(gmNotes, c);
-                        setToken(c.characterSheet, c.npcToken);
-                    });
-                });
-                return;
-            }
-            //</editor-fold>
-
-            //<editor-fold desc="Add Trick Attack to all selected Character Sheet">
-            if (chatMessage.content.startsWith("!sf_addtrick")) {
-                npcs.forEach(function (character) {
-                    debugLog("Adding Trick Attack");
-                    character.showContents();
-                    createObj("ability", {
-                        name: "Trick Attack (settings on main sheet)",
-                        description: "",
-                        action: "&{template:default}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
-                        _characterid: character.characterId,
-                    });
-                    addSpecialAbility(character.characterId, "Trick Attack (Ex) You can trick or startle a foe and then attack when she drops her guard. As a full action, you can move up to your speed. Whether or not you moved, you can then make an attack with a melee weapon with the operative special property or with any small arm. Just before making your attack, attempt a Bluff, Intimidate, or Stealth check (or a check associated with your specialization; see page 94) with a DC equal to 20 + your target’s CR. If you succeed at the check, you deal 1d4 additional damage and the target is flat-footed. This damage increases to 1d8 at 3rd level, to 3d8 at 5th level, and by an additional 1d8 every 2 levels thereafter. You can’t use this ability with a weapon that has the unwieldy special property or that requires a full action to make a single attack.");
-                });
-                speakAsGuidanceToGM("Trick attack added to selected character(s)");
-                return;
-            }
-            //</editor-fold>
-
-            //<editor-fold desc="Populate Starship Character Sheet">
-            if (chatMessage.content.startsWith("!sf_starship")) {
-                npcs.forEach(function (c) {
-                    c.characterSheet.get("gmnotes", function (gmNotes) {
-                        if (!gmNotes.includes("TL")) {
-                            speakAsGuidanceToGM("This does not appear to be a starship statblock");
-                            return;
-                        }
-                        populateStarshipData(gmNotes, c);
-                    });
-                });
-                return;
-            }
-            //</editor-fold>
-
-            //<editor-fold desc="Add Special Ability to Character sheet">
-            if (chatMessage.content.startsWith("!sf_ability")) {
-                let cleanNotes = chatMessage.content.replace("!sf_ability ", "");
-                npcs.forEach(character => addSpecialAbility(character.characterId, cleanNotes));
-                return;
-            }
-            //</editor-fold>
-
-            //<editor-fold desc="Add a Spell to a character sheet as a macro">
-            if (chatMessage.content.startsWith("!sf_addspell")) {
-                try {
-                    let c = npcs[0];
-                    let cleanNotes = chatMessage.content.replace("!sf_addspell ", "");
-                    if (!cleanNotes.toLowerCase().includes("classes")) {
-                        speakAsGuidanceToGM("usage:<br>!sf_addspell ?{text}<br>Type that exactly, and a dialog will appear where you can past the full text of the spell.");
-                        return;
-                    }
-
-                    cleanNotes = cleanNotes.replace("SFS Legal", "").trim();
-                    let spellName = cleanNotes.substring(0, cleanNotes.indexOf("Source"));
-                    let spell = parseStatBlock(getSpellStatBlocks(), cleanNotes);
-
-                    spell.push(new TemplateRow(0, "name", spellName));
-
-                    let spellText = formatSpellAsMacro(spell);
-                    debugLog(spellText);
-                    let name = new StrUtils(spellText).firstMatch(/(?<={{name=)(.*?)(?=}})/);
-
-                    if (c.characterId !== undefined) {
-                        createObj("ability", {
-                            name: name + " spell",
-                            description: "",
-                            action: spellText,
-                            _characterid: c.characterId,
-                        });
-                    }
-                    speakAsGuidanceToGM("Spell has been added to " + c.characterSheet.get("name"));
-                } catch (e) {
-                    debugLog(e);
-                }
-                return;
-            }
-            //</editor-fold>
-
-            //<editor-fold desc="Code for Testing and Debugging">
-            let character = npcs[0];
-
-            // Code for Testing and Debugging
-            if (chatMessage.content.startsWith("!sf_debug")) {
-                let attribs = findObjs({
-                    _characterid: character.characterId,
-                    _type: "attribute",
-                });
-                for (const att of attribs) {
-                    log("{\"name\":" + att.get("name") + "\"," +
-                        "\"current\":\"" + att.get("current") + "\"," +
-                        "\"max\":\"" + att.get("max") + "\"}");
-                }
-                identifyCharacterSheet(character);
-                let ables = findObjs({
-                    _characterid: character.characterId,
-                    _type: "ability",
-                });
-                for (const ab of ables) {
-                    debugLog(ab.get("name"));
-                }
-
-                let macros = findObjs({
-                    _type: "macro",
-                });
-                for (const ab of macros) {
-                    debugLog(ab.get("name"));
-                    debugLog(ab.get("action"));
-                }
-            }
-            //</editor-fold>
-
-        } catch (ex) {
-            speakAsGuidanceToGM("I have encountered an error. If you can, please report this to the Script Creator.");
-            debugLog(ex);
-        }
-    });
-    //</editor-fold>
-    //////////////////////////////////////////////////////////////////
 
     //<editor-fold desc="Updated Population Helpers">
     let setUpToken = function (characterId, npcToken) {
@@ -689,161 +943,6 @@ var Guidance = Guidance || (function () {
         }
     };
 
-    let parseBlockIntoSubSectionMap = function (textToParse) {
-        let sections = new Map();
-        let parsedText = textToParse;
-
-        sections.set("header", parsedText.substring(0, parsedText.indexOf("DEFENSE")));
-        parsedText = parsedText.substring(parsedText.indexOf("DEFENSE"));
-
-        sections.set("defense", parsedText.substring(0, parsedText.indexOf("OFFENSE")));
-        parsedText = parsedText.substring(parsedText.indexOf("OFFENSE"));
-
-        if (textToParse.includes("TACTICS")) {
-            speakAsGuidanceToGM("Tactics section found. Tactics Processing not yet implemented");
-            sections.set("offense", parsedText.substring(0, parsedText.indexOf("TACTICS")));
-        } else {
-            sections.set("offense", parsedText.substring(0, parsedText.indexOf("STATISTICS")));
-        }
-        parsedText = parsedText.substring(parsedText.indexOf("STATISTICS"));
-        if (textToParse.includes("SPECIAL ABILITIES")) {
-            sections.set("statistics", parsedText.substring(0, parsedText.indexOf("SPECIAL ABILITIES")));
-            parsedText = parsedText.substring(parsedText.indexOf("SPECIAL ABILITIES"));
-            sections.set("special", parsedText);
-        } else {
-            sections.set("statistics", parsedText);
-        }
-
-        return sections;
-    };
-
-    let populateNPCData = function (gmNotes, c) {
-        let cleanNotes = cleanText(gmNotes).trim();
-
-        if (debugMode) {
-            isNullOrUndefined(cleanNotes);
-            c.npcToken.set("gmnotes", cleanNotes);
-        }
-
-        let section = parseBlockIntoSubSectionMap(cleanNotes);
-
-        if (simpleSheetUsed) {
-            setAttribute(c.characterId, "tab", 4);
-            setAttribute(c.characterId, "npc-race", c.characterSheet.get("name"));
-            setAttribute(c.characterId, "npc-tactics-show", 0);
-            setAttribute(c.characterId, "npc-feats-show", 0);
-        } else {
-            setAttribute(c.characterId, "sheet_type", "npc");
-            setAttribute(c.characterId, "name", c.characterSheet.get("name"));
-        }
-
-        populateHeader(c.characterId, section.get("header"));
-        populateDefense(c.characterId, section.get("defense"));
-        populateSkills(c.characterId, section.get("statistics"));
-
-        populateOffense(c.characterId, section.get("offense"));
-        populateStatics(c.characterId, section.get("statistics"));
-
-        let featText = getStringValue("Feats", cleanNotes, "Skills");
-        populateFeats(c.characterId, featText);
-        populateSpecialAbilities(c.characterId, section.get("special"));
-        setAlignment(c.characterId, cleanNotes);
-
-        setUpToken(c.characterId, c.npcToken);
-        if (cleanNotes.toLowerCase().includes("trick attack")) {
-            createObj("ability", {
-                name: "Trick Attack (settings on main sheet)",
-                description: "",
-                action: "&{template:default}{{name=Trick Attack}}{{check=**CR**[[@{trick-attack-skill} - 20]]or lower }} {{foo=If you succeed at the check, you deal @{trick-attack-level} additional damage?{Which condition to apply? | none, | flat-footed, and the target is flat-footed | off-target, and the target is off-target | bleed, and the target is bleeding ?{How much bleed? &amp;#124; 1 &amp;#125; | hampered, and the target is hampered (half speed and no guarded step) | interfering, and the target is unable to take reactions | staggered, and the target is staggered (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | stun, and the target is stunned (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates) | knockout, and the target is unconscious for 1 minute (Fort **DC**[[10+[[(floor(@{level}/2))]]+[[@{DEX-mod}]]]]negates)} }} {{notes=@{trick-attack-notes}}}",
-                _characterid: c.characterId,
-            });
-            speakAsGuidanceToGM("Trick attack added to selected character");
-        }
-
-        speakAsGuidanceToGM(c.characterSheet.get("name") + " NPC character sheet processed");
-    };
-
-    let populateHeader = function (characterId, textToParse) {
-        let {cr, xp, senses, aura, subtypeStart, simpleSheetSize, roll20Size} = {
-            cr: getValue("CR", textToParse),
-            xp: getValue("XP", textToParse).replace(/\s/, "").replace(/,/, ""),
-            senses: getStringValue("Senses", textToParse, "Perception").trim(),
-            aura: getStringValue("Aura", textToParse, "DEFENSE").trim(),
-            subtypeStart: 0,
-            simpleSheetSize: 0,
-            roll20Size: 0
-        };
-        if (textToParse.toLowerCase().includes("medium")) {
-            subtypeStart = textToParse.indexOf("Medium") + "Medium".length;
-        } else if (textToParse.toLowerCase().includes("fine")) {
-            simpleSheetSize = 8;
-            roll20Size = -4;
-            subtypeStart = textToParse.indexOf("Fine") + "Fine".length;
-        } else if (textToParse.toLowerCase().includes("diminutive")) {
-            simpleSheetSize = 4;
-            roll20Size = -3;
-            subtypeStart = textToParse.indexOf("Diminutive") + "Diminutive".length;
-        } else if (textToParse.toLowerCase().includes("tiny")) {
-            simpleSheetSize = 2;
-            roll20Size = -2;
-            subtypeStart = textToParse.indexOf("Tiny") + "Tiny".length;
-        } else if (textToParse.toLowerCase().includes("small")) {
-            simpleSheetSize = 1;
-            roll20Size = -1;
-            subtypeStart = textToParse.indexOf("Small") + "Small".length;
-        } else if (textToParse.toLowerCase().includes("large")) {
-            simpleSheetSize = -1;
-            roll20Size = 1
-            subtypeStart = textToParse.indexOf("Large") + "Large".length;
-        } else if (textToParse.toLowerCase().includes("huge")) {
-            simpleSheetSize = -2;
-            roll20Size = 2;
-            subtypeStart = textToParse.indexOf("Huge") + "Huge".length;
-        } else if (textToParse.toLowerCase().includes("gargantuan")) {
-            simpleSheetSize = -4;
-            roll20Size = 3;
-            subtypeStart = textToParse.indexOf("Gargantuan") + "Gargantuan".length;
-        } else if (textToParse.toLowerCase().includes("colossal")) {
-            simpleSheetSize = -8;
-            roll20Size = 4;
-            subtypeStart = textToParse.indexOf("Colossal") + "Colossal".length;
-        } else {
-            throw new Error("Alien Size not recognized");
-        }
-
-        let subType = textToParse.substring(subtypeStart, textToParse.indexOf("Init"));
-
-        if (simpleSheetUsed) {
-            let perception = getSkillValue("Perception", "Wis", textToParse);
-            let initiative = getSkillValue("Init", "Dex", textToParse);
-
-            setAttribute(characterId, "npc-cr", cr);
-            setAttribute(characterId, "npc-XP", xp);
-            setAttribute(characterId, "npc-senses", senses);
-            setAttribute(characterId, "npc-aura", aura);
-            setAttribute(characterId, "Perception-npc-misc", perception);
-            setAttribute(characterId, "npc-init-misc", initiative);
-            setAttribute(characterId, "Perception-npc-ranks", perception);
-            setAttribute(characterId, "npc-init-ranks", initiative);
-            setAttribute(characterId, "npc-size", simpleSheetSize);
-            setAttribute(characterId, "npc-subtype", subType);
-        } else {
-            let perception = getSkillValue("Perception", null, textToParse);
-            let initiative = getSkillValue("Init", null, textToParse);
-
-            setAttribute(characterId, "tab_select", "0");
-            setAttribute(characterId, "character_level", cr);
-            setAttribute(characterId, "xp", xp);
-            setAttribute(characterId, "senses", senses);
-            setAttribute(characterId, "aura", aura);
-            setAttribute(characterId, "perception", perception);
-            setAttribute(characterId, "perception_base", perception);
-            setAttribute(characterId, "initiative", initiative);
-            setAttribute(characterId, "initiative_base", initiative);
-            setAttribute(characterId, "size", roll20Size);
-            setAttribute(characterId, "type_subtype", subType);
-        }
-    };
 
     let populateSkills = function (characterId, textToParse) {
         let skills = [
@@ -881,169 +980,15 @@ var Guidance = Guidance || (function () {
         }
     };
 
-    let populateDefense = function (characterId, textToParse) {
-        let {eac, kac, fort, ref, will, hp, rp, sr, dr, resistances, weaknesses, immunities, defensiveAbilities} = {
-            eac: getValue("EAC", textToParse),
-            kac: getValue("KAC", textToParse),
-            fort: getValue("Fort", textToParse).replace("+", ""),
-            ref: getValue("Ref", textToParse).replace("+", ""),
-            will: getValue("Will", textToParse).replace("+", ""),
-            hp: getValue("HP", textToParse),
-            rp: getValue("RP", textToParse),
-            sr: getValue("SR", textToParse),
-            dr: getValue("DR", textToParse, ";"),
-            resistances: getStringValue("Resistances", textToParse, ";"),
-            weaknesses: "",
-            immunities: getValue("Immunities", textToParse, "OFFENSE"),
-            defensiveAbilities: ""
-        };
-
-        rp = rp || 0;
-        sr = sr || 0;
-
-        if (textToParse.includes("Weaknesses")) {
-            resistances = getStringValue("Resistances", textToParse, "Weaknesses");
-            weaknesses = getStringValue("Weaknesses", textToParse, ";");
-        }
-
-        if (textToParse.includes("SR")) {
-            immunities = getValue("Immunities", textToParse, "SR");
-        }
-
-        if (textToParse.includes("vs.")) {
-            let extraSaveStart = textToParse.indexOf("Will") + 3;
-            defensiveAbilities = textToParse.substring(extraSaveStart);
-            extraSaveStart = defensiveAbilities.indexOf(";");
-            defensiveAbilities = defensiveAbilities.substring(extraSaveStart + 1);
-            if (defensiveAbilities.includes("Defensive")) {
-                defensiveAbilities = defensiveAbilities.substring(0, defensiveAbilities.indexOf("Defensive"));
-            }
-        }
-        if (textToParse.includes("Defensive")) {
-            let start = textToParse.indexOf("Defensive Abilities") + "Defensive Abilities".length;
-            if (textToParse.includes("Immunities")) {
-                textToParse = textToParse.substring(0, textToParse.indexOf("Immunities"));
-            }
-            defensiveAbilities = textToParse.substring(start) + " " + defensiveAbilities;
-        }
-
-        if (simpleSheetUsed) {
-            setAttribute(characterId, "EAC-npc", eac);
-            setAttribute(characterId, "KAC-npc", kac);
-            setAttribute(characterId, "Fort-npc", fort);
-            setAttribute(characterId, "Ref-npc", ref);
-            setAttribute(characterId, "Will-npc", will);
-            setAttribute(characterId, "HP-npc", hp);
-            setAttribute(characterId, "RP-npc", rp);
-            setAttribute(characterId, "npc-SR", sr);
-            setAttribute(characterId, "npc-DR", dr);
-            setAttribute(characterId, "npc-resistances", resistances);
-            setAttribute(characterId, "npc-weaknesses", weaknesses);
-            setAttribute(characterId, "npc-immunities", immunities);
-            setAttribute(characterId, "npc-defensive-abilities", defensiveAbilities);
-        } else {
-            setAttribute(characterId, "eac_base", eac);
-            setAttribute(characterId, "kac_base", kac);
-            setAttribute(characterId, "eac", eac);
-            setAttribute(characterId, "kac", kac);
-            setAttribute(characterId, "fort_base", fort);
-            setAttribute(characterId, "ref_base", ref);
-            setAttribute(characterId, "will_base", will);
-            setAttribute(characterId, "fort", fort);
-            setAttribute(characterId, "ref", ref);
-            setAttribute(characterId, "will", will);
-            setAttribute(characterId, "hp", hp);
-            setAttribute(characterId, "rp", rp);
-            setAttribute(characterId, "sr", sr);
-            setAttribute(characterId, "dr", dr);
-            setAttribute(characterId, "resistances", resistances);
-            setAttribute(characterId, "weaknesses", weaknesses);
-            setAttribute(characterId, "immunities", immunities);
-            setAttribute(characterId, "defensive_abilities", defensiveAbilities);
-        }
-    };
-
-    let getMovement = function (textToFind, textToParse) {
-        if (textToParse.includes(textToFind)) {
-            return getStringValue(textToFind, textToParse, "ft.").trim();
-        }
-        return "";
-    };
-
     let populateStatics = function (characterId, textToParse) {
-        let stats = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
-
-        for (const att of stats) {
-            let x = getStringValue(att, textToParse).trim().replace("+", "");
-            debugLog(att + " - " + x);
-            let stat = parseFloat(x);
-
-            if (simpleSheetUsed) {
-                setAttribute(characterId, att + "-bonus", stat);
-                setAttribute(characterId, att + "-temp", stat * 2);
-            } else {
-                let roll20att = "";
-                switch (att) {
-                    case "STR":
-                        roll20att = "strength";
-                        break;
-                    case "DEX":
-                        roll20att = "dexterity";
-                        break;
-                    case "CON":
-                        roll20att = "constitution";
-                        break;
-                    case "INT":
-                        roll20att = "intelligence";
-                        break;
-                    case "WIS":
-                        roll20att = "wisdom";
-                        break;
-                    case "CHA":
-                        roll20att = "charisma";
-                        break;
-                }
-                setAttribute(characterId, roll20att + "_base", stat);
-                setAttribute(characterId, roll20att + "_mod", stat);
-            }
-        }
-
-        let langs = getStringValue("Language", textToParse, "ECOLOGY");
-        if (langs.includes("Gear")) {
-            langs = langs.substring(0, langs.indexOf("Gear"));
-        }
-
-        if (langs.startsWith("s ")) {
-            langs = langs.substring(2);
-        }
 
 
-        if (simpleSheetUsed) {
-            setAttribute(characterId, "languages-npc", langs);
-        } else {
-            setAttribute(characterId, "languages", langs);
-        }
-
-        let gear = "";
-        if (textToParse.includes("Gear")) {
-            gear = getStringValue("Gear", textToParse, "ECOLOGY");
-            if (simpleSheetUsed) {
-                setAttribute(characterId, "npc-gear", gear);
-            } else {
-                setAttribute(characterId, "gear", gear);
-            }
-        } else {
-            if (simpleSheetUsed) {
-                setAttribute(characterId, "npc-gear-show", 0);
-            }
-        }
-
-        let otherAbilities = getStringValue("Other Abilities", textToParse, "SPECIAL ABILITIES");
+        let otherAbilities = getFirstMatchingElement(textToParse, /(?<=Other Abilities\s).*?(?=((SPECIAL ABILITIES)|$))/);
         debugLog(otherAbilities);
         if (otherAbilities.includes("ECOLOGY")) {
             if (!simpleSheetUsed) {
-                let environment = firstItem(otherAbilities.match(/(?<=Environment).*(?=[\s\S]Organization)/gm));
-                let organization = firstItem(otherAbilities.match(/(?<=Organization).*/gm));
+                let environment = getFirstMatchingElement(otherAbilities, /(?<=Environment).*(?=[\s\S]Organization)/gm);
+                let organization = getFirstMatchingElement(otherAbilities, /(?<=Organization).*/gm);
 
                 setAttribute(characterId, "environment", environment);
                 setAttribute(characterId, "organization", organization);
@@ -1058,57 +1003,6 @@ var Guidance = Guidance || (function () {
         }
     };
 
-    let populateOffense = function (characterId, textToParse) {
-        setAttribute(characterId, "space", getMovement("Space", textToParse));
-        setAttribute(characterId, "reach", getMovement("Reach", textToParse));
-
-        let specialAbilities = getValue("Offensive Abilities", textToParse, "STATISTICS");
-
-        if (specialAbilities.includes("Spell")) {
-            specialAbilities = specialAbilities.substring(0, specialAbilities.indexOf("Spell"));
-        }
-
-        if (simpleSheetUsed) {
-            if (isNullOrUndefined(specialAbilities)) {
-                setAttribute(characterId, "npc-special-attacks-show", 0);
-            } else {
-                setAttribute(characterId, "npc-special-attacks", specialAbilities);
-            }
-
-            setAttribute(characterId, "speed-base-npc", getMovement("Speed", textToParse));
-            setAttribute(characterId, "speed-fly-npc", getMovement("fly", textToParse));
-            setAttribute(characterId, "speed-burrow-npc", getMovement("burrow", textToParse));
-            setAttribute(characterId, "speed-climb-npc", getMovement("climb", textToParse));
-            setAttribute(characterId, "speed-swim-npc", getMovement("swim", textToParse));
-
-            if (textToParse.toLowerCase().includes("fly")) {
-                if (textToParse.includes("(Ex")) {
-                    setAttribute(characterId, "speed-fly-source-npc", 1);
-                } else if (textToParse.includes("(Su")) {
-                    setAttribute(characterId, "speed-fly-source-npc", 2);
-                } else {
-                    setAttribute(characterId, "speed-fly-source-npc", 3);
-                }
-
-                if (textToParse.includes("lumsy)")) {
-                    setAttribute(characterId, "speed-fly-maneuverability-npc", -8);
-                } else if (textToParse.includes("erfect)")) {
-                    setAttribute(characterId, "speed-fly-maneuverability-npc", 8);
-                } else {
-                    setAttribute(characterId, "speed-fly-maneuverability-npc", 0);
-                }
-            }
-        } else {
-            let speed = getStringValue("Speed", textToParse, "Melee");
-            setAttribute(characterId, "speed", speed);
-            if (!isNullOrUndefined(specialAbilities)) {
-                setAttribute(characterId, "offensive_abilities", specialAbilities);
-            }
-        }
-
-        doWeapons(characterId, textToParse);
-        doMagic(characterId, textToParse);
-    };
     //</editor-fold>
 
     let doMagic = function (characterId, textToParse) {
@@ -1124,7 +1018,7 @@ var Guidance = Guidance || (function () {
             }
 
             spellLikeAbilities = spellLikeAbilities.substring(spellLikeAbilities.indexOf("Spell-Like Abilities")).trim();
-            let casterLevel = parseFloat(getValue("CL", spellLikeAbilities, ";"));
+            let casterLevel = parseFloat(getFirstMatchingElement(spellLikeAbilities, /(?<=CL\s).*?(?=;)/));
             spellLikeAbilities = spellLikeAbilities.replace(/Spell-Like Abilities/, "").trim();
 
             debugLog("Spell like ability = " + spellLikeAbilities);
@@ -1157,7 +1051,7 @@ var Guidance = Guidance || (function () {
                 textToParse = textToParse.substring(0, textToParse.indexOf("Spell-Like Abilities"));
             }
             guidanceMsg += "This character has spells. Check Out the command sf_addspell to assist in adding Spell Macros <br>";
-            setAttribute(characterId, "spellclass-1-level", getValue("CL", textToParse, ";").replace(/\D/g, ""));
+            setAttribute(characterId, "spellclass-1-level", getFirstMatchingElement(textToParse, /(?<=CL\s).*?(?=;)/).replace(/\D/g, ""));
 
             attackBonus = textToParse.replace(/\(.*;/, "");
             attackBonus = attackBonus.replace("Spells Known", "");
@@ -1253,8 +1147,8 @@ var Guidance = Guidance || (function () {
         let cleanNotes = cleanText(gmNotes).trim();
         debugLog("clean notes = " + cleanNotes);
 
+
         if (debugMode) {
-            isNullOrUndefined(cleanNotes);
             c.npcToken.set("gmnotes", cleanNotes);
         }
         const attributes = {};
@@ -1381,7 +1275,6 @@ var Guidance = Guidance || (function () {
 
         speakAsGuidanceToGM(c.characterSheet.get("name") + " a " + basics.type + " has been constructed");
     };
-
 
     let spellSubString = function (text, start, end) {
         if (text.includes(start)) {
@@ -1632,7 +1525,8 @@ var Guidance = Guidance || (function () {
                 if (i > 0 && statBlockTemplate[i - 1].attribute !== "") {
                     preParsedText = statBlockText.substring(statBlockText.indexOf(statBlockTemplate[i - 1].attribute));
                 }
-                let val = getStringValue(statBlockTemplate[i].attribute, preParsedText);
+                let re = new RegExp(`(?<=${statBlockTemplate[i].attribute}\s)\w+?(?=(\s|;))`);
+                let val = getFirstMatchingElement(preParsedText, re);
                 statBlockData.push(new TemplateRow(i, statBlockTemplate[i].attribute, val));
                 debugLog(statBlockTemplate[i].attribute + " = " + val);
             }
@@ -1711,6 +1605,14 @@ var Guidance = Guidance || (function () {
     };
 
     //</editor-fold>
+    class TemplateRow {
+        constructor(sortOrder, attribute, value) {
+            this.val = value;
+            this.order = sortOrder;
+            this.attribute = attribute;
+        }
+    }
+
 
 }
 ());
