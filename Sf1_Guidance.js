@@ -27,11 +27,20 @@ var Guidance = Guidance || (function () {
         attribute: "Dex"
     }, {name: "Survival", attribute: "Wis"}];
 
+    let isEmpty = function (valueToCheck) {
+        if (valueToCheck === null || valueToCheck === undefined || valueToCheck === "") {
+            debugLog(valueToCheck === null ? "null" : "undefined");
+            debugLog(new Error().stack);
+            return true;
+        }
+        return false;
+    }
+
     //<editor-fold desc="Support Methods"  defaultstate="collapsed" >
     let getFirstMatchingElement = function (source, regex, ignoreEmpty) {
         let match = getMatchingArray(source, regex, ignoreEmpty);
         if (match[0] == null) {
-            if (ignoreEmpty == undefined) {
+            if (isEmpty(ignoreEmpty)) {
                 return "";
             }
             return source;
@@ -41,7 +50,7 @@ var Guidance = Guidance || (function () {
 
     let getMatchingArray = function (source, regex) {
         let match = source.match(regex);
-        if (match == null || match.length === 0 || !Array.isArray(match)) {
+        if (isEmpty(match) || match.length === 0 || !Array.isArray(match)) {
             debugLog("source=" + source + ", regex=" + regex + " didn't return an array");
             return [];
         }
@@ -370,8 +379,41 @@ var Guidance = Guidance || (function () {
         let selectedNPCs = getSelectedNPCs(chatMessage.selected);
 
         try {
-            identifyCharacterSheet(selectedNPCs[1]);
+            identifyCharacterSheet(selectedNPCs[0]);
 
+            if (chatMessage.content.startsWith("!sf_fixPlayer")) {
+                selectedNPCs.forEach(function (c) {
+                    let r = c.npcToken.get("represents");
+                    if (isEmpty(r)) {
+                        c.npcToken.set({statusmarkers: "dead"})
+                        speakAsGuidanceToGM("I've marked unlinked tokens with a red X");
+                        speakAsGuidanceToGM("Go into the settings for these tokens and set 'Represents Character' to the correct PC and rerun this command");
+                    } else {
+                        c.npcToken.set({
+                            has_bright_light_vision: true,
+                            emits_low_light: true,
+                            emits_bright_light: true,
+                            bright_light_distance: 5,
+                            low_light_distance: 20,
+                            showname: true,
+                            showplayers_name: true,
+                            playersedit_name: true,
+                            controlledby: "all",
+                            light_otherplayers: true,
+                            width: 70,
+                            height: 70
+                        });
+                        c.npcToken.set("dead", false);
+                        log("Token Represents = " + c.npcToken.get("represents"));
+                        log("Characterid = " + c.characterId);
+                        log("SheetID = " + c.characterSheet.get("_id"));
+                        setDefaultTokenForCharacter(c.characterSheet, c.npcToken);
+                        speakAsGuidanceToGM("I've configured the token for " + c.characterSheet.get("name") + "'s player");
+                        speakAsGuidanceToGM("I'm assuming their cellphones have flashlights and they are \"Medium\"");
+                    }
+                });
+                return;
+            }
 
             //<editor-fold desc="Roll Initiative for a group of NPCs">
             if (chatMessage.content.startsWith("!sf_init")) {
@@ -386,7 +428,7 @@ var Guidance = Guidance || (function () {
                     } else {
                         init = init.get("current");
                     }
-                    if (isNullOrUndefined(init) || isNaN(init)) {
+                    if (isEmpty(init) || isNaN(init)) {
                         init = 0;
                     }
                     debugLog("init " + init);
@@ -397,7 +439,7 @@ var Guidance = Guidance || (function () {
                     } else {
                         dex = dex.get("current");
                     }
-                    if (isNullOrUndefined(dex) || isNaN(dex)) {
+                    if (isEmpty(dex) || isNaN(dex)) {
                         init = 0;
                     }
                     debugLog("dex " + dex);
@@ -841,16 +883,6 @@ var Guidance = Guidance || (function () {
         speakAsGuidanceToGM(selectedNPC.characterSheet.get("name") + " NPC character sheet processed");
     };
 
-    // For Debugging purposes
-    let isNullOrUndefined = function (v) {
-        if (v == null) { // null or undefined
-            debugLog(v === null ? "null" : "undefined");
-            debugLog(new Error().stack);
-            return true;
-        }
-        return false;
-    };
-
     const frameLookup = {
         "racer": 1,
         "interceptor": 2,
@@ -1012,7 +1044,7 @@ var Guidance = Guidance || (function () {
             setAttribute(characterId, "spellclass-0-level", casterLevel);
             for (let i = 0; i < lines.length; i++) {
                 let ability = "";
-                if (isNullOrUndefined(lines[i + 1])) {
+                if (isEmpty(lines[i + 1])) {
                     ability = spellLikeAbilities.substring(spellLikeAbilities.indexOf(lines[i]));
                     debugLog("ability match a");
                 } else {
@@ -1077,7 +1109,7 @@ var Guidance = Guidance || (function () {
 
                 for (let i = 0; i < lines.length; i++) {
                     let spell = "";
-                    if (isNullOrUndefined(lines[i + 1])) {
+                    if (isEmpty(lines[i + 1])) {
                         spell = textToParse.substring(textToParse.indexOf(lines[i]));
                         debugLog("spell match a");
                     } else {
@@ -1452,8 +1484,8 @@ var Guidance = Guidance || (function () {
         i++;
         //createWeaponCriticals(characterId, uuid, details, i);
         try {
-            if (i <= details.length && details[i] != ")") {
-                if (details[i] == "critical") {
+            if (i <= details.length && details[i] !== ")") {
+                if (details[i] === "critical") {
                     i++;
                     //Probably need a foreach in here to go through the rest
                     let critical = "";
