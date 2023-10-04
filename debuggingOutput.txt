@@ -1,58 +1,229 @@
-NORYS CR 10
-Female old white dragon operative (Starfinder Alien Archive 39)
-CE Huge dragon (cold)
-Init +11; Senses blindsense 60 ft., darkvision 120 ft., sense
-through (vision [snow only]); Perception +25
-Aura frightful presence (160 ft., DC 19)
-DEFENSE HP 180
-EAC 23; KAC 24
-Fort +9; Ref +12; Will +13
-Defensive Abilities evasion, operative exploits (cloaking field,
-improved uncanny mobility), uncanny agility; DR 5/magic;
-Immunities cold, paralysis, sleep; Resistances cold 5, fire 5
-Weaknesses vulnerable to fire
 
-
-OFFENSE
-Speed 50 ft., burrow 30 ft., fly 200 ft. (Ex, clumsy), swim 60 ft.
-Melee bite +20 (2d8+15 P)
-Multiattack bite +14 (2d8+15 P), 2 claws +14 (1d10+15 S), tail
-slap +14 (1d8+15 B)
-Space 15 ft.; Reach 10 ft. (15 ft. with bite)
-Offensive Abilities breath weapon (cone 75 ft., 11d6 C, Reflex
-DC 19 for half, usable every 1d4 rounds), debilitating trick,
-dragon operative, operative exploits (stunning shot DC 19),
-triple attack
-
-
-TACTICS
-During Combat If spotted by the PCs, Norys attacks
-immediately. If the PCs move inside the bridge and do
-not detect Norys, she can attack from behind, activating
-her haste circuit. She uses her breath weapon whenever
-possible and uses hit and run trick attacks in conjunction
-with her cloaking field, focusing on the weakest-looking PCs
-first. She hides and uses a healing serum when reduced to
-60 hp or less.
-Morale Norys switches to using multiattacks when she runs
-out of healing serum and is reduced to 60 hp or less, fighting
-to the death.
-STATISTICS
-Str +5; Dex +8; Con +3; Int +3; Wis +3; Cha +3
-Skills Acrobatics +25 (+17 when flying), Bluff +19, Diplomacy
-+19, Intimidate +25, Piloting +19, Sense Motive +25, Stealth
-+25 (+4 when making a trick attack)
-Languages Common, Draconic, Drow, Gnome, Triaxian, Vesk
-Other Abilities icewalking, specialization (ghost)
-Gear freebooter armor III (haste circuit, mk 1 thermal
-capacitor), mk 3 serum of healing (3), data pad
-SPECIAL ABILITIES
-Dragon Operative (Ex) Norys has learned to use her innate
-draconic attacks with precision and dexterity. She can use
-her trick attack with her natural weapons. She does not add
-her trick attack damage to her attacks, but her target is still
-flat-footed and she can use her debilitating tricks.
-Icewalking (Ex) A white dragon can move across icy surfaces
-without penalty and doesn’t need to attempt Acrobatics
-checks to run or charge on ice. In addition, a white dragon
-can climb icy surfaces as if under the effect of spider climb.
+"Wed, 04 Oct 2023 21:05:07 GMT at apiscript.js:376:21 Fix-Token"
+"Wed, 04 Oct 2023 21:05:07 GMT at apiscript.js:377:21 !pf_token"
+"Wed, 04 Oct 2023 21:14:43 GMT at getSelectedNPCs (apiscript.js:204:13) [object Object]adding"
+"{\"name\":infodrop_name\",\"current\":\"\",\"max\":\"\"}"
+"{\"name\":infodrop_data\",\"current\":\"\",\"max\":\"\"}"
+"{\"name\":version_character\",\"current\":\"4.97\",\"max\":\"\"}"
+"{\"name\":text_modifier\",\"current\":\"MODIFIER\",\"max\":\"\"}"
+"{\"name\":text_ability_modifier\",\"current\":\"ABILITY MODIFIER\",\"max\":\"\"}"
+"{\"name\":text_bonus\",\"current\":\"BONUS\",\"max\":\"\"}"
+"{\"name\":text_roll_bonus\",\"current\":\"BONUS TO ROLL\",\"max\":\"\"}"
+"{\"name\":text_roll_damage_bonus\",\"current\":\"BONUS TO DAMAGE\",\"max\":\"\"}"
+"{\"name\":text_#_damage_dice\",\"current\":\"# DAMAGE DICE\",\"max\":\"\"}"
+"{\"name\":text_#_critical_damage_dice\",\"current\":\"# CRITICAL DAMAGE DICE\",\"max\":\"\"}"
+"{\"name\":text_use\",\"current\":\"USE\",\"max\":\"\"}"
+"{\"name\":text_other\",\"current\":\"OTHER\",\"max\":\"\"}"
+"{\"name\":text_misc\",\"current\":\"MISC\",\"max\":\"\"}"
+"{\"name\":text_level\",\"current\":\"LEVEL\",\"max\":\"\"}"
+"{\"name\":text_proficiency\",\"current\":\"PROFICIENCY\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_toggles\",\"current\":\"display,\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon\",\"current\":\"unarmed fist\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_traits\",\"current\":\"Agile, finesse, nonlethal, unarmed\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_item\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_b\",\"current\":\"1\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_dice\",\"current\":\"1\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_dice_size\",\"current\":\"D4\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_other\",\"current\":\"\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_additional\",\"current\":\"\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_category\",\"current\":\"Unarmed Attacks\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_group\",\"current\":\"Brawling\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_rank\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_agile\",\"current\":\"1\",\"max\":\"\"}"
+"{\"name\":_reporder_repeating_melee-strikes\",\"current\":\"-Nfw--w0nWj-ak5b9zed\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_strike\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_display\",\"current\":\"+0 (Agile, finesse, nonlethal, unarmed)\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_display\",\"current\":\"1D4+0 B\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_bonus_display\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_info\",\"current\":\"bludgeoning\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_dice_query\",\"current\":\"@{damage_dice}\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_roll\",\"current\":\"{{roll01_name=^{attack}}} {{roll01=[[1d20cs20cf1 + [@{weapon_proficiency_display}] @{weapon_strike}[@{text_modifier}] + (0)[OTHER] + (@{query_roll_bonus})[@{text_bonus}]]]}} {{roll01_type=attack}} {{roll01_info=@{weapon_traits}}} {{roll01_critical=1}}\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_roll2\",\"current\":\"{{roll01_name=^{attack #2}}} {{roll01=[[1d20cs20cf1 + [@{weapon_proficiency_display}] @{weapon_strike}[@{text_modifier}] + (@{strikes_agile_map2})[MAP #2] + (0)[OTHER] + (@{query_roll_bonus})[@{text_bonus}]]]}} {{roll01_type=attack}} {{roll01_info=@{weapon_traits}}} {{roll01_critical=1}}\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_weapon_roll3\",\"current\":\"{{roll01_name=^{attack #3}}} {{roll01=[[1d20cs20cf1 + [@{weapon_proficiency_display}] @{weapon_strike}[@{text_modifier}] + (@{strikes_agile_map3})[MAP #3] + (0)[OTHER] + (@{query_roll_bonus})[@{text_bonus}]]]}} {{roll01_type=attack}} {{roll01_info=@{weapon_traits}}} {{roll01_critical=1}}\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_roll\",\"current\":\"{{roll02_name=^{damage}}} {{roll02=[[@{damage_dice_query}@{damage_dice_size} + (@{damage_ability})[@{text_ability_modifier}] + (@{damage_weapon_specialization})[WEAPON SPECIALIZATION] + (@{damage_temporary})[TEMP] + (0)[OTHER] + (@{query_roll_damage_bonus})[@{text_roll_damage_bonus}]]]}} {{roll02_type=damage}} {{roll02_info=@{damage_info}}}\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_critical_damage_dice\",\"current\":\"1\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_critical_damage_dice_size\",\"current\":\"D4\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_critical_damage_dice_query\",\"current\":\"@{critical_damage_dice}\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_damage_critical_roll\",\"current\":\"{{roll03_name=^{critical_damage}}} {{roll03=[[(@{critical_damage_dice_query}@{critical_damage_dice_size} + (@{damage_ability})[@{text_ability_modifier}] + (@{damage_weapon_specialization})[WEAPON SPECIALIZATION] + (@{damage_temporary})[TEMP] + (0)[OTHER] + (@{query_roll_damage_bonus})[@{text_roll_damage_bonus}])*2 + (0)[ADDITIONAL DAMAGE] ]]}} {{roll03_type=critical-damage}} {{roll03_info=@{damage_info}}}\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_roll_damage_roll\",\"current\":\"@{damage_roll} {{roll04_name=^{damage_additional}}} {{roll04=@{damage_additional}}} {{roll04_type=damage}} @{roll_critical_damage}\",\"max\":\"\"}"
+"{\"name\":repeating_melee-strikes_-Nfw--w0nWj-ak5b9zed_roll_critical_damage\",\"current\":\"@{damage_critical_roll}\",\"max\":\"\"}"
+"{\"name\":kingmaker_tab\",\"current\":\"nav-tabs-kingmaker--settings\",\"max\":\"\"}"
+"{\"name\":kingdom_culture_action\",\"current\":\"%{Upaseof Uclosh|kingdom-culture-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_economy_action\",\"current\":\"%{Upaseof Uclosh|kingdom-economy-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_loyalty_action\",\"current\":\"%{Upaseof Uclosh|kingdom-loyalty-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_stability_action\",\"current\":\"%{Upaseof Uclosh|kingdom-stability-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_agriculture_action\",\"current\":\"%{Upaseof Uclosh|kingdom-agriculture-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_arts_action\",\"current\":\"%{Upaseof Uclosh|kingdom-arts-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_boating_action\",\"current\":\"%{Upaseof Uclosh|kingdom-boating-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_defense_action\",\"current\":\"%{Upaseof Uclosh|kingdom-defense-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_engineering_action\",\"current\":\"%{Upaseof Uclosh|kingdom-engineering-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_exploration_action\",\"current\":\"%{Upaseof Uclosh|kingdom-exploration-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_folklore_action\",\"current\":\"%{Upaseof Uclosh|kingdom-folklore-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_industry_action\",\"current\":\"%{Upaseof Uclosh|kingdom-industry-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_intrigue_action\",\"current\":\"%{Upaseof Uclosh|kingdom-intrigue-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_magic_action\",\"current\":\"%{Upaseof Uclosh|kingdom-magic-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_politics_action\",\"current\":\"%{Upaseof Uclosh|kingdom-politics-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_scholarship_action\",\"current\":\"%{Upaseof Uclosh|kingdom-scholarship-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_statecraft_action\",\"current\":\"%{Upaseof Uclosh|kingdom-statecraft-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_trade_action\",\"current\":\"%{Upaseof Uclosh|kingdom-trade-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_warfare_action\",\"current\":\"%{Upaseof Uclosh|kingdom-warfare-action}\",\"max\":\"\"}"
+"{\"name\":kingdom_wilderness_action\",\"current\":\"%{Upaseof Uclosh|kingdom-wilderness-action}\",\"max\":\"\"}"
+"{\"name\":army_scouting_action\",\"current\":\"%{Upaseof Uclosh|army-scouting-action}\",\"max\":\"\"}"
+"{\"name\":army_maneuver_action\",\"current\":\"%{Upaseof Uclosh|army-maneuver-action}\",\"max\":\"\"}"
+"{\"name\":army_morale_action\",\"current\":\"%{Upaseof Uclosh|army-morale-action}\",\"max\":\"\"}"
+"{\"name\":army_ranged_action\",\"current\":\"%{Upaseof Uclosh|army-ranged-action}\",\"max\":\"\"}"
+"{\"name\":sheet_version\",\"current\":\"1\",\"max\":\"\"}"
+"{\"name\":toggles\",\"current\":\"color:default,innate,focus,cantrips,normalspells,bombs,elixirs,poisons,acrobatics,dexterity,athletics,deception\",\"max\":\"\"}"
+"{\"name\":acrobatics_rank\",\"current\":\"2\",\"max\":\"\"}"
+"{\"name\":acrobatics_ability\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":acrobatics_proficiency\",\"current\":\"4\",\"max\":\"\"}"
+"{\"name\":acrobatics_proficiency_display\",\"current\":\"T\",\"max\":\"\"}"
+"{\"name\":acrobatics_armor\",\"current\":\"\",\"max\":\"\"}"
+"{\"name\":acrobatics\",\"current\":\"9\",\"max\":\"\"}"
+"{\"name\":level\",\"current\":\"2\",\"max\":\"\"}"
+"{\"name\":spell_dc_key_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":spell_dc_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":spell_dc_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":spell_dc\",\"current\":\"10\",\"max\":\"\"}"
+"{\"name\":armor_class_ability\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":armor_class_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":armor_class_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":armor_class\",\"current\":\"15\",\"max\":\"\"}"
+"{\"name\":ac\",\"current\":\"15\",\"max\":\"\"}"
+"{\"name\":armor_class_shield\",\"current\":\"15\",\"max\":\"\"}"
+"{\"name\":armor_class_penalties_applied\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":arcana_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":arcana_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":arcana_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":arcana\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":athletics_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":athletics_proficiency\",\"current\":\"4\",\"max\":\"\"}"
+"{\"name\":athletics_proficiency_display\",\"current\":\"T\",\"max\":\"\"}"
+"{\"name\":athletics_armor\",\"current\":\"\",\"max\":\"\"}"
+"{\"name\":athletics\",\"current\":\"4\",\"max\":\"\"}"
+"{\"name\":crafting_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":crafting_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":crafting_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":crafting\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":deception_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":deception_proficiency\",\"current\":\"10\",\"max\":\"\"}"
+"{\"name\":deception_proficiency_display\",\"current\":\"L\",\"max\":\"\"}"
+"{\"name\":deception\",\"current\":\"10\",\"max\":\"\"}"
+"{\"name\":diplomacy_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":diplomacy_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":diplomacy_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":diplomacy\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":intimidation_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":intimidation_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":intimidation_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":intimidation\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":medicine_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":medicine_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":medicine_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":medicine\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":nature_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":nature_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":nature_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":nature\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":occultism_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":occultism_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":occultism_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":occultism\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":performance_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":performance_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":performance_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":performance\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":religion_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":religion_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":religion_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":religion\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":society_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":society_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":society_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":society\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":stealth_ability\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":stealth_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":stealth_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":stealth_armor\",\"current\":\"\",\"max\":\"\"}"
+"{\"name\":stealth\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":survival_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":survival_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":survival_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":survival\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":thievery_ability\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":thievery_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":thievery_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":thievery_armor\",\"current\":\"\",\"max\":\"\"}"
+"{\"name\":thievery\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":saving_throws_fortitude_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":saving_throws_fortitude_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":saving_throws_fortitude_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":saving_throws_fortitude\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":saving_throws_reflex_ability\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":saving_throws_reflex_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":saving_throws_reflex_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":saving_throws_reflex\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":saving_throws_will_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":saving_throws_will_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":saving_throws_will_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":saving_throws_will\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":hit_points\",\"current\":\"\",\"max\":\"0\"}"
+"{\"name\":perception_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":perception_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":perception_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":perception\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":class_dc_key_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":class_dc_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":class_dc_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":class_dc\",\"current\":\"10\",\"max\":\"\"}"
+"{\"name\":speed\",\"current\":\"25\",\"max\":\"\"}"
+"{\"name\":speed_penalty_total\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":speed_use_status_penalty\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":speed_use_circumstance_penalty\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":speed_use_item_penalty\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":speed_bonus_total\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":speed_use_status_bonus\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":speed_use_circumstance_bonus\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":speed_use_item_bonus\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":spell_attack_key_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":spell_attack_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":spell_attack_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":spell_attack\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":magic_tradition_arcane_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":magic_tradition_primal_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":magic_tradition_occult_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":magic_tradition_divine_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":bomb_attack_key_ability\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":bomb_attack_proficiency\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":bomb_attack_proficiency_display\",\"current\":\" \",\"max\":\"\"}"
+"{\"name\":bomb_attack\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":bomb_minimum_splash_damage_key_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":infused_reagents_key_ability\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":infused_reagents\",\"current\":\"\",\"max\":\"2\"}"
+"{\"name\":encumbered_base\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":maximum_base\",\"current\":\"10\",\"max\":\"\"}"
+"{\"name\":inventory_worn_total_bulk\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":inventory_readied_total_bulk\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":bulk\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":inventory_other_total_bulk\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":invest_total\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":inventory_total_levels\",\"current\":\"0\",\"max\":\"\"}"
+"{\"name\":inventory_total_gold\",\"current\":\"0.00\",\"max\":\"\"}"
+"{\"name\":dexterity_score\",\"current\":\"20\",\"max\":\"\"}"
+"{\"name\":dexterity\",\"current\":\"20\",\"max\":\"\"}"
+"{\"name\":dexterity_modifier\",\"current\":\"5\",\"max\":\"\"}"
+"{\"name\":athletics_rank\",\"current\":\"2\",\"max\":\"\"}"
+"{\"name\":deception_rank\",\"current\":\"8\",\"max\":\"\"}"
+"Wed, 04 Oct 2023 21:14:43 GMT at apiscript.js:376:21 Erase-NPC"
+"Wed, 04 Oct 2023 21:14:43 GMT at apiscript.js:377:21 !pf_clean CONFIRM
+"
+"Wed, 04 Oct 2023 21:14:43 GMT at apiscript.js:376:21 Import-NPC"
+"Wed, 04 Oct 2023 21:14:43 GMT at apiscript.js:377:21 !pf_npc"
+"Wed, 04 Oct 2023 21:14:43 GMT at apiscript.js:376:21 DEBUG"
+"Wed, 04 Oct 2023 21:14:43 GMT at apiscript.js:377:21 !pf_debug"
+"Wed, 04 Oct 2023 21:14:43 GMT at apiscript.js:376:21 Fix-Token"
+"Wed, 04 Oct 2023 21:14:43 GMT at apiscript.js:377:21 !pf_token"

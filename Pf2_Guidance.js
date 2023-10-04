@@ -5,7 +5,7 @@ var Guidance = Guidance || function () {
     const guidanceGreeting = "Greetings, I am Guidance. I am here to assist you working with your game. " +
         "To learn more, I created a welcome guide in the journal section.";
 
-    let debugMode = false;
+    let debugMode = true;
 
     // commands
     const prefix = "!pf_";
@@ -14,6 +14,7 @@ var Guidance = Guidance || function () {
     const commandToken = prefix + "token";
     const commandClean = prefix + "clean";
     const commandPopulate = prefix + "npc";
+    const commandPathBuilder = prefix + "pbuilder";
     const allTraits = "Aftermath,All Ancestries,Archetype,Attack,Aura,Cantrip,Charm,Class,Concentrate,Consecration,Contingency,Curse,Darkness,Death,Dedication,Detection,Deviant,Disease,Downtime,Emotion,Experiment,Exploration,Extradimensional,Fear,Flourish,Focus,Fortune,General,Healing,Incapacitation,Incarnate,Legacy,Light,Lineage,Linguistic,Magical,Manipulate,Mental,Metamagic,Mindshift,Minion,Misfortune,Morph,Move,Multiclass,Open,Polymorph,Possession,Prediction,Press,Radiation,Reckless,Revelation,Scrying,Secret,Skill,Sleep,Spellshape,Splash,Summoned,Tech,Telepathy,Teleportation,Varies,Virulent,Vocal,Chaotic,Evil,Good,Lawful,Aasimar,Anadi,Android,Aphorite,Ardande,Automaton,Azarketi,Beastkin,Catfolk,Changeling,Conrasu,Dhampir,Duskwalker,Dwarf,Elf,Fetchling,Fleshwarp,Ganzi,Geniekin,Ghoran,Gnoll,Gnome,Goblin,Goloma,Grippli,Half-Elf,Halfling,Half-Orc,Hobgoblin,Human,Ifrit,Kashrishi,Kitsune,Kobold,Leshy,Lizardfolk,Nagaji,Orc,Oread,Poppet,Ratfolk,Reflection,Shisk,Shoony,Skeleton,Sprite,Strix,Suli,Sylph,Talos,Tengu,Tiefling,Undine,Vanara,Vishkanya,Adjusted,Aquadynamic,Bulwark,Comfort,Flexible,Hindering,Inscribed,Laminar,Noisy,Ponderous,Alchemist,Barbarian,Bard,Champion,Cleric,Druid,Fighter,Gunslinger,Inventor,Investigator,Kineticist,Magus,Monk,Oracle,Psychic,Ranger,Rogue,Sorcerer,Summoner,Swashbuckler,Thaumaturge,Witch,Wizard,Additive,Amp,Composite,Composition,Cursebound,Eidolon,Esoterica,Evolution,Finisher,Hex,Impulse,Infused,Infusion,Litany,Modification,Oath,Overflow,Psyche,Rage,Social,Spellshot,Stance,Tandem,Unstable,Vigilante,Aberration,Animal,Astral,Beast,Celestial,Construct,Dragon,Dream,Elemental,Ethereal,Fey,Fiend,Fungus,Giant,Humanoid,Monitor,Negative,Ooze,Petitioner,Plant,Positive,Spirit,Time,Undead,Air,Earth,Fire,Metal,Water,Wood,Acid,Cold,Electricity,Force,Sonic,Vitality,Void,Adjustment,Alchemical,Apex,Artifact,Barding,Bomb,Bottled,Breath,Catalyst,Censer,Clockwork,Coda,Companion,Consumable,Contract,Cursed,Drug,Elixir,Entrench,Expandable,Figurehead,Focused,Fulu,Gadget,Grimoire,Intelligent,Invested,Lozenge,Mechanical,Missive,Mutagen,Oil,Potion,Precious,Processed,Relic,Saggorak,Scroll,Snare,Spellgun,Spellheart,Staff,Steam,Structure,Talisman,Tattoo,Trap,Wand,Complex,Environmental,Haunt,Weather,Aeon,Aesir,Agathion,Amphibious,Angel,Anugobu,Aquatic,Arcane,Archon,Asura,Azata,Boggard,Caligni,Charau-ka,Couatl,Daemon,Darvakka,Demon,Dero,Devil,Dinosaur,Div,Drow,Duergar,Formian,Genie,Ghost,Ghoul,Ghul,Golem,Gremlin,Grioth,Hag,Hantu,Herald,Ikeshti,Illusion,Incorporeal,Inevitable,Kaiju,Kami,Kovintus,Lilu,Locathah,Merfolk,Mindless,Morlock,Mortic,Mummy,Munavri,Mutant,Nymph,Oni,Paaridar,Phantom,Protean,Psychopomp,Qlippoth,Rakshasa,Ratajin,Sahkil,Samsaran,Sea Devil,Serpentfolk,Seugathi,Shabti,Shapechanger,Siktempora,Skelm,Skulk,Soulbound,Sporeborn,Spriggan,Stheno,Swarm,Tane,Tanggal,Titan,Troll,Troop,Urdefhan,Vampire,Velstrac,Wayang,Werecreature,Wight,Wild Hunt,Wraith,Wyrwood,Xulgath,Zombie,Erratic,Finite,Flowing,High Gravity,Immeasurable,Low Gravity,Metamorphic,Microgravity,Sentient,Shadow,Static,Strange Gravity,Subjective Gravity,Timeless,Unbounded,Contact,Ingested,Inhaled,Injury,Poison,Abjuration,Conjuration,Divination,Enchantment,Evocation,Necromancy,Transmutation,Auditory,Olfactory,Visual,Deflecting,Foldaway,Harnessed,Hefty,Integrated,Launching,Shield Throw,Divine,Occult,Primal,Agile,Attached,Backstabber,Backswing,Brace,Brutal,Capacity,Climbing,Cobbled,Combination,Concealable,Concussive,Critical Fusion,Deadly,Disarm,Double,Barrel,Fatal,Fatal Aim,Finesse,Forceful,Free-Hand,Grapple,Hampering,Injection,Jousting,Kickback,Modular,Mounted,Nonlethal,Parry,Portable,Propulsive,Range,Ranged Trip,Razing,Reach,Recovery,Reload,Repeating,Resonant,Scatter,Shove,Sweep,Tethered,Thrown,Training,Trip,Twin,Two-Hand,Unarmed,Vehicular,Versatile,Volley";
 
     //<editor-fold desc="Support Methods"  defaultstate="collapsed" >
@@ -167,7 +168,7 @@ var Guidance = Guidance || function () {
                     max: newValue,
                     _characterid: characterId
                 });
-                // debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
+                debugLog("DefaultAttributes: Initializing " + attributeName + " on character ID " + characterId + " with a value of " + newValue + ".");
             } else {
                 if (typeof operator !== "undefined" && !isNaN(newValue) && !isNaN(foundAttribute.get("current"))) {
                     newValue = parseFloat(foundAttribute.get("current")) + parseFloat(mod_newValue[operator](newValue));
@@ -175,7 +176,7 @@ var Guidance = Guidance || function () {
 
                 foundAttribute.set("current", newValue);
                 foundAttribute.set("max", newValue);
-                // debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
+                debugLog("DefaultAttributes: Setting " + attributeName + " on character ID " + characterId + " to a value of " + newValue + ".");
             }
         } catch (err) {
             log(err);
@@ -300,7 +301,7 @@ var Guidance = Guidance || function () {
             return;
         }
 
-        let chatAPICommand = chatMessage.content;
+        let chatAPICommand = chatMessage.content.toLowerCase();
 
         if (chatMessage.selected === undefined) {
             speakAsGuidanceToGM("Please select a token representing a character for me to work with");
@@ -310,6 +311,24 @@ var Guidance = Guidance || function () {
         let selectedNPCs = getSelectedNPCs(chatMessage.selected);
 
         try {
+            if (chatAPICommand.startsWith(commandPathBuilder)) {
+                selectedNPCs.forEach(function (c) {
+                    c.characterSheet.get("bio", function (notes) {
+                        if (!notes.includes("will")
+                            && !notes.includes("fort")
+                            && !notes.includes("ref")) {
+                            return;
+                        }
+                        if (debugMode) {
+                            eraseCharacter(c);
+                        }
+                        parsePathBuilder(notes, c);
+                        fixPlayerToken(c);
+                    });
+                });
+
+                return;
+            }
             //<editor-fold desc="commandHelp - Show Help information for using Guidance">
             if (chatAPICommand.startsWith(commandHelp)) {
                 speakAsGuidanceToGM(guidanceWelcome);
@@ -327,7 +346,7 @@ var Guidance = Guidance || function () {
                 if (chatAPICommand.includes("CONFIRM")) {
                     eraseCharacter(selectedNPC);
                 } else {
-                    speakAsGuidanceToGM("Check usage for !sf_clean");
+                    speakAsGuidanceToGM("Check usage for " + commandClean);
                 }
                 return;
             }
@@ -407,6 +426,95 @@ var Guidance = Guidance || function () {
     //</editor-fold>
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    let parsePathBuilder = function (notes, character) {
+        let workingNotes = notes.replace(/(<([^>]+)>)/gi, "").trim();
+        debugLog(workingNotes);
+        let cObj = JSON.parse(workingNotes).build;
+        const characterId = character.characterId;
+        const npcToken = character.npcToken;
+        const characterSheet = character.characterSheet;
+
+        characterSheet.set("name", cObj.name);
+        npcToken.set("name", cObj.name);
+        setAttribute(characterId, "ancestry_heritage", cObj.ancestry + " / " + cObj.heritage);
+        setAttribute(characterId, "class", cObj.class);
+        setAttribute(characterId, "background", cObj.background);
+        setAttribute(characterId, "size", cObj.sizeName);
+        setAttribute(characterId, "alignment", cObj.alignment);
+        setAttribute(characterId, "deity", cObj.deity);
+        setAttribute(characterId, "age", cObj.age);
+        setAttribute(characterId, "gender_pronouns", cObj.gender);
+        setAttribute(characterId, "level", cObj.level);
+        setPlayerAttribute(characterId, "strength", cObj.abilities.str);
+        setPlayerAttribute(characterId, "dexterity", cObj.abilities.dex);
+        setPlayerAttribute(characterId, "constitution", cObj.abilities.con);
+        setPlayerAttribute(characterId, "intelligence", cObj.abilities.int);
+        setPlayerAttribute(characterId, "wisdom", cObj.abilities.wis);
+        setPlayerAttribute(characterId, "charisma", cObj.abilities.cha);
+        setAttribute(characterId, "speed", cObj.attributes.speed);
+        setAttribute(characterId, "speed_bonus_total", cObj.attributes.ancestryhp);
+        let hp = parseInt(cObj.attributes.classhp) + parseInt(cObj.attributes.bonushpPerLevel);
+        setAttribute(characterId, "hit_points_class", hp);
+        setAttribute(characterId, "hit_points_ancestry", cObj.attributes.ancestryhp);
+        setAttribute(characterId, "acrobatics_rank", cObj.proficiencies.acrobatics);
+        setAttribute(characterId, "arcana_rank", cObj.proficiencies.arcana);
+        setAttribute(characterId, "athletics_rank", cObj.proficiencies.athletics);
+        setAttribute(characterId, "crafting_rank", cObj.proficiencies.crafting);
+        setAttribute(characterId, "deception_rank", cObj.proficiencies.deception);
+        setAttribute(characterId, "diplomacy_rank", cObj.proficiencies.diplomacy);
+        setAttribute(characterId, "intimidation_rank", cObj.proficiencies.intimidation);
+        setAttribute(characterId, "medicine_rank", cObj.proficiencies.medicine);
+        setAttribute(characterId, "nature_rank", cObj.proficiencies.nature);
+        setAttribute(characterId, "occultism_rank", cObj.proficiencies.occultism);
+        setAttribute(characterId, "performance_rank", cObj.proficiencies.performance);
+        setAttribute(characterId, "religion_rank", cObj.proficiencies.religion);
+        setAttribute(characterId, "society_rank", cObj.proficiencies.society);
+        setAttribute(characterId, "stealth_rank", cObj.proficiencies.stealth);
+        setAttribute(characterId, "survival_rank", cObj.proficiencies.survival);
+        setAttribute(characterId, "thievery_rank", cObj.proficiencies.thievery);
+        setAttribute(characterId, "perception_rank", cObj.proficiencies.perception);
+        setAttribute(characterId, "saving_throws_fortitude_rank", cObj.proficiencies.fortitude);
+        setAttribute(characterId, "saving_throws_reflex_rank", cObj.proficiencies.reflex);
+        setAttribute(characterId, "saving_throws_will_rank", cObj.proficiencies.will);
+        setAttribute(characterId, "class_dc_rank", cObj.proficiencies.classDC);
+
+
+    }
+
+    let fixPlayerToken = function (c) {
+        let r = c.npcToken.get("represents");
+        if (isEmpty(r)) {
+            c.npcToken.set({statusmarkers: "dead"});
+            speakAsGuidanceToGM("I've marked unlinked tokens with a red X");
+            speakAsGuidanceToGM("Go into the settings for these tokens and set 'Represents Character' to the correct PC and rerun this command");
+        } else {
+            c.npcToken.set({
+                has_bright_light_vision: true,
+                showname: true,
+                showplayers_name: true,
+                playersedit_name: true,
+                controlledby: "all",
+                light_otherplayers: true,
+                width: 70,
+                height: 70
+            });
+            c.npcToken.set("dead", false);
+            log("Token Represents = " + c.npcToken.get("represents"));
+            log("Characterid = " + c.characterId);
+            log("SheetID = " + c.characterSheet.get("_id"));
+            setDefaultTokenForCharacter(c.characterSheet, c.npcToken);
+            speakAsGuidanceToGM("I've configured the token for " + c.characterSheet.get("name") + "'s player");
+        }
+    }
+
+    let setPlayerAttribute = function (characterId, attribute, score) {
+        setAttribute(characterId, attribute, score);
+        setAttribute(characterId, attribute + "_score", score);
+        let modifier = Math.floor((parseInt(score) - 10) / 2);
+        setAttribute(characterId, attribute + "_modifier", modifier);
+        setAttribute(characterId, attribute + "_modifier_half", Math.floor(modifier / 2));
+    }
+
     let populateCharacterSheet = function (gmNotes, selectedNPC) {
         const characterId = selectedNPC.characterId;
         const npcToken = selectedNPC.npcToken;

@@ -1,0 +1,447 @@
+{
+  "success": true,
+  "build": {
+    "name": "Lanni Talimbi",
+    "class": "Oracle",
+    "dualClass": null,
+    "level": 4,
+    "ancestry": "Gnome",
+    "heritage": "Wellspring Gnome",
+    "background": "Willing Host",
+    "alignment": "CG",
+    "gender": "M",
+    "age": "Not set",
+    "deity": "Not set",
+    "size": 1,
+    "sizeName": "Small",
+    "keyability": "cha",
+    "languages": [
+      "Common",
+      "Gnomish",
+      "Necril",
+      "Sylvan"
+    ],
+    "rituals": [],
+    "resistances": [],
+    "attributes": {
+      "ancestryhp": 8,
+      "classhp": 8,
+      "bonushp": 0,
+      "bonushpPerLevel": 0,
+      "speed": 25,
+      "speedBonus": 0
+    },
+    "abilities": {
+      "str": 8,
+      "dex": 16,
+      "con": 12,
+      "int": 12,
+      "wis": 12,
+      "cha": 18,
+      "breakdown": {
+        "ancestryFree": [
+          "Dex"
+        ],
+        "ancestryBoosts": [
+          "Con",
+          "Cha"
+        ],
+        "ancestryFlaws": [
+          "Str"
+        ],
+        "backgroundBoosts": [
+          "Cha",
+          "Dex"
+        ],
+        "classBoosts": [
+          "Cha"
+        ],
+        "mapLevelledBoosts": {
+          "1": [
+            "Cha",
+            "Wis",
+            "Dex",
+            "Int"
+          ]
+        }
+      }
+    },
+    "proficiencies": {
+      "classDC": 2,
+      "perception": 2,
+      "fortitude": 2,
+      "reflex": 2,
+      "will": 4,
+      "heavy": 0,
+      "medium": 0,
+      "light": 2,
+      "unarmored": 2,
+      "advanced": 0,
+      "martial": 0,
+      "simple": 2,
+      "unarmed": 2,
+      "castingArcane": 0,
+      "castingDivine": 2,
+      "castingOccult": 2,
+      "castingPrimal": 0,
+      "acrobatics": 0,
+      "arcana": 0,
+      "athletics": 0,
+      "crafting": 0,
+      "deception": 2,
+      "diplomacy": 2,
+      "intimidation": 2,
+      "medicine": 0,
+      "nature": 0,
+      "occultism": 4,
+      "performance": 2,
+      "religion": 2,
+      "society": 2,
+      "stealth": 0,
+      "survival": 0,
+      "thievery": 0
+    },
+    "mods": {},
+    "feats": [
+      [
+        "First World Magic",
+        null,
+        "Ancestry Feat",
+        1
+      ],
+      [
+        "Wellspring Gnome",
+        null,
+        "Heritage",
+        1
+      ],
+      [
+        "Unexpected Shift",
+        null,
+        "Ancestry Feat",
+        1
+      ],
+      [
+        "Bon Mot",
+        null,
+        "Skill Feat",
+        2
+      ],
+      [
+        "Reach Spell",
+        null,
+        "Class Feat",
+        2
+      ],
+      [
+        "Psychic Dedication",
+        null,
+        "Archetype Feat",
+        2
+      ],
+      [
+        "Read Psychometric Resonance",
+        null,
+        "General Feat",
+        3
+      ],
+      [
+        "Quick Identification",
+        null,
+        "Skill Feat",
+        4
+      ],
+      [
+        "Basic Thoughtform",
+        null,
+        "Class Feat",
+        4
+      ],
+      [
+        "Cantrip Expansion",
+        null,
+        "Psychic Feat",
+        4
+      ],
+      [
+        "Basic Psychic Spellcasting",
+        null,
+        "Archetype Feat",
+        4
+      ]
+    ],
+    "specials": [
+      "Low-Light Vision",
+      "Ancestors Mystery",
+      "Family",
+      "Revelation Spells",
+      "Oracular Curse",
+      "Host Spirit",
+      "Occult",
+      "The Tangible Dream",
+      "Charisma",
+      "Standard Cantrip: Shield (Amped)",
+      "Signature Spells",
+      "Wellspring Gnome"
+    ],
+    "lores": [
+      [
+        "Spirit",
+        2
+      ]
+    ],
+    "equipmentContainers": {},
+    "equipment": [],
+    "specificProficiencies": {
+      "trained": [],
+      "expert": [],
+      "master": [],
+      "legendary": []
+    },
+    "weapons": [
+      {
+        "name": "Hand Crossbow",
+        "qty": 1,
+        "prof": "simple",
+        "die": "d6",
+        "pot": 0,
+        "str": "",
+        "mat": null,
+        "display": "Hand Crossbow",
+        "runes": [],
+        "damageType": "P",
+        "attack": 9,
+        "damageBonus": 0,
+        "extraDamage": []
+      },
+      {
+        "name": "Dagger",
+        "qty": 1,
+        "prof": "simple",
+        "die": "d4",
+        "pot": 0,
+        "str": "",
+        "mat": null,
+        "display": "Dagger",
+        "runes": [],
+        "damageType": "P",
+        "attack": 9,
+        "damageBonus": -1,
+        "extraDamage": []
+      }
+    ],
+    "money": {
+      "cp": 0,
+      "sp": 0,
+      "gp": 15,
+      "pp": 0
+    },
+    "armor": [
+      {
+        "name": "Leather Armor",
+        "qty": 1,
+        "prof": "light",
+        "pot": 0,
+        "res": "",
+        "mat": null,
+        "display": "Leather",
+        "worn": true,
+        "runes": []
+      }
+    ],
+    "spellCasters": [
+      {
+        "name": "Archetype Psychic",
+        "magicTradition": "occult",
+        "spellcastingType": "spontaneous",
+        "ability": "cha",
+        "proficiency": 2,
+        "focusPoints": 0,
+        "innate": false,
+        "perDay": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "spells": [
+          {
+            "spellLevel": 0,
+            "list": [
+              "Dancing Lights",
+              "Mage Hand"
+            ]
+          },
+          {
+            "spellLevel": 1,
+            "list": [
+              "Biting Words"
+            ]
+          }
+        ],
+        "prepared": [],
+        "blendedSpells": []
+      },
+      {
+        "name": "First World Magic",
+        "magicTradition": "occult",
+        "spellcastingType": "prepared",
+        "ability": "cha",
+        "proficiency": 2,
+        "focusPoints": 0,
+        "innate": true,
+        "perDay": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "spells": [
+          {
+            "spellLevel": 0,
+            "list": [
+              "Ghost Sound"
+            ]
+          }
+        ],
+        "prepared": [],
+        "blendedSpells": []
+      },
+      {
+        "name": "Wellspring Gnome",
+        "magicTradition": "occult",
+        "spellcastingType": "prepared",
+        "ability": "cha",
+        "proficiency": 2,
+        "focusPoints": 0,
+        "innate": true,
+        "perDay": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "spells": [
+          {
+            "spellLevel": 0,
+            "list": [
+              "Telekinetic Projectile"
+            ]
+          }
+        ],
+        "prepared": [],
+        "blendedSpells": []
+      },
+      {
+        "name": "Oracle",
+        "magicTradition": "divine",
+        "spellcastingType": "spontaneous",
+        "ability": "cha",
+        "proficiency": 2,
+        "focusPoints": 0,
+        "innate": false,
+        "perDay": [
+          6,
+          3,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "spells": [
+          {
+            "spellLevel": 0,
+            "list": [
+              "Stabilize",
+              "Haunting Hymn",
+              "Bullhorn",
+              "Read the Air",
+              "Shield",
+              "Guidance"
+            ]
+          },
+          {
+            "spellLevel": 1,
+            "list": [
+              "Animate Dead",
+              "Command",
+              "Alarm"
+            ]
+          },
+          {
+            "spellLevel": 2,
+            "list": [
+              "Heal",
+              "Spiritual Weapon",
+              "Shield Other"
+            ]
+          }
+        ],
+        "prepared": [],
+        "blendedSpells": []
+      }
+    ],
+    "focusPoints": 3,
+    "focus": {
+      "divine": {
+        "cha": {
+          "abilityBonus": 4,
+          "proficiency": 2,
+          "itemBonus": 0,
+          "focusCantrips": [],
+          "focusSpells": [
+            "Ancestral Touch",
+            "Soothing Words"
+          ]
+        }
+      },
+      "occult": {
+        "cha": {
+          "abilityBonus": 4,
+          "proficiency": 2,
+          "itemBonus": 0,
+          "focusCantrips": [
+            "Shield (Amped)"
+          ],
+          "focusSpells": []
+        }
+      }
+    },
+    "formula": [],
+    "acTotal": {
+      "acProfBonus": 6,
+      "acAbilityBonus": 3,
+      "acItemBonus": 1,
+      "acTotal": 20,
+      "shieldBonus": null
+    },
+    "pets": [],
+    "familiars": []
+  }
+}

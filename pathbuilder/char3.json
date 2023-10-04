@@ -1,0 +1,340 @@
+{
+  "success": true,
+  "build": {
+    "name": "Kurin",
+    "class": "Swashbuckler",
+    "dualClass": null,
+    "level": 3,
+    "ancestry": "Nagaji",
+    "heritage": "Sacred Nagaji",
+    "background": "Bounty Hunter",
+    "alignment": "LN",
+    "gender": "Male",
+    "age": "22",
+    "deity": "Not set",
+    "size": 2,
+    "sizeName": "Medium",
+    "keyability": "dex",
+    "languages": [
+      "Common",
+      "Nagaji"
+    ],
+    "rituals": [],
+    "resistances": [],
+    "attributes": {
+      "ancestryhp": 10,
+      "classhp": 10,
+      "bonushp": 0,
+      "bonushpPerLevel": 0,
+      "speed": 25,
+      "speedBonus": 5
+    },
+    "abilities": {
+      "str": 16,
+      "dex": 18,
+      "con": 12,
+      "int": 10,
+      "wis": 10,
+      "cha": 12,
+      "breakdown": {
+        "ancestryFree": [
+          "Dex"
+        ],
+        "ancestryBoosts": [
+          "Str"
+        ],
+        "ancestryFlaws": [],
+        "backgroundBoosts": [
+          "Str",
+          "Dex"
+        ],
+        "classBoosts": [
+          "Dex"
+        ],
+        "mapLevelledBoosts": {
+          "1": [
+            "Dex",
+            "Str",
+            "Con",
+            "Cha"
+          ]
+        }
+      }
+    },
+    "proficiencies": {
+      "classDC": 2,
+      "perception": 4,
+      "fortitude": 4,
+      "reflex": 4,
+      "will": 4,
+      "heavy": 0,
+      "medium": 0,
+      "light": 2,
+      "unarmored": 2,
+      "advanced": 0,
+      "martial": 2,
+      "simple": 2,
+      "unarmed": 2,
+      "castingArcane": 0,
+      "castingDivine": 0,
+      "castingOccult": 2,
+      "castingPrimal": 0,
+      "acrobatics": 4,
+      "arcana": 0,
+      "athletics": 4,
+      "crafting": 0,
+      "deception": 0,
+      "diplomacy": 2,
+      "intimidation": 2,
+      "medicine": 0,
+      "nature": 0,
+      "occultism": 0,
+      "performance": 0,
+      "religion": 0,
+      "society": 0,
+      "stealth": 2,
+      "survival": 2,
+      "thievery": 2
+    },
+    "mods": {
+      "Athletics": {
+        "Potency Bonus": 1
+      }
+    },
+    "feats": [
+      [
+        "Experienced Tracker",
+        null,
+        "Awarded Feat",
+        1
+      ],
+      [
+        "Breath Control",
+        null,
+        "Awarded Feat",
+        1
+      ],
+      [
+        "Titan Wrestler",
+        null,
+        "Awarded Feat",
+        2
+      ],
+      [
+        "Dueling Parry",
+        null,
+        "Class Feat",
+        1
+      ],
+      [
+        "Water Nagaji",
+        null,
+        "Ancestry Feat",
+        1
+      ],
+      [
+        "Sacred Nagaji",
+        null,
+        "Heritage",
+        1
+      ],
+      [
+        "Nagaji Spell Familiarity",
+        null,
+        "Ancestry Feat",
+        1
+      ],
+      [
+        "Finishing Follow-Through",
+        null,
+        "Class Feat",
+        2
+      ],
+      [
+        "Intimidating Glare",
+        null,
+        "Skill Feat",
+        2
+      ],
+      [
+        "Wrestler Dedication",
+        null,
+        "Archetype Feat",
+        2
+      ],
+      [
+        "Serpent's Tongue",
+        null,
+        "Ancestry Feat",
+        3
+      ],
+      [
+        "Thorough Search",
+        null,
+        "General Feat",
+        3
+      ],
+      [
+        "Quick Jump",
+        null,
+        "Skill Feat",
+        3
+      ]
+    ],
+    "specials": [
+      "Confident Finisher",
+      "Gymnast Style",
+      "Panache",
+      "Precise Strike",
+      "Low-Light Vision",
+      "Fangs (Nagaji)",
+      "Vivacious Speed",
+      "Athletics",
+      "Great Fortitude",
+      "Opportune Riposte",
+      "Stylish Tricks",
+      "Sacred Nagaji"
+    ],
+    "lores": [
+      [
+        "Legal",
+        2
+      ]
+    ],
+    "equipmentContainers": {},
+    "equipment": [],
+    "specificProficiencies": {
+      "trained": [],
+      "expert": [],
+      "master": [],
+      "legendary": []
+    },
+    "weapons": [
+      {
+        "name": "Nagaji Tail",
+        "qty": 1,
+        "prof": "unarmed",
+        "die": "d6",
+        "pot": 1,
+        "str": "",
+        "mat": null,
+        "display": "+1 Nagaji Tail",
+        "runes": [],
+        "damageType": "B",
+        "attack": 10,
+        "damageBonus": 3,
+        "extraDamage": []
+      },
+      {
+        "name": "Fist",
+        "qty": 1,
+        "prof": "unarmed",
+        "die": "d4",
+        "pot": 1,
+        "str": "",
+        "mat": null,
+        "display": "+1 Fist",
+        "runes": [],
+        "damageType": "B",
+        "attack": 10,
+        "damageBonus": 3,
+        "extraDamage": []
+      },
+      {
+        "name": "Nightstick",
+        "qty": 1,
+        "prof": "simple",
+        "die": "d4",
+        "pot": 1,
+        "str": "",
+        "mat": null,
+        "display": "+1 Nightstick",
+        "runes": [],
+        "damageType": "B",
+        "attack": 10,
+        "damageBonus": 3,
+        "extraDamage": []
+      },
+      {
+        "name": "Shortsword",
+        "qty": 1,
+        "prof": "martial",
+        "die": "d6",
+        "pot": 1,
+        "str": "",
+        "mat": "Silver (Low-Grade)",
+        "display": "+1 Silver (Low-Grade) Shortsword",
+        "runes": [],
+        "damageType": "P",
+        "attack": 10,
+        "damageBonus": 3,
+        "extraDamage": []
+      }
+    ],
+    "money": {
+      "cp": 0,
+      "sp": 0,
+      "gp": 15,
+      "pp": 0
+    },
+    "armor": [
+      {
+        "name": "Leather Armor",
+        "qty": 1,
+        "prof": "light",
+        "pot": 0,
+        "res": "",
+        "mat": null,
+        "display": "Leather",
+        "worn": true,
+        "runes": []
+      }
+    ],
+    "spellCasters": [
+      {
+        "name": "Nagaji Spell Familiarity",
+        "magicTradition": "occult",
+        "spellcastingType": "prepared",
+        "ability": "cha",
+        "proficiency": 2,
+        "focusPoints": 0,
+        "innate": true,
+        "perDay": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "spells": [
+          {
+            "spellLevel": 0,
+            "list": [
+              "Mage Hand"
+            ]
+          }
+        ],
+        "prepared": [],
+        "blendedSpells": []
+      }
+    ],
+    "focusPoints": 0,
+    "focus": {},
+    "formula": [],
+    "acTotal": {
+      "acProfBonus": 5,
+      "acAbilityBonus": 4,
+      "acItemBonus": 1,
+      "acTotal": 20,
+      "shieldBonus": null
+    },
+    "pets": [],
+    "familiars": []
+  }
+}
