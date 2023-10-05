@@ -38,6 +38,14 @@ var Guidance = Guidance || function () {
         return match;
     }
 
+    let isEmpty = function (valueToCheck) {
+        if (valueToCheck === null || valueToCheck === undefined || valueToCheck === "") {
+            debugLog(valueToCheck === null ? "null" : "undefined");
+            debugLog(new Error().stack);
+            return true;
+        }
+        return false;
+    }
     let getSubstringStartingFrom = function (source, delimit) {
         let index = source.toLowerCase().indexOf(delimit.toLowerCase());
         if (index === -1) {
@@ -477,8 +485,55 @@ var Guidance = Guidance || function () {
         setAttribute(characterId, "saving_throws_reflex_rank", cObj.proficiencies.reflex);
         setAttribute(characterId, "saving_throws_will_rank", cObj.proficiencies.will);
         setAttribute(characterId, "class_dc_rank", cObj.proficiencies.classDC);
+        let keyability = fullAttributeName(cObj.keyability);
+        setAttribute(characterId, "class_dc_key_ability_select", "@{" + keyability + "_modifier}");
+        setAttribute(characterId, "cp", cObj.money.cp);
+        setAttribute(characterId, "sp", cObj.money.sp);
+        setAttribute(characterId, "gp", cObj.money.gp);
+        setAttribute(characterId, "pp", cObj.money.pp);
+        if (cObj.armor.size > 0) {
+            let name = cObj.armor[0].display;
+            if (isEmpty(name)) {
+                name = cObj.armor[0].name;
+            }
+            setAttribute(characterId, "armor_class_armor_name", name);
+            setAttribute(characterId, "armor_class_dc_rank", cObj.acTotal.acItemBonus);
+        }
 
+        for (const element of cObj.feats) {
+            let guid = generateRowID();
+            if (element[2].includes("Archetype")) {
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_archetype", element[0]);
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_archetype", element[3]);
+            } else if (element[2].includes("General")) {
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_general", element[0]);
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_general", element[3]);
+            } else if (element[2].includes("Skill")) {
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_skill", element[0]);
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_skill", element[3]);
+            } else if (element[2].includes("Ancestry")) {
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_ancestry", element[0]);
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_level", element[3]);
+            } else {
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_class", element[0]);
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_class", element[3]);
+            }
+        }
+    }
 
+    let fullAttributeName = function (x) {
+        if (x.toLowerCase().startsWith("str")) {
+            return "strength";
+        } else if (x.toLowerCase().startsWith("dex")) {
+            return "dexterity";
+        } else if (x.toLowerCase().startsWith("con")) {
+            return "constitution";
+        } else if (x.toLowerCase().startsWith("int")) {
+            return "intelligence";
+        } else if (x.toLowerCase().startsWith("wis")) {
+            return "wisdom";
+        }
+        return "charisma";
     }
 
     let fixPlayerToken = function (c) {
