@@ -1,9 +1,9 @@
 var Guidance = Guidance || function () {
     "use strict";
 
-    const guidanceWelcome = "<p>Welcome to Guidance! This tool assists Pathfinder 2e GMs in Roll20. It has the ability to read a stat block from the GMNotes section of a selected character and fill out the NPC section of the character sheet. Stat blocks from Archives of Nethys and PDFs are supported.</p> <p>&nbsp;</p><h2>THE MAIN COMMANDS</h2> <p>&nbsp;</p> <p><em><strong>!pf_npc</strong></em></p> <p>This imports a stat block from the GM Notes section of a character sheet and will out the NPC section of the Pathfinder character sheet. Furthermore, it configures the token's hit points and give AC indicators.</p> <p><em>How to:</em></p><ol> <li>Select and copy a stat block and paste it into the \"GM Notes\" section of a Character sheet. (Don't worry about removing any formatting) </li> <li>Click Save.</li> <li>Select the token that you have<a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\"> linked to the character sheet</a>. </li> <li>Type !pf_npc. The script attempts to use the stat block to fill out the NPC section of the Starfinder (Simple) character sheet. </li></ol> <p>The script supports character stat blocks from the <a href=\"https://2e.aonprd.com/\">Archives of Nethys</a> and <span style=\"font-style: italic;\">Society PDFs. Double check the results after importing a stat block. From time to time, abilities of various types MAY include text from another ability. IF THIS HAPPENS, you can add the @ to enforce separating abilities. Alternatively, if an ability is parsed such that part of the text is placed in a separate ability, usually this can be resolved by making sure there is no line break in the ability text.</span></p> <p>&nbsp;</p><p><em><strong>!pf_clean</strong></em></p> <p>I've included this for completeness, but be warned - this command will <span style=\"text-decoration: underline;\"><strong>PERMANENTLY ERASE</strong></span> things from the character sheet so use with caution. As above, this command requires selecting a token that has been <a href=\"https://wiki.roll20.net/Linking_Tokens_to_Journals\">linked to the character sheet</a>.</p> <p><em>How to:</em></p> <p style=\"padding-left: 40px;\"><em><strong>!pf_clean CONFIRM</strong></em> - This will erase ALL stats from the character sheet AND remove ALL formatting from the token. It will not touch the GM Notes section of the character sheet so it can be reimported using !pf_npc.</p><p>&nbsp;</p><p>Feel free to reach out to me if you find any bug or have any suggestions <a href=\"https://app.roll20.net/users/927625/kahn265\">HERE</a>.</p>";
-    const guidanceGreeting = "Greetings, I am Guidance. I am here to assist you working with your game. " +
-        "To learn more, I created a welcome guide in the journal section.";
+    const version = "v1.1";
+    const guidanceWelcome = "Welcome to Guidance " + version + " for Pathfinder 2nd edition! This tool assists Pathfinder 2e GMs in Roll20.<p>This is a tool to support the Pathfinder GMs in Roll20.</p><p>Guidance allows you to import stat blocks from Archive of Nethys and PFS Society Modules, into the NPC tab of thePathfinder 2 character sheet.</p><p>To use Guidance, Click on a token that has been linked to a character sheet and type the command.</p><p>###Here are the commands currently available:</p><p><strong>!pf_npc</strong> - When a token has been linked to a character sheet, it will read the statblock from the <em>GM Notes</em> sectionof the <em>character sheet</em> and populate the appropriate values in the NPC tab of the character sheet. It also configuresother details about the linked token: HP, AC, and Name. It will generate token macros for Initiative, Saves, and allparsed weapon attacks.</p><p><strong>usage</strong>: Click the token that represents the NPC and type <code>!pf_npc</code> into chat</p><p><strong>!pf_clean</strong> - This command will erase an entire character sheet. Note that you must type &quot;CONFIRM&quot; to allow it to delete.</p><p><strong>usage</strong>: Click the token that represents the NPC and type <code>!pf_clean CONFIRM</code> into chat</p><p><strong>!pf_token</strong> - This command configures the NPC token for GM use. It verifies the name and other details can only be seen bythe GM and will link AC and Hitpoints to the token&#39;s indicators.</p><p><strong>usage</strong>: Click the token that represents the NPC and type <code>!pf_token</code> into chat</p><p><strong>!pf_pcbuilder</strong> - <strong><em>BETA</em></strong> This command allows you to import a player character from PathBuilder. Generate the JSON as you would for Foundry, and then copy it and put it into the &quot;Bio &amp; Info&quot; section of the character sheet (middle tab). Thenselect the token and run this command. I will import the character and do some basic configuration of the Token.</p><p><strong>usage</strong>: Click the token that represents the NPC and type <code>!pf_pcbuilder</code> into chat</p><p><strong>!pf_pctoken</strong> - <strong><em>BETA</em></strong> The command configures a token for a player character. When you select the token and run this command,it will fix a number of common problems with the token to make it usable in Roll20 by players. If the token is not linkedto a character sheet, it will put the RED X over the token to make it easy to identify.</p><p><strong>usage</strong>: Click the token that represents the NPC and type <code>pf_pctoken</code> into chat</p><p>If you find any issues, feel free to reach out to me <a href=\"https://app.roll20.net/users/927625/kahn265\">HERE</a>.</p>";
+    const guidanceGreeting = "Greetings, I am Guidance. I am here to assist you working with your game. To learn more, I created a welcome guide in the journal section.";
 
     let debugMode = true;
 
@@ -14,7 +14,8 @@ var Guidance = Guidance || function () {
     const commandToken = prefix + "token";
     const commandClean = prefix + "clean";
     const commandPopulate = prefix + "npc";
-    const commandPathBuilder = prefix + "pbuilder";
+    const commandPathBuilder = prefix + "pcbuilder";
+    const commandPCToken = prefix + "pctoken";
     const allTraits = "Aftermath,All Ancestries,Archetype,Attack,Aura,Cantrip,Charm,Class,Concentrate,Consecration,Contingency,Curse,Darkness,Death,Dedication,Detection,Deviant,Disease,Downtime,Emotion,Experiment,Exploration,Extradimensional,Fear,Flourish,Focus,Fortune,General,Healing,Incapacitation,Incarnate,Legacy,Light,Lineage,Linguistic,Magical,Manipulate,Mental,Metamagic,Mindshift,Minion,Misfortune,Morph,Move,Multiclass,Open,Polymorph,Possession,Prediction,Press,Radiation,Reckless,Revelation,Scrying,Secret,Skill,Sleep,Spellshape,Splash,Summoned,Tech,Telepathy,Teleportation,Varies,Virulent,Vocal,Chaotic,Evil,Good,Lawful,Aasimar,Anadi,Android,Aphorite,Ardande,Automaton,Azarketi,Beastkin,Catfolk,Changeling,Conrasu,Dhampir,Duskwalker,Dwarf,Elf,Fetchling,Fleshwarp,Ganzi,Geniekin,Ghoran,Gnoll,Gnome,Goblin,Goloma,Grippli,Half-Elf,Halfling,Half-Orc,Hobgoblin,Human,Ifrit,Kashrishi,Kitsune,Kobold,Leshy,Lizardfolk,Nagaji,Orc,Oread,Poppet,Ratfolk,Reflection,Shisk,Shoony,Skeleton,Sprite,Strix,Suli,Sylph,Talos,Tengu,Tiefling,Undine,Vanara,Vishkanya,Adjusted,Aquadynamic,Bulwark,Comfort,Flexible,Hindering,Inscribed,Laminar,Noisy,Ponderous,Alchemist,Barbarian,Bard,Champion,Cleric,Druid,Fighter,Gunslinger,Inventor,Investigator,Kineticist,Magus,Monk,Oracle,Psychic,Ranger,Rogue,Sorcerer,Summoner,Swashbuckler,Thaumaturge,Witch,Wizard,Additive,Amp,Composite,Composition,Cursebound,Eidolon,Esoterica,Evolution,Finisher,Hex,Impulse,Infused,Infusion,Litany,Modification,Oath,Overflow,Psyche,Rage,Social,Spellshot,Stance,Tandem,Unstable,Vigilante,Aberration,Animal,Astral,Beast,Celestial,Construct,Dragon,Dream,Elemental,Ethereal,Fey,Fiend,Fungus,Giant,Humanoid,Monitor,Negative,Ooze,Petitioner,Plant,Positive,Spirit,Time,Undead,Air,Earth,Fire,Metal,Water,Wood,Acid,Cold,Electricity,Force,Sonic,Vitality,Void,Adjustment,Alchemical,Apex,Artifact,Barding,Bomb,Bottled,Breath,Catalyst,Censer,Clockwork,Coda,Companion,Consumable,Contract,Cursed,Drug,Elixir,Entrench,Expandable,Figurehead,Focused,Fulu,Gadget,Grimoire,Intelligent,Invested,Lozenge,Mechanical,Missive,Mutagen,Oil,Potion,Precious,Processed,Relic,Saggorak,Scroll,Snare,Spellgun,Spellheart,Staff,Steam,Structure,Talisman,Tattoo,Trap,Wand,Complex,Environmental,Haunt,Weather,Aeon,Aesir,Agathion,Amphibious,Angel,Anugobu,Aquatic,Arcane,Archon,Asura,Azata,Boggard,Caligni,Charau-ka,Couatl,Daemon,Darvakka,Demon,Dero,Devil,Dinosaur,Div,Drow,Duergar,Formian,Genie,Ghost,Ghoul,Ghul,Golem,Gremlin,Grioth,Hag,Hantu,Herald,Ikeshti,Illusion,Incorporeal,Inevitable,Kaiju,Kami,Kovintus,Lilu,Locathah,Merfolk,Mindless,Morlock,Mortic,Mummy,Munavri,Mutant,Nymph,Oni,Paaridar,Phantom,Protean,Psychopomp,Qlippoth,Rakshasa,Ratajin,Sahkil,Samsaran,Sea Devil,Serpentfolk,Seugathi,Shabti,Shapechanger,Siktempora,Skelm,Skulk,Soulbound,Sporeborn,Spriggan,Stheno,Swarm,Tane,Tanggal,Titan,Troll,Troop,Urdefhan,Vampire,Velstrac,Wayang,Werecreature,Wight,Wild Hunt,Wraith,Wyrwood,Xulgath,Zombie,Erratic,Finite,Flowing,High Gravity,Immeasurable,Low Gravity,Metamorphic,Microgravity,Sentient,Shadow,Static,Strange Gravity,Subjective Gravity,Timeless,Unbounded,Contact,Ingested,Inhaled,Injury,Poison,Abjuration,Conjuration,Divination,Enchantment,Evocation,Necromancy,Transmutation,Auditory,Olfactory,Visual,Deflecting,Foldaway,Harnessed,Hefty,Integrated,Launching,Shield Throw,Divine,Occult,Primal,Agile,Attached,Backstabber,Backswing,Brace,Brutal,Capacity,Climbing,Cobbled,Combination,Concealable,Concussive,Critical Fusion,Deadly,Disarm,Double,Barrel,Fatal,Fatal Aim,Finesse,Forceful,Free-Hand,Grapple,Hampering,Injection,Jousting,Kickback,Modular,Mounted,Nonlethal,Parry,Portable,Propulsive,Range,Ranged Trip,Razing,Reach,Recovery,Reload,Repeating,Resonant,Scatter,Shove,Sweep,Tethered,Thrown,Training,Trip,Twin,Two-Hand,Unarmed,Vehicular,Versatile,Volley";
 
     //<editor-fold desc="Support Methods"  defaultstate="collapsed" >
@@ -283,7 +284,6 @@ var Guidance = Guidance || function () {
     //<editor-fold desc="on(ready) event"  defaultstate="collapsed" >
     on("ready", function () {
         speakAsGuidanceToGM(guidanceGreeting);
-
         let handoutName = "Welcome To Guidance";
         let objs = findObjs({name: handoutName, _type: "handout"});
         let userGuide;
@@ -291,10 +291,10 @@ var Guidance = Guidance || function () {
             userGuide = createObj("handout", {
                 name: handoutName
             });
-            userGuide.set("notes", guidanceWelcome);
         } else {
             userGuide = objs[0];
         }
+        userGuide.set("notes", guidanceWelcome);
         userGuide.get("gmnotes", function (gmNotes) {
             if (gmNotes.includes("debug")) {
                 debugMode = true;
@@ -319,6 +319,7 @@ var Guidance = Guidance || function () {
         let selectedNPCs = getSelectedNPCs(chatMessage.selected);
 
         try {
+            //<editor-fold desc="commandPCToken - Import a character from Pathbuilder">
             if (chatAPICommand.startsWith(commandPathBuilder)) {
                 selectedNPCs.forEach(function (c) {
                     c.characterSheet.get("bio", function (notes) {
@@ -337,6 +338,17 @@ var Guidance = Guidance || function () {
 
                 return;
             }
+            //</editor-fold>
+
+            //<editor-fold desc="commandPCToken - Configure the Player Character Token">
+            if (chatAPICommand.startsWith(commandPCToken)) {
+                selectedNPCs.forEach(function (c) {
+                    fixPlayerToken(c);
+                });
+                return;
+            }
+            //</editor-fold>
+
             //<editor-fold desc="commandHelp - Show Help information for using Guidance">
             if (chatAPICommand.startsWith(commandHelp)) {
                 speakAsGuidanceToGM(guidanceWelcome);
@@ -351,7 +363,7 @@ var Guidance = Guidance || function () {
                     return;
                 }
                 let selectedNPC = selectedNPCs[0];
-                if (chatAPICommand.includes("CONFIRM")) {
+                if (chatAPICommand.includes("confirm")) {
                     eraseCharacter(selectedNPC);
                 } else {
                     speakAsGuidanceToGM("Check usage for " + commandClean);
@@ -375,7 +387,7 @@ var Guidance = Guidance || function () {
             }
             //</editor-fold>
 
-            //<editor-fold desc="commandToken - Configure Token linked to Sheet">
+            //<editor-fold desc="commandToken - Configure NPC Token linked to Sheet">
             if (chatAPICommand.startsWith(commandToken)) {
                 selectedNPCs.forEach(configureToken);
                 return;
@@ -442,82 +454,126 @@ var Guidance = Guidance || function () {
         const npcToken = character.npcToken;
         const characterSheet = character.characterSheet;
 
-        characterSheet.set("name", cObj.name);
-        npcToken.set("name", cObj.name);
-        setAttribute(characterId, "ancestry_heritage", cObj.ancestry + " / " + cObj.heritage);
-        setAttribute(characterId, "class", cObj.class);
-        setAttribute(characterId, "background", cObj.background);
-        setAttribute(characterId, "size", cObj.sizeName);
-        setAttribute(characterId, "alignment", cObj.alignment);
-        setAttribute(characterId, "deity", cObj.deity);
-        setAttribute(characterId, "age", cObj.age);
-        setAttribute(characterId, "gender_pronouns", cObj.gender);
-        setAttribute(characterId, "level", cObj.level);
-        setPlayerAttribute(characterId, "strength", cObj.abilities.str);
-        setPlayerAttribute(characterId, "dexterity", cObj.abilities.dex);
-        setPlayerAttribute(characterId, "constitution", cObj.abilities.con);
-        setPlayerAttribute(characterId, "intelligence", cObj.abilities.int);
-        setPlayerAttribute(characterId, "wisdom", cObj.abilities.wis);
-        setPlayerAttribute(characterId, "charisma", cObj.abilities.cha);
-        setAttribute(characterId, "speed", cObj.attributes.speed);
-        setAttribute(characterId, "speed_bonus_total", cObj.attributes.ancestryhp);
-        let hp = parseInt(cObj.attributes.classhp) + parseInt(cObj.attributes.bonushpPerLevel);
-        setAttribute(characterId, "hit_points_class", hp);
-        setAttribute(characterId, "hit_points_ancestry", cObj.attributes.ancestryhp);
-        setAttribute(characterId, "acrobatics_rank", cObj.proficiencies.acrobatics);
-        setAttribute(characterId, "arcana_rank", cObj.proficiencies.arcana);
-        setAttribute(characterId, "athletics_rank", cObj.proficiencies.athletics);
-        setAttribute(characterId, "crafting_rank", cObj.proficiencies.crafting);
-        setAttribute(characterId, "deception_rank", cObj.proficiencies.deception);
-        setAttribute(characterId, "diplomacy_rank", cObj.proficiencies.diplomacy);
-        setAttribute(characterId, "intimidation_rank", cObj.proficiencies.intimidation);
-        setAttribute(characterId, "medicine_rank", cObj.proficiencies.medicine);
-        setAttribute(characterId, "nature_rank", cObj.proficiencies.nature);
-        setAttribute(characterId, "occultism_rank", cObj.proficiencies.occultism);
-        setAttribute(characterId, "performance_rank", cObj.proficiencies.performance);
-        setAttribute(characterId, "religion_rank", cObj.proficiencies.religion);
-        setAttribute(characterId, "society_rank", cObj.proficiencies.society);
-        setAttribute(characterId, "stealth_rank", cObj.proficiencies.stealth);
-        setAttribute(characterId, "survival_rank", cObj.proficiencies.survival);
-        setAttribute(characterId, "thievery_rank", cObj.proficiencies.thievery);
-        setAttribute(characterId, "perception_rank", cObj.proficiencies.perception);
-        setAttribute(characterId, "saving_throws_fortitude_rank", cObj.proficiencies.fortitude);
-        setAttribute(characterId, "saving_throws_reflex_rank", cObj.proficiencies.reflex);
-        setAttribute(characterId, "saving_throws_will_rank", cObj.proficiencies.will);
-        setAttribute(characterId, "class_dc_rank", cObj.proficiencies.classDC);
-        let keyability = fullAttributeName(cObj.keyability);
-        setAttribute(characterId, "class_dc_key_ability_select", "@{" + keyability + "_modifier}");
-        setAttribute(characterId, "cp", cObj.money.cp);
-        setAttribute(characterId, "sp", cObj.money.sp);
-        setAttribute(characterId, "gp", cObj.money.gp);
-        setAttribute(characterId, "pp", cObj.money.pp);
-        if (cObj.armor.size > 0) {
-            let name = cObj.armor[0].display;
-            if (isEmpty(name)) {
-                name = cObj.armor[0].name;
-            }
-            setAttribute(characterId, "armor_class_armor_name", name);
-            setAttribute(characterId, "armor_class_dc_rank", cObj.acTotal.acItemBonus);
-        }
+        try {
+            characterSheet.set("name", cObj.name);
+            npcToken.set("name", cObj.name);
+            setAttribute(characterId, "ancestry_heritage", cObj.ancestry + " / " + cObj.heritage);
+            setAttribute(characterId, "class", cObj.class);
+            setAttribute(characterId, "background", cObj.background);
+            setAttribute(characterId, "size", cObj.sizeName);
+            setAttribute(characterId, "alignment", cObj.alignment);
+            setAttribute(characterId, "deity", cObj.deity);
+            setAttribute(characterId, "age", cObj.age);
+            setAttribute(characterId, "gender_pronouns", cObj.gender);
+            setAttribute(characterId, "level", cObj.level);
+            setPlayerAttribute(characterId, "strength", cObj.abilities.str);
+            setPlayerAttribute(characterId, "dexterity", cObj.abilities.dex);
+            setPlayerAttribute(characterId, "constitution", cObj.abilities.con);
+            setPlayerAttribute(characterId, "intelligence", cObj.abilities.int);
+            setPlayerAttribute(characterId, "wisdom", cObj.abilities.wis);
+            setPlayerAttribute(characterId, "charisma", cObj.abilities.cha);
+            setAttribute(characterId, "speed", cObj.attributes.speed);
+            setAttribute(characterId, "speed_bonus_total", cObj.attributes.ancestryhp);
+            let hp = parseInt(cObj.attributes.classhp) + parseInt(cObj.attributes.bonushpPerLevel);
+            setAttribute(characterId, "hit_points_class", hp);
+            setAttribute(characterId, "hit_points_ancestry", cObj.attributes.ancestryhp);
+            setAttribute(characterId, "acrobatics_rank", cObj.proficiencies.acrobatics);
+            setAttribute(characterId, "arcana_rank", cObj.proficiencies.arcana);
+            setAttribute(characterId, "athletics_rank", cObj.proficiencies.athletics);
+            setAttribute(characterId, "crafting_rank", cObj.proficiencies.crafting);
+            setAttribute(characterId, "deception_rank", cObj.proficiencies.deception);
+            setAttribute(characterId, "diplomacy_rank", cObj.proficiencies.diplomacy);
+            setAttribute(characterId, "intimidation_rank", cObj.proficiencies.intimidation);
+            setAttribute(characterId, "medicine_rank", cObj.proficiencies.medicine);
+            setAttribute(characterId, "nature_rank", cObj.proficiencies.nature);
+            setAttribute(characterId, "occultism_rank", cObj.proficiencies.occultism);
+            setAttribute(characterId, "performance_rank", cObj.proficiencies.performance);
+            setAttribute(characterId, "religion_rank", cObj.proficiencies.religion);
+            setAttribute(characterId, "society_rank", cObj.proficiencies.society);
+            setAttribute(characterId, "stealth_rank", cObj.proficiencies.stealth);
+            setAttribute(characterId, "survival_rank", cObj.proficiencies.survival);
+            setAttribute(characterId, "thievery_rank", cObj.proficiencies.thievery);
+            setAttribute(characterId, "perception_rank", cObj.proficiencies.perception);
+            setAttribute(characterId, "saving_throws_fortitude_rank", cObj.proficiencies.fortitude);
+            setAttribute(characterId, "saving_throws_reflex_rank", cObj.proficiencies.reflex);
+            setAttribute(characterId, "saving_throws_will_rank", cObj.proficiencies.will);
+            setAttribute(characterId, "class_dc_rank", cObj.proficiencies.classDC);
+            let keyability = fullAttributeName(cObj.keyability);
+            setAttribute(characterId, "class_dc_key_ability_select", "@{" + keyability + "_modifier}");
+            setAttribute(characterId, "cp", cObj.money.cp);
+            setAttribute(characterId, "sp", cObj.money.sp);
+            setAttribute(characterId, "gp", cObj.money.gp);
+            setAttribute(characterId, "pp", cObj.money.pp);
+            setAttribute(characterId, "focus_points", cObj.focusPoints);
 
-        for (const element of cObj.feats) {
-            let guid = generateRowID();
-            if (element[2].includes("Archetype")) {
-                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_archetype", element[0]);
-                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_archetype", element[3]);
-            } else if (element[2].includes("General")) {
-                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_general", element[0]);
-                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_general", element[3]);
-            } else if (element[2].includes("Skill")) {
-                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_skill", element[0]);
-                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_skill", element[3]);
-            } else if (element[2].includes("Ancestry")) {
-                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_ancestry", element[0]);
-                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_level", element[3]);
-            } else {
-                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_class", element[0]);
-                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_class", element[3]);
+            for (const element of cObj.feats) {
+                let guid = generateRowID();
+                let featType = "";
+                if (element[2].includes("Archetype")) {
+                    featType = "archetype";
+                } else if (element[2].includes("General")) {
+                    featType = "general";
+                } else if (element[2].includes("Skill")) {
+                    featType = "skill";
+                } else if (element[2].includes("Ancestry")) {
+                    featType = "ancestry";
+                } else {
+                    featType = "class";
+                }
+                setAttribute(characterId, "repeating_feat-" + featType + "_" + guid + "_feat_" + featType, element[0]);
+                setAttribute(characterId, "repeating_feat-" + featType + "_" + guid + "_feat_" + featType + "_level", element[3]);
+                setAttribute(characterId, "repeating_feat-" + featType + "_" + guid + "_feat_" + featType + "_type", element[2]);
+                setAttribute(characterId, "repeating_feat-" + featType + "_" + guid + "_toggles", "display,");
             }
+            for (const element of cObj.specials) {
+                let guid = generateRowID();
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_ancestry", element);
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_feat_ancestry_type", "Special Ability");
+                setAttribute(characterId, "repeating_feat-ancestry_-" + guid + "_toggles", "display,");
+            }
+
+            if (cObj.armor.length > 0) {
+                let name = cObj.armor[0].display;
+                if (isEmpty(name)) {
+                    name = cObj.armor[0].name;
+                }
+                setAttribute(characterId, "armor_class_armor_name", name);
+                setAttribute(characterId, "armor_class_item", cObj.acTotal.acItemBonus);
+                if (cObj.armor.length > 1) {
+                    name = cObj.armor[1].display;
+                    if (isEmpty(name)) {
+                        name = cObj.armor[1].name;
+                    }
+                    setAttribute(characterId, "armor_class_shield_name", name);
+                    setAttribute(characterId, "armor_class_shield_ac_bonus", cObj.acTotal.shieldBonus);
+
+                }
+            }
+
+            for (const element of cObj.lores) {
+                let guid = generateRowID();
+                setAttribute(characterId, "repeating_lore_" + guid + "_lore_name", element[0]);
+                setAttribute(characterId, "repeating_lore_" + guid + "_lore_rank", element[2]);
+                setAttribute(characterId, "repeating_lore_" + guid + "_toggles", "display,");
+            }
+
+            for (const element of cObj.weapons) {
+                let guid = generateRowID();
+                setAttribute(characterId, "repeating_melee-strikes_" + guid + "_weapon", element.display);
+                setAttribute(characterId, "repeating_melee-strikes_" + guid + "_toggles", "display,");
+                setAttribute(characterId, "repeating_melee-strikes_-" + guid + "_weapon_category", element.prof);
+                setAttribute(characterId, "repeating_melee-strikes_-" + guid + "_damage_dice", element.die);
+                setAttribute(characterId, "repeating_melee-strikes_-" + guid + "_damage_dice_size", element.die);
+                setAttribute(characterId, "repeating_melee-strikes_-" + guid + "_damage" + element.damageType.toLowerCase(), 1);
+                setAttribute(characterId, "repeating_melee-strikes_-" + guid + "_damage_other", element.damageBonus);
+            }
+
+            speakAsGuidanceToGM(cObj.name + " has been imported.");
+            speakAsGuidanceToGM("I'm still figuring out how to do weapons, so you need to check those.");
+        } catch (err) {
+            speakAsGuidanceToGM("I have encountered an error importing this character.");
+            log(err)
+            log(new Error().stack);
         }
     }
 
