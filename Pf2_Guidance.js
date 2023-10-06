@@ -209,6 +209,10 @@ var Guidance = Guidance || function () {
         sendChat("Guidance", text);
     };
 
+    let speakAsGuidanceToAll = function (text) {
+        text = "&{template:default} {{name=Guidance}} {{" + text + "}}";
+        sendChat("Guidance", text);
+    };
     let toTitleCase = function (str) {
         str = str.toLowerCase().split(' ');
         for (let i = 0; i < str.length; i++) {
@@ -557,8 +561,10 @@ var Guidance = Guidance || function () {
                 setAttribute(characterId, "repeating_lore_" + guid + "_toggles", "display,");
             }
 
+            let weapon = false;
             for (const element of cObj.weapons) {
                 let guid = generateRowID();
+                weapon = true;
                 setAttribute(characterId, "repeating_melee-strikes_" + guid + "_weapon", element.display);
                 setAttribute(characterId, "repeating_melee-strikes_" + guid + "_toggles", "display,");
                 setAttribute(characterId, "repeating_melee-strikes_-" + guid + "_weapon_category", element.prof);
@@ -567,9 +573,12 @@ var Guidance = Guidance || function () {
                 setAttribute(characterId, "repeating_melee-strikes_-" + guid + "_damage" + element.damageType.toLowerCase(), 1);
                 setAttribute(characterId, "repeating_melee-strikes_-" + guid + "_damage_other", element.damageBonus);
             }
+            if (weapon) {
+                speakAsGuidanceToAll("I have detected a weapon. I don't have Range/Reload information, so I'm logging it as a Melee weapon. " +
+                    "Regardless of category, it will still function for gaming. Check the compendium or Archives of Nethys for missing information.");
+            }
 
-            speakAsGuidanceToGM(cObj.name + " has been imported.");
-            speakAsGuidanceToGM("I'm still figuring out how to do weapons, so you need to check those.");
+            speakAsGuidanceToAll(cObj.name + " has been imported.");
         } catch (err) {
             speakAsGuidanceToGM("I have encountered an error importing this character.");
             log(err)

@@ -272,6 +272,24 @@
         "extraDamage": []
       }
     ],
+    ,
+    "weapons": [
+      {
+        "name": "Blowgun",
+        "qty": 1,
+        "prof": "simple",
+        "die": "d1",
+        "pot": 1,
+        "str": "striking",
+        "mat": null,
+        "display": "+1 Striking Blowgun",
+        "runes": [],
+        "damageType": "P",
+        "attack": 11,
+        "damageBonus": 0,
+        "extraDamage": []
+      }
+    ],
     "money": {
       "cp": 0,
       "sp": 0,

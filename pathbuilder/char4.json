@@ -1,0 +1,338 @@
+{
+  "success": true,
+  "build": {
+    "name": "Alliean",
+    "class": "Kineticist",
+    "dualClass": null,
+    "level": 6,
+    "ancestry": "Leshy",
+    "heritage": "Leaf Leshy",
+    "background": "Magical Misfit",
+    "alignment": "N",
+    "gender": "Not set",
+    "age": "Not set",
+    "deity": "Not set",
+    "size": 1,
+    "sizeName": "Small",
+    "keyability": "con",
+    "languages": [],
+    "rituals": [],
+    "resistances": [],
+    "attributes": {
+      "ancestryhp": 8,
+      "classhp": 8,
+      "bonushp": 0,
+      "bonushpPerLevel": 1,
+      "speed": 25,
+      "speedBonus": 0
+    },
+    "abilities": {
+      "str": 14,
+      "dex": 14,
+      "con": 19,
+      "int": 12,
+      "wis": 14,
+      "cha": 12,
+      "breakdown": {
+        "ancestryFree": [
+          "Dex",
+          "Con"
+        ],
+        "ancestryBoosts": [],
+        "ancestryFlaws": [],
+        "backgroundBoosts": [
+          "Int",
+          "Con"
+        ],
+        "classBoosts": [
+          "Con"
+        ],
+        "mapLevelledBoosts": {
+          "1": [
+            "Con",
+            "Dex",
+            "Wis",
+            "Str"
+          ],
+          "5": [
+            "Con",
+            "Wis",
+            "Cha",
+            "Str"
+          ]
+        }
+      }
+    },
+    "proficiencies": {
+      "classDC": 2,
+      "perception": 2,
+      "fortitude": 4,
+      "reflex": 4,
+      "will": 4,
+      "heavy": 0,
+      "medium": 0,
+      "light": 2,
+      "unarmored": 2,
+      "advanced": 0,
+      "martial": 0,
+      "simple": 2,
+      "unarmed": 2,
+      "castingArcane": 0,
+      "castingDivine": 0,
+      "castingOccult": 0,
+      "castingPrimal": 0,
+      "acrobatics": 2,
+      "arcana": 2,
+      "athletics": 2,
+      "crafting": 0,
+      "deception": 0,
+      "diplomacy": 0,
+      "intimidation": 2,
+      "medicine": 2,
+      "nature": 4,
+      "occultism": 0,
+      "performance": 0,
+      "religion": 0,
+      "society": 2,
+      "stealth": 4,
+      "survival": 2,
+      "thievery": 2
+    },
+    "mods": {
+      "Stealth": {
+        "Potency Bonus": 1
+      }
+    },
+    "feats": [
+      [
+        "Trick Magic Item",
+        null,
+        "Awarded Feat",
+        1
+      ],
+      [
+        "Leaf Leshy",
+        null,
+        "Heritage",
+        1
+      ],
+      [
+        "Deflecting Wave",
+        null,
+        "Kineticist Feat",
+        1
+      ],
+      [
+        "Leshy Lore",
+        null,
+        "Ancestry Feat",
+        1
+      ],
+      [
+        "Hardwood Armor",
+        null,
+        "Kineticist Feat",
+        1
+      ],
+      [
+        "Weapon Infusion",
+        null,
+        "Class Feat",
+        1
+      ],
+      [
+        "Quick Identification",
+        null,
+        "Skill Feat",
+        2
+      ],
+      [
+        "Timber Sentinel",
+        null,
+        "Class Feat",
+        2
+      ],
+      [
+        "Rogue Dedication",
+        null,
+        "Archetype Feat",
+        2
+      ],
+      [
+        "Terrain Stalker",
+        "Terrain Stalker",
+        "Skill Feat",
+        2
+      ],
+      [
+        "Toughness",
+        null,
+        "General Feat",
+        3
+      ],
+      [
+        "Quiet Allies",
+        null,
+        "Skill Feat",
+        4
+      ],
+      [
+        "Safe Elements",
+        null,
+        "Class Feat",
+        4
+      ],
+      [
+        "Basic Trickery",
+        null,
+        "Archetype Feat",
+        4
+      ],
+      [
+        "Mobility",
+        null,
+        "Rogue Feat",
+        4
+      ],
+      [
+        "Leshy Glide",
+        null,
+        "Ancestry Feat",
+        5
+      ],
+      [
+        "Ravel of Thorns",
+        null,
+        "Kineticist Feat",
+        5
+      ],
+      [
+        "Elemental Familiar",
+        null,
+        "Class Feat",
+        6
+      ]
+    ],
+    "specials": [
+      "Plant Nourishment",
+      "Kinetic Aura",
+      "Dual Gate",
+      "Channel Elements",
+      "Low-Light Vision",
+      "Wood Element",
+      "Water Element",
+      "Impulses",
+      "Elemental Blast",
+      "Base Kinesis",
+      "Surprise Attack",
+      "Stealth",
+      "Extract Element",
+      "Will Expertise",
+      "Expand the Portal",
+      "Water Impulse Junction",
+      "Not Selected",
+      "Leaf Leshy"
+    ],
+    "lores": [
+      [
+        "Underworld",
+        2
+      ],
+      [
+        "Leshy Lore",
+        2
+      ]
+    ],
+    "equipmentContainers": {},
+    "equipment": [],
+    "specificProficiencies": {
+      "trained": [],
+      "expert": [],
+      "master": [],
+      "legendary": []
+    },
+    "weapons": [
+      {
+        "name": "Blowgun",
+        "qty": 1,
+        "prof": "simple",
+        "die": "d1",
+        "pot": 1,
+        "str": "striking",
+        "mat": null,
+        "display": "+1 Striking Blowgun",
+        "runes": [],
+        "damageType": "P",
+        "attack": 11,
+        "damageBonus": 0,
+        "extraDamage": []
+      },
+      {
+        "name": "Unnamed Weapon",
+        "qty": 1,
+        "prof": "simple",
+        "die": "d8",
+        "pot": 1,
+        "str": "striking",
+        "mat": null,
+        "display": "+1 Striking Unnamed Weapon",
+        "runes": [],
+        "damageType": "S",
+        "attack": 11,
+        "damageBonus": 2,
+        "extraDamage": []
+      }
+    ],
+    "money": {
+      "cp": 0,
+      "sp": 0,
+      "gp": 15,
+      "pp": 0
+    },
+    "armor": [
+      {
+        "name": "Hardwood Armor",
+        "qty": 1,
+        "prof": "unarmored",
+        "pot": 1,
+        "res": "",
+        "mat": null,
+        "display": "+1 Hardwood Armor",
+        "worn": true,
+        "runes": []
+      },
+      {
+        "name": "Leaf Shield",
+        "qty": 1,
+        "prof": "shield",
+        "pot": 0,
+        "res": "",
+        "mat": null,
+        "display": "",
+        "worn": true,
+        "runes": []
+      }
+    ],
+    "spellCasters": [],
+    "focusPoints": 0,
+    "focus": {},
+    "formula": [],
+    "acTotal": {
+      "acProfBonus": 8,
+      "acAbilityBonus": 2,
+      "acItemBonus": 4,
+      "acTotal": 24,
+      "shieldBonus": "2"
+    },
+    "pets": [],
+    "familiars": [
+      {
+        "type": "Familiar",
+        "name": "Familiar",
+        "equipment": [],
+        "specific": null,
+        "abilities": []
+      }
+    ]
+  }
+}
